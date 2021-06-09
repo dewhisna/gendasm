@@ -1,0 +1,32 @@
+/.project
+*.pro.user*
+CMakeLists.txt.user*
+
+.make.cache
+.qmake.cache
+.qmake.vars
+
+*~
+*.bak
+*.a
+*.la
+*.lib
+*.moc
+*.o
+*.obj
+*.orig
+*.temp
+*.so
+*.core
+.DS_Store
+.svn
+*.qm
+
+# Junk Folders:
+/**/junk
+
+# Build targets:
+# --------------
+build-*/
+
+
