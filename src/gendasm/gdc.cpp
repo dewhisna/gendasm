@@ -913,31 +913,15 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 				bRetVal = false;
 				--m_nFilesLoaded;
 				m_sInputFileList.erase(m_sInputFileList.end()-1);
-				switch (aErr.m_nErrorCode) {
-					case EXCEPTION_ERROR::ERR_CHECKSUM:
-						if (errFile) {
-							(*errFile) << "*** Error: Checksum error reading file \"" << strFilename << "\"\n";
-						}
-						break;
-					case EXCEPTION_ERROR::ERR_UNEXPECTED_EOF:
-						if (errFile) {
-							(*errFile) << "*** Error: Unexpected end-of-file reading \"" << strFilename << "\"\n";
-						}
-						break;
-					case EXCEPTION_ERROR::ERR_OVERFLOW:
-						if (errFile) {
-							(*errFile) << "*** Error: Reading file \"" << strFilename << "\" extends past the defined memory limits of this processor\n";
-						}
-						break;
-					case EXCEPTION_ERROR::ERR_READFAILED:
-						if (errFile) {
-							(*errFile) << "*** Error: Reading file \"" << strFilename << "\"\n";
-						}
-						break;
-					default:
-						if (errFile) {
-							(*errFile) << "*** Error: Unknown DFC Error encountered while reading file \"" << strFilename << "\"\n";
-						}
+				if (errFile) {
+					(*errFile) << "*** " << aErr.errorMessage();
+					if (aErr.m_nData) {
+						(*errFile) << " on Line " << aErr.m_nData;
+					}
+					if (!aErr.m_strDetail.empty()) {
+						(*errFile) << " (" << aErr.m_strDetail << ")";
+					}
+					(*errFile) << " reading file \"" << strFilename << "\"\n";
 				}
 			}
 			if (!bStatus) {

@@ -36,9 +36,10 @@ public:
 		ERR_FILEEXISTS,
 		ERR_CHECKSUM,
 		ERR_UNEXPECTED_EOF,
-		ERR_OVERFLOW,
+		ERR_OVERFLOW,					// Either Memory Overflow (attempt to read into space not allocated) or File Overflow (attempt to write addressing/data to file that can't accept it)
 		ERR_WRITEFAILED,
 		ERR_READFAILED,
+		ERR_INVALID_RECORD,				// DFC file record invalid (such as too short or wrong syntax)
 		ERR_CODE_COUNT
 	};
 
@@ -53,6 +54,7 @@ public:
 	std::string m_strDetail;		// Extended error message detail, like filename, etc.
 
 	static const std::string &errorMessage(ERR_CODE nErrorCode);
+	inline std::string errorMessage() const { return errorMessage(m_nErrorCode); }
 };
 
 #endif

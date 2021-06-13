@@ -26,8 +26,10 @@ const std::string &EXCEPTION_ERROR::errorMessage(ERR_CODE nErrorCode)
 		"Error: Overflow",						//		ERR_OVERFLOW
 		"Error: Write Failed",					//		ERR_WRITEFAILED
 		"Error: Read Failed",					//		ERR_READFAILED
+		"Error: Invalid Record",				//		ERR_INVALID_RECORD
 	};
+	static const std::string strUnknownError = "Error: Unknown error encountered";
 
-	return arrErrorMessages[nErrorCode];
+	return ((nErrorCode < ERR_CODE_COUNT) ? arrErrorMessages[nErrorCode] : strUnknownError);
 }
 
