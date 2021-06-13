@@ -794,7 +794,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			MEMORY_TYPE nType = MT_ROM;		// Assume ROM if not specified
 
 			if (argv.size() == 4) {
-				int nParsedType = parseKeyword(g_mapParseRefType, makeUpperCopy(argv.at(1)));
+				int nParsedType = parseKeyword(g_mapParseMemType, makeUpperCopy(argv.at(1)));
 				if (nParsedType == -1) {
 					// If all args were specified, error out if type not valid
 					nArgError = ARGERR_Illegal_Arg;
