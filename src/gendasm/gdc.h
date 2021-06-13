@@ -321,9 +321,9 @@ public:
 	CDisassembler();
 	virtual ~CDisassembler();
 
-	virtual unsigned int GetVersionNumber();			// Base function returns GDC version is most-significant word.  Overrides should call this parent to get the GDC version and then set the least-significant word with the specific disassembler version.
-	virtual std::string GetGDCLongName() = 0;			// Pure virtual.  Defines the long name for this disassembler
-	virtual std::string GetGDCShortName() = 0;			// Pure virtual.  Defines the short name for this disassembler
+	virtual unsigned int GetVersionNumber() const;		// Base function returns GDC version is most-significant word.  Overrides should call this parent to get the GDC version and then set the least-significant word with the specific disassembler version.
+	virtual std::string GetGDCLongName() const = 0;		// Pure virtual.  Defines the long name for this disassembler
+	virtual std::string GetGDCShortName() const = 0;	// Pure virtual.  Defines the short name for this disassembler
 
 	virtual bool ReadControlFile(ifstreamControlFile& inFile, bool bLastFile = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);	// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial m_nCtrlLine value
 	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
@@ -481,6 +481,21 @@ protected:
 private:
 
 	int m_LAdrDplyCnt;					// Label address display count -- used to format output
+};
+
+// ============================================================================
+
+class CDisassemblers : public std::vector<const CDisassembler *>
+{
+private:
+	CDisassemblers();
+public:
+	~CDisassemblers();
+
+	const CDisassembler *locateDisassembler(const std::string &strGDCName) const;
+	static CDisassemblers *instance();
+
+	static void registerDisassembler(const CDisassembler *pDisassembler);
 };
 
 // ============================================================================

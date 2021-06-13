@@ -126,7 +126,7 @@ CDisassembler::~CDisassembler()
 
 // ----------------------------------------------------------------------------
 
-unsigned int CDisassembler::GetVersionNumber()
+unsigned int CDisassembler::GetVersionNumber() const
 {
 	return (VERSION << 16);
 }
@@ -2505,6 +2505,35 @@ TLabel CDisassembler::GenLabel(TAddress nAddress)
 
 	sstrTemp << "L" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nAddress;
 	return sstrTemp.str();
+}
+
+// ============================================================================
+
+CDisassemblers *CDisassemblers::instance()
+{
+	static CDisassemblers Disassemblers;
+	return &Disassemblers;
+}
+
+CDisassemblers::CDisassemblers()
+{
+}
+
+CDisassemblers::~CDisassemblers()
+{
+}
+
+const CDisassembler *CDisassemblers::locateDisassembler(const std::string &strGDCName) const
+{
+	for (unsigned int ndx = 0; ndx < size(); ++ndx) {
+		if (compareNoCase(strGDCName, at(ndx)->GetGDCShortName()) == 0) return at(ndx);
+	}
+	return nullptr;
+}
+
+void CDisassemblers::registerDisassembler(const CDisassembler *pDisassembler)
+{
+	instance()->push_back(pDisassembler);
 }
 
 // ============================================================================

@@ -28,9 +28,9 @@ class CM6811Disassembler : public CDisassembler, protected CDisassemblerData<CM6
 public:
 	CM6811Disassembler();
 
-	virtual unsigned int GetVersionNumber();
-	virtual std::string GetGDCLongName();
-	virtual std::string GetGDCShortName();
+	virtual unsigned int GetVersionNumber() const;
+	virtual std::string GetGDCLongName() const;
+	virtual std::string GetGDCShortName() const;
 
 	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 	virtual bool CompleteObjRead(bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);

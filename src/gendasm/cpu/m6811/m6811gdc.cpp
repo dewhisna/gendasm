@@ -454,19 +454,19 @@ CM6811Disassembler::CM6811Disassembler()
 
 // ----------------------------------------------------------------------------
 
-unsigned int CM6811Disassembler::GetVersionNumber()
+unsigned int CM6811Disassembler::GetVersionNumber() const
 {
 	return (CDisassembler::GetVersionNumber() | VERSION);			// Get GDC version and append our version to it
 }
 
-std::string CM6811Disassembler::GetGDCLongName()
+std::string CM6811Disassembler::GetGDCLongName() const
 {
-	return "M6811 Disassembler GDC";
+	return "M6811 Disassembler";
 }
 
-std::string CM6811Disassembler::GetGDCShortName()
+std::string CM6811Disassembler::GetGDCShortName() const
 {
-	return "M6811GDC";
+	return "M6811";
 }
 
 // ----------------------------------------------------------------------------
