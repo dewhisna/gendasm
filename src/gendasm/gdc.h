@@ -326,13 +326,53 @@ public:
 	virtual std::string GetGDCShortName() const = 0;	// Pure virtual.  Defines the short name for this disassembler
 
 	virtual bool ReadControlFile(ifstreamControlFile& inFile, bool bLastFile = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);	// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial m_nCtrlLine value
-	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
 	virtual bool ReadSourceFile(const std::string & strFilename, TAddress nLoadAddress, const std::string & strDFCLibrary, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Reads source file named strFilename using DFC strDFCLibrary
+	virtual bool Disassemble(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, std::ostream *outFile = nullptr);		// Disassembles entire loaded memory and outputs info to outFile if non-nullptr or opens and writes the file specified by m_sOutputFilename -- calls Pass1 and Pass2 to perform this processing
+
+	// --------------------------------
+
+	virtual bool flagAddr() const { return m_bAddrFlag; }
+	virtual void setFlagAddr(bool bFlag) { m_bAddrFlag = bFlag; }
+
+	virtual bool flagOpcode() const { return m_bOpcodeFlag; }
+	virtual void setFlagOpcode(bool bFlag) { m_bOpcodeFlag = bFlag; }
+
+	virtual bool flagAscii() const { return m_bAsciiFlag; }
+	virtual void setFlagAscii(bool bFlag) { m_bAsciiFlag = bFlag; }
+
+	virtual bool flagSpit() const { return m_bSpitFlag; }
+	virtual void setFlagSpit(bool bFlag) { m_bSpitFlag = bFlag; }
+
+	virtual bool flagTabs() const { return m_bTabsFlag; }
+	virtual void setFlagTabs(bool bFlag) { m_bTabsFlag = bFlag; }
+
+	virtual bool flagAsciiBytes() const { return m_bAsciiBytesFlag; }
+	virtual void setFlagAsciiBytes(bool bFlag) { m_bAsciiBytesFlag = bFlag; }
+
+	virtual bool flagDataOpBytes() const { return m_bDataOpBytesFlag; }
+	virtual void setFlagDataOpBytes(bool bFlag) { m_bDataOpBytesFlag = bFlag; }
+
+	virtual int maxNonPrint() const { return m_nMaxNonPrint; }
+	virtual void setMaxNonPrint(int nValue) { m_nMaxNonPrint = nValue; }
+
+	virtual int maxPrint() const { return m_nMaxPrint; }
+	virtual void setMaxPrint(int nValue) { m_nMaxPrint = nValue; }
+
+	virtual int tabWidth() const { return m_nTabWidth; }
+	virtual void setTabWidth(int nValue) { m_nTabWidth = nValue; }
+
+	virtual int defaultBase() const { return m_nDefaultBase; }
+	virtual void setDefaultBase(int nValue) { m_nDefaultBase = nValue; }
+
+	virtual std::string defaultDFC() const { return m_sDefaultDFC; }
+	virtual void setDefaultDFC(const std::string &strDFC) { m_sDefaultDFC = strDFC; }
+
+protected:
+	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
 
 	virtual bool ScanEntries(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Scans through the entry list looking for code
 	virtual bool ScanBranches(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Scans through the branch lists looking for code
 	virtual bool ScanData(const std::string & strExcludeChars, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);			// Scans through the data that remains and tags it as printable or non-printable
-	virtual bool Disassemble(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, std::ostream *outFile = nullptr);		// Disassembles entire loaded memory and outputs info to outFile if non-nullptr or opens and writes the file specified by m_sOutputFilename -- calls Pass1 and Pass2 to perform this processing
 
 	virtual bool Pass1(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Performs Pass1 which finds code and data -- i.e. calls Scan functions
 	virtual bool Pass2(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Performs Pass2 which is the actual disassemble stage
@@ -429,6 +469,7 @@ public:
 
 	// --------------------------------
 
+protected:
 	// Output Flags and Control Values:
 	bool	m_bAddrFlag;			// CmdFileToggle, TRUE = Write addresses on disassembly
 	bool	m_bOpcodeFlag;			// CmdFileToggle, TRUE = Write opcode listing as comment in disassembly file
@@ -442,21 +483,25 @@ public:
 	int		m_nMaxPrint;			// CmdFile Value, Maximum number of printable characters per line
 	int		m_nTabWidth;			// CmdFile Value, Width of tabs for output, default is 4
 
-	int		m_nBase;				// CmdFile Value, Default number base for control file input
+	int		m_nBase;				// CmdFile Value, Current number base for control file input
+	int		m_nDefaultBase;			// CmdFile Value, Default number base for control file input (settable)
 
-	std::string	m_sDefaultDFC;		// CmdFile Value, Default DFC Library -- used with single input file and on multi-file when not specified
-	TAddress	m_nLoadAddress;		// CmdFile Value, Load address for input file -- used only with single input file!
-	std::string	m_sInputFilename;	// CmdFile Value, Filename for the input file -- used only with single input file!
-	std::string	m_sOutputFilename;	// CmdFile Value, Filename for the disassembly output file
-	std::string	m_sFunctionsFilename;	// CmdFile Value, Filename for the function output file
+	std::string		m_sDFC;				// CmdFile Value, Current DFC Library -- used with single input file and on multi-file when not specified
+	std::string		m_sDefaultDFC;		// CmdFile Value, Default DFC Library -- used with single input file and on multi-file when not specified (settable)
+
+	TAddress		m_nLoadAddress;		// CmdFile Value, Load address for input file -- used only with single input file!
+	std::string		m_sInputFilename;	// CmdFile Value, Filename for the input file -- used only with single input file!
+	std::string		m_sOutputFilename;	// CmdFile Value, Filename for the disassembly output file
+	std::string		m_sFunctionsFilename;	// CmdFile Value, Filename for the function output file
 	CStringArray	m_sControlFileList;	// This list is appended with each control file read.  The only purpose for this list is for generating comments in the output file
 	CStringArray	m_sInputFileList;	// This list is appended with each source file read (even with the single input name).  The only purpose for this list is for generating comments in the output file
 
-	std::string m_sFunctionalOpcode;	// Functions File export opcode.  Cleared by ReadNextObj and set by CompleteObjRead.
+	// --------------------------------
 
-	time_t	m_StartTime;			// Set to system time at instantiated
+	// Processing variables:
+	std::string		m_sFunctionalOpcode;	// Functions File export opcode.  Cleared by ReadNextObj and set by CompleteObjRead.
+	time_t			m_StartTime;			// Set to system time at instantiated
 
-protected:
 	int				m_nCtrlLine;	// Line Count while processing control file
 	int				m_nFilesLoaded;	// Count of number of files successfully loaded by the control file
 	std::string		m_ParseError;	// Set during the control file parsing to indicate error messages
@@ -473,7 +518,7 @@ protected:
 	CAddressLabelMap m_CodeIndirectTable;	// Table of indirect code vectors with labels specified by the user and from disassembly
 	CAddressLabelMap m_DataIndirectTable;	// Table of indirect data vectors with labels specified by the user and from disassembly
 
-	TAddress m_PC;						// Program counter
+	TAddress		m_PC;				// Program counter
 
 	CMemBlocks		m_Memory;			// Memory object for the processor.
 	CMemRanges		m_MemoryRanges[NUM_MEMORY_TYPES];		// ROM, RAM, I/O Ranges/Mapping

@@ -110,6 +110,8 @@ CDisassembler::CDisassembler()
 		m_nTabWidth(4),
 		// ----
 		m_nBase(16),					// See ReadControlFile function before changing these here!
+		m_nDefaultBase(16),
+		m_sDFC("binary"),
 		m_sDefaultDFC("binary"),
 		m_nLoadAddress(0),
 		m_StartTime(time(nullptr)),
@@ -158,8 +160,8 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 		(*msgFile) << "Reading and Parsing Control File: \"" << inFile.getFilename() << "\"...\n";
 	}
 
-	m_nBase = 16;						// Reset the default base before starting new file.. Therefore, each file has same default!
-	m_sDefaultDFC = "binary";			// Reset the default DFC format so every control file starts with same default!
+	m_nBase = m_nDefaultBase;			// Reset the default base before starting new file.. Therefore, each file has same default!
+	m_sDFC = m_sDefaultDFC;				// Reset the default DFC format so every control file starts with same default!
 	m_sInputFilename.clear();			// Reset the Input Filename so we won't try to reload file from previous control file if this control doesn't specify one
 
 	m_nCtrlLine = nStartLineCount;		// In case several lines were read by outside process, it should pass in correct starting number so we display correct error messages!
@@ -196,7 +198,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 
 	// If a Input File was specified by the control file, then open it and read it here:
 	if (!m_sInputFilename.empty()) {
-		ReadSourceFile(m_sInputFilename, m_nLoadAddress, m_sDefaultDFC, msgFile, errFile);
+		ReadSourceFile(m_sInputFilename, m_nLoadAddress, m_sDFC, msgFile, errFile);
 	}
 
 	// Print report on last file:
@@ -522,7 +524,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			if (argv.size() == 4) {
 				strDfcLibrary = argv.at(3);
 			} else {
-				strDfcLibrary = m_sDefaultDFC;
+				strDfcLibrary = m_sDFC;
 			}
 			strFileName = argv.at(2);
 
@@ -718,7 +720,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			}
-			m_sDefaultDFC = argv.at(1);
+			m_sDFC = argv.at(1);
 			break;
 		case 15:	// TABS [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {

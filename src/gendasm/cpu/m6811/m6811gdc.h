@@ -32,6 +32,7 @@ public:
 	virtual std::string GetGDCLongName() const;
 	virtual std::string GetGDCShortName() const;
 
+protected:
 	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 	virtual bool CompleteObjRead(bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 	virtual bool CurrentOpcodeIsStop() const;
