@@ -11,6 +11,7 @@
 
 #include "gdc.h"
 #include "dfc.h"
+#include "stringhelp.h"
 
 #include <dfc/binary/binarydfc.h>
 #include <cpu/m6811/m6811gdc.h>
@@ -46,12 +47,38 @@ int main(int argc, char *argv[])
 	CM6811Disassembler m6811dis;
 	disassemblers.registerDisassembler(&m6811dis);
 
-	CDisassembler *pDisassembler = ((argc >= 2) ? disassemblers.locateDisassembler(argv[1]) : nullptr);
+	CDisassembler *pDisassembler = nullptr;
+	bool bDeterministic = false;
+	CStringArray arrControlFiles;
+	bool bNeedDisassembler = true;
+	bool bNeedUsage = false;
 
-	std::cout << "GenDasm - Generic Code-Seeking Disassembler v" << formatGDCVersion(m6811dis.GetVersionNumber()) << std::endl;
-	std::cout << "Copyright(c)2021 by Donna Whisnant" << std::endl;
+	for (int ndx = 1; ndx < argc; ++ndx) {
+		std::string strArg = argv[ndx];
+		if (!starts_with(strArg, "-")) {
+			if (bNeedDisassembler) {
+				pDisassembler = disassemblers.locateDisassembler(strArg);
+				bNeedDisassembler = false;
+			} else {
+				arrControlFiles.push_back(strArg);
+			}
+		} else if (strArg == "--deterministic") {
+			bDeterministic = true;
+		} else {
+			bNeedUsage = true;
+		}
+	}
+	if (pDisassembler == nullptr) bNeedUsage = true;
+	if (arrControlFiles.empty()) bNeedUsage = true;
+
+	if (!bDeterministic) {
+		std::cout << "GenDasm - Generic Code-Seeking Disassembler v" << formatGDCVersion(m6811dis.GetVersionNumber()) << std::endl;
+		std::cout << "Copyright(c)2021 by Donna Whisnant" << std::endl;
+	} else {
+		std::cout << "GenDasm - Generic Code-Seeking Disassembler" << std::endl;
+	}
 	std::cout << std::endl;
-	if ((argc<3) || (pDisassembler == nullptr)) {
+	if (bNeedUsage) {
 		std::cout << "Usage: gendasm <disassembler> <ctrl-filename1> [<ctrl-filename2> <ctrl-filename3> ...]" << std::endl;
 		std::cout << std::endl;
 		std::cout << "Valid <disassembler> types:" << std::endl;
@@ -71,19 +98,18 @@ int main(int argc, char *argv[])
 	std::cout << "Using: " << pDisassembler->GetGDCLongName() << std::endl;
 	std::cout << std::endl;
 
-	bool bOkFlag = true;
-	int nArgIndex = 2;
+	pDisassembler->setDeterministic(bDeterministic);
 
-	while ((bOkFlag) && (nArgIndex < argc)) {
-		ifstreamControlFile CtrlFile(argv[nArgIndex]);
+	bool bOkFlag = true;
+
+	for (CStringArray::size_type ndx = 0; (bOkFlag && (ndx < arrControlFiles.size())); ++ndx) {
+		ifstreamControlFile CtrlFile(arrControlFiles.at(ndx));
 		if (!CtrlFile.is_open()) {
-			std::cerr << "*** Error: Opening control file \"" << argv[nArgIndex] << "\" for reading..." << std::endl;
+			std::cerr << "*** Error: Opening control file \"" << arrControlFiles.at(ndx) << "\" for reading..." << std::endl;
 			return -2;
 		}
-		bOkFlag = pDisassembler->ReadControlFile(CtrlFile, (nArgIndex == argc-1), &std::cout, &std::cerr);
+		bOkFlag = pDisassembler->ReadControlFile(CtrlFile, (ndx == (arrControlFiles.size()-1)), &std::cout, &std::cerr);
 		CtrlFile.close();
-
-		++nArgIndex;
 	}
 
 	if (bOkFlag) pDisassembler->Disassemble(&std::cout, &std::cerr);

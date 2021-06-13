@@ -331,6 +331,9 @@ public:
 
 	// --------------------------------
 
+	virtual bool deterministic() const { return m_bDeterministic; }
+	virtual void setDeterministic(bool bDeterministic) { m_bDeterministic = bDeterministic; }
+
 	virtual bool flagAddr() const { return m_bAddrFlag; }
 	virtual void setFlagAddr(bool bFlag) { m_bAddrFlag = bFlag; }
 
@@ -471,6 +474,8 @@ protected:
 
 protected:
 	// Output Flags and Control Values:
+	bool	m_bDeterministic;		// TRUE = skip writing date/time stamps and version detail in output streams, useful for automated testing
+
 	bool	m_bAddrFlag;			// CmdFileToggle, TRUE = Write addresses on disassembly
 	bool	m_bOpcodeFlag;			// CmdFileToggle, TRUE = Write opcode listing as comment in disassembly file
 	bool	m_bAsciiFlag;			// CmdFileToggle, TRUE = Convert printable data to ASCII strings

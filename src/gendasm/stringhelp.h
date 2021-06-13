@@ -14,6 +14,7 @@
 #include <functional>
 #include <cctype>
 #include <locale>
+#include <string_view>
 
 // ============================================================================
 
@@ -57,6 +58,15 @@ static inline int compareNoCase(const std::string &s1, const std::string &s2)
 	std::string strUpper2 = s2;
 	makeUpper(strUpper2);
 	return ((strUpper1 < strUpper2) ? -1 : ((strUpper1 > strUpper2) ? 1 : 0));
+}
+
+static bool equals(std::string_view s1, std::string_view s2) {
+	return (s1.size() == s2.size())
+			&& std::equal(s1.begin(),s1.end(),s2.begin());
+}
+
+static bool starts_with(std::string_view s, std::string_view prefix) {
+	return equals(s.substr(0,prefix.size()), prefix);
 }
 
 // ============================================================================

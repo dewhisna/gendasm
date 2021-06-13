@@ -97,7 +97,8 @@ namespace {
 // ----------------------------------------------------------------------------
 
 CDisassembler::CDisassembler()
-	:	m_bAddrFlag(false),				// Set output defaults
+	:	m_bDeterministic(false),
+		m_bAddrFlag(false),				// Set output defaults
 		m_bOpcodeFlag(false),
 		m_bAsciiFlag(false),
 		m_bSpitFlag(false),
@@ -1129,6 +1130,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 	}
 
 	aFunctionsFile << ";\n";
+	aFunctionsFile << "; GenDasm - Generic Code-Seeking Disassembler\n";
 	aFunctionsFile << "; " << GetGDCLongName() << " Generated Function Information File\n";
 	aFunctionsFile << ";\n";
 	aFunctionsFile << ";    Control File" << ((m_sControlFileList.size() > 1) ? "s:" : ": ") << " ";
@@ -1185,8 +1187,10 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 		}
 	}
 
-	aFunctionsFile << ";\n";
-	aFunctionsFile << ";       Generated:  " << std::ctime(&m_StartTime);		// Note: std::ctime adds extra \n character, so no need to add our own
+	if (!m_bDeterministic) {
+		aFunctionsFile << ";\n";
+		aFunctionsFile << ";       Generated:  " << std::ctime(&m_StartTime);		// Note: std::ctime adds extra \n character, so no need to add our own
+	}
 	aFunctionsFile << ";\n\n";
 
 	bTempFlag = false;
@@ -1708,6 +1712,8 @@ bool CDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, st
 	saOutLine[FC_ADDRESS] = FormatAddress(0);		// TODO : Consider using m_Memory.lowestLogicalAddress()
 	saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
 	outFile << MakeOutputLine(saOutLine) << "\n";
+	saOutLine[FC_LABEL] = GetCommentStartDelim() + " GenDasm - Generic Code-Seeking Disassembler" + GetCommentEndDelim() + "\n";
+	outFile << MakeOutputLine(saOutLine) << "\n";
 	saOutLine[FC_LABEL] = GetCommentStartDelim() + " " + GetGDCLongName() + " Generated Source Code " + GetCommentEndDelim() + "\n";
 	outFile << MakeOutputLine(saOutLine) << "\n";
 	saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
@@ -1780,13 +1786,16 @@ bool CDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, st
 		}
 	}
 
-	saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
-	outFile << MakeOutputLine(saOutLine) << "\n";
-	saOutLine[FC_LABEL] = GetCommentStartDelim() + "       Generated:  ";
-	saOutLine[FC_LABEL] += std::ctime(&m_StartTime);
-	saOutLine[FC_LABEL].erase(saOutLine[FC_LABEL].end()-1);		// Note: std::ctime adds extra \n character
-	saOutLine[FC_LABEL] += GetCommentEndDelim() + "\n";
-	outFile << MakeOutputLine(saOutLine) << "\n";
+	if (!m_bDeterministic) {
+		saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+		saOutLine[FC_LABEL] = GetCommentStartDelim() + "       Generated:  ";
+		saOutLine[FC_LABEL] += std::ctime(&m_StartTime);
+		saOutLine[FC_LABEL].erase(saOutLine[FC_LABEL].end()-1);		// Note: std::ctime adds extra \n character
+		saOutLine[FC_LABEL] += GetCommentEndDelim() + "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+	}
+
 	saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
 	outFile << MakeOutputLine(saOutLine) << "\n";
 
