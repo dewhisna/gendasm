@@ -124,8 +124,9 @@ CDisassembler::~CDisassembler()
 {
 }
 
+// ----------------------------------------------------------------------------
 
-unsigned int CDisassembler::GetVersionNumber(void)
+unsigned int CDisassembler::GetVersionNumber()
 {
 	return (VERSION << 16);
 }
@@ -164,7 +165,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 	m_nCtrlLine = nStartLineCount;		// In case several lines were read by outside process, it should pass in correct starting number so we display correct error messages!
 	while (inFile.good() && !inFile.eof()) {
 		std::getline(inFile, aLine);
-		m_nCtrlLine++;
+		++m_nCtrlLine;
 		m_ParseError = "*** Error: Unknown error";
 		std::size_t pos = aLine.find(';');
 		if (pos != std::string::npos) aLine = aLine.substr(0, pos);		// Trim off comments!
@@ -900,14 +901,14 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 			bRetVal = false;
 		} else {
 			bool bStatus = true;
-			m_nFilesLoaded++;
+			++m_nFilesLoaded;
 			m_sInputFileList.push_back(strFilename);
 			try {
 				bStatus = pDFC->ReadDataFile(&theFile, nLoadAddress, m_Memory, DMEM_LOADED);
 			}
 			catch (const EXCEPTION_ERROR &aErr) {
 				bRetVal = false;
-				m_nFilesLoaded--;
+				--m_nFilesLoaded;
 				m_sInputFileList.erase(m_sInputFileList.end()-1);
 				switch (aErr.m_nErrorCode) {
 					case EXCEPTION_ERROR::ERR_CHECKSUM:
@@ -1308,7 +1309,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			}
 
 			nSavedPC = m_PC;
-			m_sFunctionalOpcode = "";
+			m_sFunctionalOpcode.clear();
 			switch (itrMemory.descriptor(m_PC)) {
 				case DMEM_NOTLOADED:
 					++m_PC;
@@ -1441,7 +1442,7 @@ bool CDisassembler::FindCode(std::ostream *msgFile, std::ostream *errFile)
 
 // ----------------------------------------------------------------------------
 
-std::string CDisassembler::FormatAddress(TAddress nAddress) const
+std::string CDisassembler::FormatAddress(TAddress nAddress)
 {
 	std::ostringstream sstrTemp;
 
@@ -1449,7 +1450,7 @@ std::string CDisassembler::FormatAddress(TAddress nAddress) const
 	return sstrTemp.str();
 }
 
-std::string CDisassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress) const
+std::string CDisassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress)
 {
 	UNUSED(nLC);
 
@@ -1464,7 +1465,7 @@ std::string CDisassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, 
 	return sstrTemp.str();
 }
 
-std::string CDisassembler::FormatReferences(TAddress nAddress) const
+std::string CDisassembler::FormatReferences(TAddress nAddress)
 {
 	std::string strRetVal;
 	bool bFlag = false;
@@ -1622,7 +1623,7 @@ std::string CDisassembler::MakeOutputLine(CStringArray& saOutputData) const
 				if (m_nTabWidth != 0) {
 					while ((tfw - pos) % m_nTabWidth) {
 						strOutput += " ";
-						pos++;
+						++pos;
 					}
 					while ((tfw - pos) / m_nTabWidth) {
 						strOutput += "\t";
@@ -1630,20 +1631,20 @@ std::string CDisassembler::MakeOutputLine(CStringArray& saOutputData) const
 					}
 				} else {
 					strOutput += " ";
-					pos++;
+					++pos;
 				}
 			}
 			strOutput += strItem;
 		} else {
 			strTemp.clear();
-			for (int j=0; j<m_nTabWidth; j++) strTemp += " ";
+			for (int j=0; j<m_nTabWidth; ++j) strTemp += " ";
 			while (strItem.find('\t') != std::string::npos) {
 				nTempPos = strItem.find('\t');
 				strItem = strItem.substr(0, nTempPos) + strTemp + strItem.substr(nTempPos+1);
 			}
 			while (pos < tfw) {
 				strOutput += " ";
-				pos++;
+				++pos;
 			}
 			strOutput += strItem;
 		}
@@ -2031,7 +2032,7 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 					maTempOpMemory.clear();
 					bFlag = false;
 					while (!bFlag) {
-						maTempOpMemory.push_back(m_Memory.element(++m_PC));
+						maTempOpMemory.push_back(m_Memory.element(m_PC++));
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
 						if (nCount >= m_nMaxPrint) bFlag = true;
@@ -2299,7 +2300,7 @@ bool CDisassembler::WritePreFunction(std::ostream& outFile, std::ostream *msgFil
 	saOutLine[FC_LABEL] += " ";
 	for (int i=(GetFieldWidth(FC_LABEL)+
 			GetFieldWidth(FC_MNEMONIC)+
-			GetFieldWidth(FC_OPERANDS)); i; i--) saOutLine[FC_LABEL] += "=";
+			GetFieldWidth(FC_OPERANDS)); i; --i) saOutLine[FC_LABEL] += "=";
 	saOutLine[FC_LABEL] += " ";
 	saOutLine[FC_LABEL] += GetCommentEndDelim();
 	outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2321,7 +2322,7 @@ bool CDisassembler::WriteIntraFunctionSep(std::ostream& outFile, std::ostream *m
 	saOutLine[FC_LABEL] += " ";
 	for (int i=(GetFieldWidth(FC_LABEL)+
 			GetFieldWidth(FC_MNEMONIC)+
-			GetFieldWidth(FC_OPERANDS)); i; i--) saOutLine[FC_LABEL] += "-";
+			GetFieldWidth(FC_OPERANDS)); i; --i) saOutLine[FC_LABEL] += "-";
 	saOutLine[FC_LABEL] += " ";
 	saOutLine[FC_LABEL] += GetCommentEndDelim();
 	outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2343,7 +2344,7 @@ bool CDisassembler::WritePostFunction(std::ostream& outFile, std::ostream *msgFi
 	saOutLine[FC_LABEL] += " ";
 	for (int i=(GetFieldWidth(FC_LABEL)+
 			GetFieldWidth(FC_MNEMONIC)+
-			GetFieldWidth(FC_OPERANDS)); i; i--) saOutLine[FC_LABEL] += "=";
+			GetFieldWidth(FC_OPERANDS)); i; --i) saOutLine[FC_LABEL] += "=";
 	saOutLine[FC_LABEL] += " ";
 	saOutLine[FC_LABEL] += GetCommentEndDelim();
 	outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2492,7 +2493,7 @@ void CDisassembler::OutputGenLabel(TAddress nAddress, std::ostream *msgFile)
 		strTemp += '\n';
 		m_LAdrDplyCnt=0;
 	} else {
-		m_LAdrDplyCnt++;
+		++m_LAdrDplyCnt;
 	}
 
 	(*msgFile) << strTemp;
@@ -2506,7 +2507,4 @@ TLabel CDisassembler::GenLabel(TAddress nAddress)
 	return sstrTemp.str();
 }
 
-// ----------------------------------------------------------------------------
-
 // ============================================================================
-

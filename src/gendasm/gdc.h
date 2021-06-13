@@ -56,12 +56,7 @@ typedef std::map<TAddress, CAddressArray> CAddressTableMap;	// Mapping of Addres
 typedef std::map<TAddress, TLabel> CAddressLabelMap;		// Mapping of Address to single Label
 typedef std::map<TAddress, CLabelArray> CLabelTableMap;		// Mapping of Address to Array of Labels
 
-
-//typedef uint32_t TControlFlags;								// Control Flags type (should be numeric)
-//typedef uint32_t TGroupFlags;								// Group Flags type (should be numeric)
-//typedef uint8_t TOpcode;									// Opcode symbol type (should be numeric)
-
-
+// ----------------------------------------------------------------------------
 
 // Type definitions for a specific disassembler:
 template <	typename TOpcodeSymbol_,
@@ -107,29 +102,6 @@ public:
 
 };
 
-
-
-
-
-
-// TODO : Move this to m6811gdc.h:
-//class TM6811Disassembler :	TDisassemblerTypes<
-//		uint8_t,		// TOpcodeSymbol
-//		uint32_t,		// TControlFlags
-//		uint32_t		// TGroupFlags
-//		>
-//{
-//
-//};
-
-typedef TDisassemblerTypes<
-		uint8_t,		// TOpcodeSymbol
-		uint32_t,		// TControlFlags
-		uint32_t		// TGroupFlags
-> TM6811Disassembler;
-
-
-
 // ============================================================================
 
 //	COpcodeEntry
@@ -138,9 +110,11 @@ template<typename TDisassembler>
 class COpcodeEntry
 {
 public:
+	COpcodeEntry()
+	{ }
 	COpcodeEntry(	const typename TDisassembler::COpcodeSymbolArray &opcode,
 					const typename TDisassembler::COpcodeSymbolArray &opcodeMask,
-					const typename TDisassembler::GroupFlags &group,
+					const typename TDisassembler::TGroupFlags &group,
 					const typename TDisassembler::TControlFlags &control,
 					const TMnemonic &mnemonic,
 					const TUserData &userdata = {})
@@ -208,11 +182,11 @@ public:
 			return;
 		}
 
-		typename map_type::iterator itrArray = find(entry.opcode().at(0) & entry.opcodeMask().at(0));
+		typename map_type::iterator itrArray = map_type::find(entry.opcode().at(0) & entry.opcodeMask().at(0));
 		if (itrArray == map_type::end()) {
 			COpcodeEntryArray<TDisassembler> anArray;
 			anArray.push_back(entry);
-			insert(entry.opcode().at(0) & entry.opcodeMask().at(0)) = anArray;
+			map_type::insert({ entry.opcode().at(0) & entry.opcodeMask().at(0), anArray});
 		} else {
 			itrArray->second.push_back(entry);
 		}
@@ -237,10 +211,7 @@ private:
 
 	typename TDisassembler::COpcodeSymbolArray m_OpMemory;		// Array to hold the opcode currently being processed
 	COpcodeEntry<TDisassembler> m_CurrentOpcode;				// Copy of COpcodeEntry object of the opcode last located in the ReadNextObj function
-
-
 };
-
 
 // ============================================================================
 
@@ -350,9 +321,9 @@ public:
 	CDisassembler();
 	virtual ~CDisassembler();
 
-	virtual unsigned int GetVersionNumber(void);		// Base function returns GDC version is most-significant word.  Overrides should call this parent to get the GDC version and then set the least-significant word with the specific disassembler version.
-	virtual std::string GetGDCLongName(void) = 0;		// Pure virtual.  Defines the long name for this disassembler
-	virtual std::string GetGDCShortName(void) = 0;		// Pure virtual.  Defines the short name for this disassembler
+	virtual unsigned int GetVersionNumber();			// Base function returns GDC version is most-significant word.  Overrides should call this parent to get the GDC version and then set the least-significant word with the specific disassembler version.
+	virtual std::string GetGDCLongName() = 0;			// Pure virtual.  Defines the long name for this disassembler
+	virtual std::string GetGDCShortName() = 0;			// Pure virtual.  Defines the short name for this disassembler
 
 	virtual bool ReadControlFile(ifstreamControlFile& inFile, bool bLastFile = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);	// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial m_nCtrlLine value
 	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
@@ -374,14 +345,14 @@ public:
 
 	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) = 0;	// Pure Virtual. Retrieves the indirect address specified by m_PC and places it m_OpMemory for later formatting.  It is a pure virtual because of length and indian notation differences
 
-	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode) const = 0;	// Pure Virtual.  This function should provide the specified mnemonic.  For normal opcodes, MC_OPCODE is used -- for which the override should return the mnemonic in the opcode table.  This is done to provide the assembler/processor dependent module opportunity to change/set the case of the mnemonic and to provide special opcodes.
-	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode) const = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
-	virtual std::string FormatComments(MNEMONIC_CODE nMCCode) const = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
+	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode) = 0;	// Pure Virtual.  This function should provide the specified mnemonic.  For normal opcodes, MC_OPCODE is used -- for which the override should return the mnemonic in the opcode table.  This is done to provide the assembler/processor dependent module opportunity to change/set the case of the mnemonic and to provide special opcodes.
+	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode) = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
+	virtual std::string FormatComments(MNEMONIC_CODE nMCCode) = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
 
-	virtual std::string FormatAddress(TAddress nAddress) const;				// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
-	virtual std::string FormatOpBytes() const = 0;							// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
-	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress) const;	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
-	virtual std::string FormatReferences(TAddress nAddress) const;			// Makes a string to place in the comment field that contains all references for the specified address
+	virtual std::string FormatAddress(TAddress nAddress);					// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
+	virtual std::string FormatOpBytes() = 0;								// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
+	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
+	virtual std::string FormatReferences(TAddress nAddress);			// Makes a string to place in the comment field that contains all references for the specified address
 
 	virtual int GetFieldWidth(FIELD_CODE nFC) const;						// Defines the widths of each output field.  Can be overridden to alter output formatting.  To eliminate space/tab mixing, these should typically be a multiple of the tab width
 	virtual std::string MakeOutputLine(CStringArray& saOutputData) const;	// Formats the data in saOutputData, which should have indicies corresponding to FIELD_CODE enum, to a string that can be sent to the output file
@@ -504,9 +475,6 @@ protected:
 
 	TAddress m_PC;						// Program counter
 
-	template<typename TDisassembler>
-	CDisassemblerData<CDisassembler, TDisassembler> &data();	// Data for this disassembler, managed by derived class
-
 	CMemBlocks		m_Memory;			// Memory object for the processor.
 	CMemRanges		m_MemoryRanges[NUM_MEMORY_TYPES];		// ROM, RAM, I/O Ranges/Mapping
 
@@ -514,8 +482,6 @@ private:
 
 	int m_LAdrDplyCnt;					// Label address display count -- used to format output
 };
-
-
 
 // ============================================================================
 
