@@ -6,8 +6,6 @@
 //	Copyright(c)2021 by Donna Whisnant
 //
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <time.h>
@@ -53,6 +51,7 @@ bool CBinaryDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBa
 	aFile.seekg(0L, std::ios_base::beg);
 	while ((!aFile.eof()) && (aFile.peek() != std::istream::traits_type::eof()) && (aFile.good())) {	// Note: peek needed because eof() doesn't set until following read
 		nByte = aFile.get();
+		if (!aFile.good()) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED);
 		if (!aMemory.setElement(nCurrAddr, nByte)) {
 			THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_OVERFLOW);
 		}
