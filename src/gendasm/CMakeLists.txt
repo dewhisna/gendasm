@@ -44,6 +44,19 @@ set(dfc_binary_Headers
 	dfc/binary/binarydfc.h
 )
 
+# -----------------------------------------------------------------------------
+
+#
+# Intel (Hex) Data File Converter
+#
+
+set(dfc_intel_Sources
+	dfc/intel/inteldfc.cpp
+)
+
+set(dfc_intel_Headers
+	dfc/intel/inteldfc.h
+)
 
 # -----------------------------------------------------------------------------
 
@@ -67,6 +80,9 @@ add_executable(gendasm
 	# ----
 	${dfc_binary_Sources}
 	${dfc_binary_Headers}
+	# ----
+	${dfc_intel_Sources}
+	${dfc_intel_Headers}
 	# ----
 	${cpu_m6811_Sources}
 	${cpu_m6811_Headers}
