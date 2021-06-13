@@ -1192,9 +1192,9 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 		if (m_MemoryRanges[nMemType].isNullRange()) continue;
 		bTempFlag = true;
 
-		std::ostringstream sstrTemp;
-
 		for (auto const & itrMemRange : m_MemoryRanges[nMemType]) {
+			std::ostringstream sstrTemp;
+
 			if (itrMemRange.isNullRange()) continue;
 			switch (nMemType) {
 				case MT_ROM:
