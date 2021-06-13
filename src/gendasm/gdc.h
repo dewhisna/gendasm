@@ -485,17 +485,15 @@ private:
 
 // ============================================================================
 
-class CDisassemblers : public std::vector<const CDisassembler *>
+class CDisassemblers : public std::vector<CDisassembler *>
 {
-private:
-	CDisassemblers();
 public:
+	CDisassemblers();
 	~CDisassemblers();
 
-	const CDisassembler *locateDisassembler(const std::string &strGDCName) const;
-	static CDisassemblers *instance();
+	CDisassembler *locateDisassembler(const std::string &strGDCName) const;
 
-	static void registerDisassembler(const CDisassembler *pDisassembler);
+	void registerDisassembler(CDisassembler *pDisassembler);
 };
 
 // ============================================================================

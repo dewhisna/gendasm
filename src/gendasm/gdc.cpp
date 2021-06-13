@@ -2509,12 +2509,6 @@ TLabel CDisassembler::GenLabel(TAddress nAddress)
 
 // ============================================================================
 
-CDisassemblers *CDisassemblers::instance()
-{
-	static CDisassemblers Disassemblers;
-	return &Disassemblers;
-}
-
 CDisassemblers::CDisassemblers()
 {
 }
@@ -2523,7 +2517,7 @@ CDisassemblers::~CDisassemblers()
 {
 }
 
-const CDisassembler *CDisassemblers::locateDisassembler(const std::string &strGDCName) const
+CDisassembler *CDisassemblers::locateDisassembler(const std::string &strGDCName) const
 {
 	for (unsigned int ndx = 0; ndx < size(); ++ndx) {
 		if (compareNoCase(strGDCName, at(ndx)->GetGDCShortName()) == 0) return at(ndx);
@@ -2531,9 +2525,9 @@ const CDisassembler *CDisassemblers::locateDisassembler(const std::string &strGD
 	return nullptr;
 }
 
-void CDisassemblers::registerDisassembler(const CDisassembler *pDisassembler)
+void CDisassemblers::registerDisassembler(CDisassembler *pDisassembler)
 {
-	instance()->push_back(pDisassembler);
+	push_back(pDisassembler);
 }
 
 // ============================================================================
