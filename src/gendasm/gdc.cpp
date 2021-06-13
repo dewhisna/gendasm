@@ -904,7 +904,7 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 			++m_nFilesLoaded;
 			m_sInputFileList.push_back(strFilename);
 			try {
-				bStatus = pDFC->ReadDataFile(&theFile, nLoadAddress, m_Memory, DMEM_LOADED);
+				bStatus = pDFC->ReadDataFile(theFile, nLoadAddress, m_Memory, DMEM_LOADED);
 			}
 			catch (const EXCEPTION_ERROR &aErr) {
 				bRetVal = false;

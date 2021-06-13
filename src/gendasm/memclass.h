@@ -200,7 +200,7 @@ public:
 	void clearMemory(TMemoryElement nFillByte);
 	void clearDescriptors(TDescElement nDescValue);
 	// ----
-	inline TAddress physicalAddr(TAddress nLogicalAddr) const;
+	TAddress physicalAddr(TAddress nLogicalAddr) const;
 };
 
 // ============================================================================

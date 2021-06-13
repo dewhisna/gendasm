@@ -317,7 +317,7 @@ void CMemBlocks::clearDescriptors(TDescElement nDescValue)
 	}
 }
 
-inline TAddress CMemBlocks::physicalAddr(TAddress nLogicalAddr) const
+TAddress CMemBlocks::physicalAddr(TAddress nLogicalAddr) const
 {
 	for (auto const & itr : *this) {
 		if (itr.containsAddress(nLogicalAddr)) return itr.physicalAddr(nLogicalAddr);

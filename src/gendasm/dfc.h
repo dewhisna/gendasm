@@ -77,12 +77,12 @@ public:
 	//       ERR_UNEXPECTED_EOF if end_of_file is encountered before it was expected.
 	//       ERR_OUT_OF_MEMORY if an allocation of a new MemRange entry fails.
 	//
-	virtual bool RetrieveFileMapping(std::istream *aFile, TAddress NewBase, CMemRanges &aRange) const = 0;
+	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const = 0;
 
 	// ReadDataFile:
 	//    This is a pure virtual function that must be overriden in child Data File Converter
 	//    routines.  Overriding functions are to read the open BINARY file specified
-	//    by 'aFile' into the Memory Class object 'aMemory' with an offset of
+	//    by 'aFile' into the CMemBlocks object 'aMemory' with an offset of
 	//    'NewBase'.  Files that have addresses specified internally, the internal
 	//    addresses are treaded as 'Logical Addresses' in the memory structure.
 	//    NewBase too is treaded as a Logical Address, but this can be used to
@@ -93,13 +93,19 @@ public:
 	//    their Descriptor bytes changed to 'aDesc'.  This function returns
 	//    'true' if everything was read without problems.  'false' is returned if
 	//    a memory location overwrote an existing already loaded location.
+	//
+	//    NOTE: The ranges in aMemory block must already be set, such as
+	//    from a call to RetrieveFileMapping() here and calling initFromRanges()
+	//    on the CMemBlocks to initialize it.  This function will only read
+	//    and populate the data on it
+	//
 	//    The following throw backs are performed AND loading is halted as follows:
 	//       ERR_CHECKSUM if there is a checksum error encountered during loading.
 	//       ERR_UNEXPECTED_EOF if end_of_file is encountered before it was expected.
 	//       ERR_OVERFLOW if an attempt is made to load an address outside the memory bounds.
 	//
-	virtual int ReadDataFile(std::istream *aFile, TAddress NewBase, CMemBlocks &aMemory,
-													TDescElement aDesc) const = 0;
+	virtual bool ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
+													TDescElement nDesc) const = 0;
 
 	// WriteDataFile:
 	//    This is a pure virutal function that must be overriden in child Data File Converter
@@ -141,8 +147,8 @@ public:
 	//    The following throw backs are performed AND writing is halted as follows:
 	//       ERR_WRITEFAILED if there was an error in while writing to the output file.
 	//       ERR_OVERFLOW if a write to a address included file yielded an oversized address.
-	virtual bool WriteDataFile(std::ostream *aFile, CMemRanges &aRange, TAddress NewBase, CMemBlocks &aMemory,
-													TDescElement aDesc, bool bUsePhysicalAddr,
+	virtual bool WriteDataFile(std::ostream &aFile, const CMemRanges &aRange, TAddress nNewBase,
+													const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
 													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const = 0;
 };
 

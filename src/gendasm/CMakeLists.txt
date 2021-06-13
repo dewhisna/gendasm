@@ -32,6 +32,18 @@ set(gendasm_Headers
 
 # -----------------------------------------------------------------------------
 
+#
+# Binary Data File Converter
+#
+
+set(dfc_binary_Sources
+	dfc/binary/binarydfc.cpp
+)
+
+set(dfc_binary_Headers
+	dfc/binary/binarydfc.h
+)
+
 
 # -----------------------------------------------------------------------------
 
@@ -52,6 +64,9 @@ set(cpu_m6811_Headers
 add_executable(gendasm
 	${gendasm_Sources}
 	${gendasm_Headers}
+	# ----
+	${dfc_binary_Sources}
+	${dfc_binary_Headers}
 	# ----
 	${cpu_m6811_Sources}
 	${cpu_m6811_Headers}
