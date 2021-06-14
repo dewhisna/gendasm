@@ -112,6 +112,8 @@
 #include <sstream>
 #include <iomanip>
 #include <cstdio>
+#include <vector>
+#include <iterator>
 
 #include <assert.h>
 
@@ -754,11 +756,23 @@ std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
 	bool bBranchOutside;
 	TAddress nAddress;
 
+	// Add user comments:
+	CCommentTableMap::const_iterator itrUserComments = m_CommentTable.find(m_PC - m_OpMemory.size());
+	if (itrUserComments != m_CommentTable.cend()) {
+		std::ostringstream ssUserComments;
+		std::copy(itrUserComments->second.cbegin(), itrUserComments->second.cend(),
+					std::ostream_iterator<std::string>(ssUserComments, "\n"));
+		if (!strRetVal.empty()) strRetVal += "\n";
+		strRetVal += ssUserComments.str();
+		rtrim(strRetVal);		// Trim extra trailing '\n' from above
+	}
+
 	// Handle Undetermined Branch:
 	switch (nMCCode) {
 		case MC_OPCODE:
 			if ((OCTL_SRC() == 0x2) || (OCTL_DST() == 0x2) ||
 				((!m_bCBDef) && ((OCTL_SRC() == 0x4) || (OCTL_DST() == 0x4)))) {
+				if (!strRetVal.empty()) strRetVal += "\n";
 				strRetVal = "Undetermined Branch Address";
 			}
 			break;
@@ -798,12 +812,12 @@ std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
 	}
 
 	if (bBranchOutside) {
-		if (!strRetVal.empty()) strRetVal += ", ";
+		if (!strRetVal.empty()) strRetVal += "\n";
 		strRetVal += "Branch Outside Loaded Source(s)";
 	}
 
-	// Add general refernce stuff:
-	if (!strRetVal.empty()) strRetVal += "\t";
+	// Add general reference stuff:
+	if (!strRetVal.empty()) strRetVal += "\n";
 	strRetVal += FormatReferences(m_PC - m_OpMemory.size());		// Add references
 
 	return strRetVal;

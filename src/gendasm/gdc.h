@@ -48,13 +48,16 @@ typedef std::vector<std::string> CStringArray;
 
 typedef std::string TLabel;									// Basic Label type (should support basic_string)
 typedef std::string TMnemonic;								// Basic Mnemonic type (should support basic_string)
+typedef std::string TComment;								// Basic Comment type (should support basic_string)
 
 typedef std::vector<TLabel> CLabelArray;					// Array of labels
+typedef std::vector<TComment> CCommentArray;				// Array of Comments
 typedef std::vector<TAddress> CAddressArray;				// Array of addresses
 typedef std::set<TAddress> CAddressSet;						// Set of addresses as collection of addresses discovered
 typedef std::map<TAddress, CAddressArray> CAddressTableMap;	// Mapping of Address to Array of Addresses
 typedef std::map<TAddress, TLabel> CAddressLabelMap;		// Mapping of Address to single Label
 typedef std::map<TAddress, CLabelArray> CLabelTableMap;		// Mapping of Address to Array of Labels
+typedef std::map<TAddress, CCommentArray> CCommentTableMap;	// Mapping of Address or Array of Comments
 
 // ----------------------------------------------------------------------------
 
@@ -449,6 +452,7 @@ protected:
 
 	virtual bool AddLabel(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0, const TLabel & strLabel = TLabel());		// Sets strLabel string as the label for nAddress.  If nAddress is already set with that string, returns FALSE else returns TRUE or all OK.  If address has a label and strLabel = empty or zero length, nothing is added!  If strLabel is empty or zero length, an empty string is added to later get resolved to Lxxxx form.  If bAddRef, then nRefAddress is added to the reference list
 	virtual bool AddBranch(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0);	// Adds nAddress to the branch table with nRefAddress as the referring address.  Returns T if all ok, F if branch address is outside of loaded space.  If nAddRef is false, a branch is added without a reference
+	virtual bool AddComment(TAddress nAddress, const TComment &strComment);
 
 	virtual void GenDataLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress -- unlike calling direct, this function outputs the new label to msgFile if specified...
 	virtual void GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress, then calls AddBranch to add a branch address -- unlike calling direct, this function outputs the new label to msgFile if specified and displays "out of source" errors for the branches to errFile...
@@ -518,6 +522,7 @@ protected:
 	CAddressSet m_FuncExitAddresses;	// Table of address that are equivalent to function exit like RTS or RTI.  Any JMP or BRA or execution into one of these addresses will equate to a function exit
 	CAddressTableMap m_BranchTable;		// Table mapping branch addresses encountered with the address that referenced it in disassembly.
 	CLabelTableMap m_LabelTable;		// Table of labels both specified by the user and from disassembly.  Entry is pointer to array of labels.  An empty entry equates back to Lxxxx.  First entry is default for "Get" function.
+	CCommentTableMap m_CommentTable;	// Table of comments by address
 
 	CAddressTableMap m_LabelRefTable;	// Table of reference addresses for labels.  User specified labels have no reference added.
 	CAddressLabelMap m_CodeIndirectTable;	// Table of indirect code vectors with labels specified by the user and from disassembly

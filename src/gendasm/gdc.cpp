@@ -136,6 +136,73 @@ unsigned int CDisassembler::GetVersionNumber() const
 
 // ----------------------------------------------------------------------------
 
+static void parseArgLine(const std::string aLine, CStringArray &args)
+{
+	static const std::string strDelim = "\x009\x00a\x00b\x00c\x00d\x020";
+	std::string strLine = aLine;
+	trim(strLine);
+
+	while (!strLine.empty()) {
+		std::string strString;
+
+		bool bQuoted = false;
+		bool bQuoteLiteral = false;
+		bool bNonWhitespaceSeen = false;
+		bool bEndOfField = strLine.empty();
+		bool bDropField = false;
+
+		std::string::value_type ch;
+
+		while (!bEndOfField && !strLine.empty()) {
+			ch = strLine.at(0);
+			strLine = strLine.substr(1);
+
+			if (!bNonWhitespaceSeen) {		// Quoting can only begin at the first character
+				if (strDelim.find(ch) != std::string::npos) {
+					continue; // ignore all leading whitespace
+				} else {
+					bNonWhitespaceSeen = true;
+				}
+				if (ch == '"') {
+					strString.clear();		// not a null field anymore, but still an empty string
+					bQuoted = true;
+					continue;
+				}
+			}
+
+			if (ch == '"') {
+				if (!bQuoted) {
+					// no special treatment in this case
+				} else if (bQuoteLiteral) {
+					bQuoteLiteral = false;
+				} else {
+					bQuoteLiteral = true;
+					continue;
+				}
+			} else if (bQuoteLiteral) {		// Un-doubled " in quoted string, that's the end of the quoted portion
+				bQuoted = false;
+				bQuoteLiteral = true;
+			}
+
+			if ((!bQuoted) && (strDelim.find(ch) != std::string::npos)) {
+				bEndOfField = true;
+			} else if ((!bQuoted) && (ch == ';')) {
+				// Unquoted comment marker ends the field and drops remainder of line
+				strLine.clear();
+				bEndOfField = true;
+				if (strString.empty()) bDropField = true;	// Drop the field if this comment was it
+			} else if (strLine.empty()) {
+				strString.push_back(ch);
+				bEndOfField = true;
+			} else {
+				strString.push_back(ch);
+			}
+		}
+
+		if (!bDropField) args.push_back(strString);
+	}
+}
+
 bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile, std::ostream *msgFile, std::ostream *errFile, int nStartLineCount)
 {
 	bool bRetVal = true;
@@ -170,24 +237,11 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 		std::getline(inFile, aLine);
 		++m_nCtrlLine;
 		m_ParseError = "*** Error: Unknown error";
-		std::size_t pos = aLine.find(';');
-		if (pos != std::string::npos) aLine = aLine.substr(0, pos);		// Trim off comments!
 		trim(aLine);
-		if (aLine.empty()) continue;	// If it is a blank or null line or only a comment, keep going
+		if (aLine.empty()) continue;	// If it is a blank or null line, keep going
 		args.clear();
-		std::string Temp = aLine;
-		while (Temp.size()) {
-			pos = Temp.find_first_of("\x009\x00a\x00b\x00c\x00d\x020");
-			if (pos != std::string::npos) {
-				args.push_back(Temp.substr(0, pos));
-				Temp = Temp.substr(pos+1);
-			} else {
-				args.push_back(Temp);
-				Temp.clear();
-			}
-			ltrim(Temp);
-		}
-		if (args.empty()) continue;		// If we don't have any args, get next line (really shouldn't ever have no args here)
+		parseArgLine(aLine, args);
+		if (args.empty()) continue;		// If we don't have any args, get next line (i.e. empty line or comment line)
 
 		if (ParseControlLine(aLine, args, msgFile, errFile) == false) {		// Go parse it -- either internal or overrides
 			if (errFile) {
@@ -570,8 +624,8 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 					break;
 			}
 			break;
-		case 5:		// LABEL <addr> <name>
-			if (argv.size() != 3) {
+		case 5:		// LABEL <addr> <name> [<comment>]    (note: use double quotes for whitespace in <comment>)
+			if ((argv.size() != 3) && (argv.size() != 4)) {
 				nArgError = (argv.size() < 3) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			} else if (!ValidateLabelName(argv.at(2))) {
@@ -579,9 +633,13 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				break;
 			}
 			nAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
-			if (AddLabel(nAddress, false, 0, argv.at(2)) == false) {
+			if (!AddLabel(nAddress, false, 0, argv.at(2))) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate label";
+			}
+			if ((argv.size() > 3) && !AddComment(nAddress, argv.at(3))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Failed to add <comment> field";
 			}
 			break;
 		case 6:		// ADDRESSES [ON | OFF | TRUE | FALSE | YES | NO]
@@ -1589,12 +1647,24 @@ std::string CDisassembler::MakeOutputLine(CStringArray& saOutputData) const
 			strTemp = GetCommentStartDelim() + " " + strItem + " " + GetCommentEndDelim();
 			strTemp2 = GetCommentStartDelim() + "  " + GetCommentEndDelim();
 			if ((strTemp.size() > fw) || (strTemp.find('\n') != std::string::npos)) {
+				bool bNeedsTossing = false;
 				strTemp = strItem.substr(0, fw - strTemp2.size());
-				nTempPos = strTemp.find_last_of(" \n\t,;:.!?");
+				nTempPos = strTemp.find('\n');			// We have to treat '\n' special to always break on the first
+				if (nTempPos == std::string::npos) {
+					nTempPos = strTemp.find_last_of(" \t,;:.!?");		// No need to check '\n' since we just did so above
+					if ((nTempPos != std::string::npos) &&
+						(strTemp.find_last_of(" \t") == nTempPos)) {
+						bNeedsTossing = true;			// Characters to toss on the wrap instead of keeping
+					}
+				}
 				if (nTempPos != std::string::npos) {
-					nToss = ((strTemp.find_last_of(" \n\t")==nTempPos) ? 1 : 0);
+					nToss = (bNeedsTossing ? 1 : 0);
 					strTemp = strItem.substr(0, nTempPos + 1 - nToss);	// Throw ' ' and '\t' away
-					strCommentPart = "  " + strItem.substr(nTempPos+1 + nToss);
+					if ((nTempPos+1+nToss) < strItem.size()) {	// If it's the very last character, we need to clear or we'll crash trying to access off the end
+						strCommentPart = "  " + strItem.substr(nTempPos+1 + nToss);
+					} else {
+						strCommentPart.clear();
+					}
 					strItem = strTemp;
 				} else {
 					strCommentPart = "  " + strItem.substr(fw+1-strTemp2.size());
@@ -2431,6 +2501,7 @@ bool CDisassembler::AddBranch(TAddress nAddress, bool bAddRef, TAddress nRefAddr
 	if (itrRefList == m_BranchTable.end()) {
 		m_BranchTable[nAddress] = CAddressArray();
 		itrRefList = m_BranchTable.find(nAddress);
+		assert(itrRefList != m_BranchTable.end());
 	}
 	if (bAddRef) {				// Search and add reference
 		bool bFound = false;
@@ -2443,6 +2514,18 @@ bool CDisassembler::AddBranch(TAddress nAddress, bool bAddRef, TAddress nRefAddr
 		if (!bFound) itrRefList->second.push_back(nRefAddress);
 	}
 	return IsAddressLoaded(nAddress, 1);
+}
+
+bool CDisassembler::AddComment(TAddress nAddress, const TComment &strComment)
+{
+	CCommentTableMap::iterator itrComments = m_CommentTable.find(nAddress);
+	if (itrComments == m_CommentTable.end()) {
+		m_CommentTable[nAddress] = CCommentArray();
+		itrComments = m_CommentTable.find(nAddress);
+		assert(itrComments != m_CommentTable.end());
+	}
+	itrComments->second.push_back(strComment);
+	return true;
 }
 
 // ----------------------------------------------------------------------------
