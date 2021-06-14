@@ -373,6 +373,8 @@ public:
 	virtual std::string defaultDFC() const { return m_sDefaultDFC; }
 	virtual void setDefaultDFC(const std::string &strDFC) { m_sDefaultDFC = strDFC; }
 
+	virtual bool allowMemRangeOverlap() const { return m_bAllowMemRangeOverlap; }
+
 protected:
 	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
 
@@ -504,6 +506,8 @@ protected:
 	std::string		m_sFunctionsFilename;	// CmdFile Value, Filename for the function output file
 	CStringArray	m_sControlFileList;	// This list is appended with each control file read.  The only purpose for this list is for generating comments in the output file
 	CStringArray	m_sInputFileList;	// This list is appended with each source file read (even with the single input name).  The only purpose for this list is for generating comments in the output file
+
+	bool			m_bAllowMemRangeOverlap;	// Set to true on Harvard (and similar) architectures where ROM/RAM/IO/etc can overlap in address range since they are on separate buses
 
 	// --------------------------------
 

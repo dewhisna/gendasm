@@ -115,6 +115,7 @@ CDisassembler::CDisassembler()
 		m_sDFC("binary"),
 		m_sDefaultDFC("binary"),
 		m_nLoadAddress(0),
+		m_bAllowMemRangeOverlap(false),
 		m_StartTime(time(nullptr)),
 		m_nCtrlLine(0),
 		m_nFilesLoaded(0),
@@ -874,37 +875,39 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			m_MemoryRanges[nType].removeOverlaps();
 			m_MemoryRanges[nType].sort();
 
-			switch (nType) {
-				case MT_ROM:
-					if (m_MemoryRanges[MT_RAM].addressInRange(nAddress)) {
-						bRetVal = false;
-						m_ParseError = "*** Warning: Specified ROM Mapping conflicts with RAM Mapping";
-					} else if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) {
-						bRetVal = false;
-						m_ParseError = "*** Warning: Specified ROM Mapping conflicts with IO Mapping";
-					}
-					break;
-				case MT_RAM:
-					if (m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
-						bRetVal = false;
-						m_ParseError = "*** Warning: Specified RAM Mapping conflicts with ROM Mapping";
-					} else if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) {
-						bRetVal = false;
-						m_ParseError = "*** Warning: Specified RAM Mapping conflicts with IO Mapping";
-					}
-					break;
-				case MT_IO:
-					if (m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
-						bRetVal = false;
-						m_ParseError = "*** Warning: Specified IO Mapping conflicts with ROM Mapping";
-					} else if (m_MemoryRanges[MT_RAM].addressInRange(nAddress)) {
-						bRetVal = false;
-						m_ParseError = "*** Warning: Specified IO Mapping conflicts with RAM Mapping";
-					}
-					break;
-				default:
-					assert(false);
-					break;
+			if (!m_bAllowMemRangeOverlap) {
+				switch (nType) {
+					case MT_ROM:
+						if (m_MemoryRanges[MT_RAM].addressInRange(nAddress)) {
+							bRetVal = false;
+							m_ParseError = "*** Warning: Specified ROM Mapping conflicts with RAM Mapping";
+						} else if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) {
+							bRetVal = false;
+							m_ParseError = "*** Warning: Specified ROM Mapping conflicts with IO Mapping";
+						}
+						break;
+					case MT_RAM:
+						if (m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
+							bRetVal = false;
+							m_ParseError = "*** Warning: Specified RAM Mapping conflicts with ROM Mapping";
+						} else if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) {
+							bRetVal = false;
+							m_ParseError = "*** Warning: Specified RAM Mapping conflicts with IO Mapping";
+						}
+						break;
+					case MT_IO:
+						if (m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
+							bRetVal = false;
+							m_ParseError = "*** Warning: Specified IO Mapping conflicts with ROM Mapping";
+						} else if (m_MemoryRanges[MT_RAM].addressInRange(nAddress)) {
+							bRetVal = false;
+							m_ParseError = "*** Warning: Specified IO Mapping conflicts with RAM Mapping";
+						}
+						break;
+					default:
+						assert(false);
+						break;
+				}
 			}
 			break;
 		}
