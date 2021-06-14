@@ -14,6 +14,8 @@
 #include "stringhelp.h"
 
 #include <dfc/binary/binarydfc.h>
+#include <dfc/intel/inteldfc.h>
+
 #include <cpu/m6811/m6811gdc.h>
 
 // ============================================================================
@@ -41,6 +43,8 @@ int main(int argc, char *argv[])
 	// Data File Converters:
 	CBinaryDataFileConverter dfcBinary;
 	CDataFileConverters::registerDataFileConverter(&dfcBinary);
+	CIntelDataFileConverter dfcIntel;
+	CDataFileConverters::registerDataFileConverter(&dfcIntel);
 
 	// Disassemblers:
 	CDisassemblers disassemblers;
