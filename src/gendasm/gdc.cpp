@@ -39,28 +39,56 @@ int parseKeyword(const TKeywordMap &map, const std::string &strKeyword)
 }
 
 namespace {
+	enum CTRL_COMMANDS_ENUM {
+		CCE_ENTRY,
+		CCE_LOAD,
+		CCE_INPUT,
+		CCE_OUTPUT,
+		CCE_LABEL,
+		CCE_ADDRESSES,
+		CCE_INDIRECT,
+		CCE_OPBYTES,
+		CCE_ASCII,
+		CCE_SPIT,
+		CCE_BASE,
+		CCE_MAXNONPRINT,
+		CCE_MAXPRINT,
+		CCE_DFC,
+		CCE_TABS,
+		CCE_TABWIDTH,
+		CCE_ASCIIBYTES,
+		CCE_DATAOPBYTES,
+		CCE_EXITFUNCTION,
+		CCE_MEMMAP,
+	};
+
+	enum OUTPUT_TYPE_ENUM {
+		OTE_DISASSEMBLY,
+		OTE_FUNCTIONS,
+	};
+
 	// Setup commands to parse:
 	static const TKeywordMap g_mapParseCommands = {
-		{ "^ENTRY$", 1},
-		{ "^LOAD$", 2 },
-		{ "^INPUT$", 3 },
-		{ "^OUTPUT$", 4 },
-		{ "^LABEL$", 5 },
-		{ "^ADDRESSES$", 6 },
-		{ "^INDIRECT$", 7 },
-		{ "^OPCODES|OPBYTES$", 8 },
-		{ "^ASCII$", 9 },
-		{ "^SPIT$", 10 },
-		{ "^BASE$", 11 },
-		{ "^MAXNONPRINT$", 12 },
-		{ "^MAXPRINT$", 13 },
-		{ "^DFC$", 14 },
-		{ "^TABS$", 15 },
-		{ "^TABWIDTH$", 16 },
-		{ "^ASCIIBYTES$", 17 },
-		{ "^DATAOPBYTES$", 18 },
-		{ "^EXITFUNCTION$", 19 },
-		{ "^MEMMAP$", 20 },
+		{ "^ENTRY$", CCE_ENTRY},
+		{ "^LOAD$", CCE_LOAD },
+		{ "^INPUT$", CCE_INPUT },
+		{ "^OUTPUT$", CCE_OUTPUT },
+		{ "^LABEL$", CCE_LABEL },
+		{ "^ADDRESSES$", CCE_ADDRESSES },
+		{ "^INDIRECT$", CCE_INDIRECT },
+		{ "^OPCODES|OPBYTES$", CCE_OPBYTES },
+		{ "^ASCII$", CCE_ASCII },
+		{ "^SPIT$", CCE_SPIT },
+		{ "^BASE$", CCE_BASE },
+		{ "^MAXNONPRINT$", CCE_MAXNONPRINT },
+		{ "^MAXPRINT$", CCE_MAXPRINT },
+		{ "^DFC$", CCE_DFC },
+		{ "^TABS$", CCE_TABS },
+		{ "^TABWIDTH$", CCE_TABWIDTH },
+		{ "^ASCIIBYTES$", CCE_ASCIIBYTES },
+		{ "^DATAOPBYTES$", CCE_DATAOPBYTES },
+		{ "^EXITFUNCTION$", CCE_EXITFUNCTION },
+		{ "^MEMMAP$", CCE_MEMMAP },
 	};
 
 	static const TKeywordMap g_mapParseTrueFalse = {
@@ -88,10 +116,9 @@ namespace {
 	};
 
 	static const TKeywordMap g_mapParseOutputType = {
-		{ "^DISASSEMBLY|DISASSEMBLE|DISASSEM|DISASM|DIS|DASM$", 0 },
-		{ "^FUNCTION|FUNCTIONS|FUNC|FUNCS|FUNCT|FUNCTS$", 1 },
+		{ "^DISASSEMBLY|DISASSEMBLE|DISASSEM|DISASM|DIS|DASM$", OTE_DISASSEMBLY },
+		{ "^FUNCTION|FUNCTIONS|FUNC|FUNCS|FUNCT|FUNCTS$", OTE_FUNCTIONS },
 	};
-
 
 	// --------------------------------
 
@@ -545,7 +572,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 	makeUpper(strCmd);
 
 	switch (parseKeyword(g_mapParseCommands, strCmd)) {
-		case 1:		// ENTRY <addr> [<name>]
+		case CCE_ENTRY:			// ENTRY <addr> [<name>]
 			if (argv.size() < 2) {
 				nArgError = ARGERR_Not_Enough_Args;
 				break;
@@ -570,7 +597,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				}
 			}
 			break;
-		case 2:		// LOAD <addr> | <addr> <filename> [<library>]
+		case CCE_LOAD:			// LOAD <addr> | <addr> <filename> [<library>]
 		{
 			if (argv.size() == 2) {
 				m_nLoadAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
@@ -595,7 +622,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			//	because errors have already been printed and are not in ParseError...
 			break;
 		}
-		case 3:		// INPUT <filename>
+		case CCE_INPUT:			// INPUT <filename>
 			if (argv.size() != 2) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
@@ -606,20 +633,20 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			m_sInputFilename = argv.at(1);
 			break;
-		case 4:		// OUTPUT [DISASSEMBLY | FUNCTIONS] <filename>
+		case CCE_OUTPUT:		// OUTPUT [DISASSEMBLY | FUNCTIONS] <filename>
 			if ((argv.size() != 2) && (argv.size() != 3)) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			}
-			switch ((argv.size() >= 3) ? parseKeyword(g_mapParseOutputType, makeUpperCopy(argv.at(1))) : 0) {	// Assume DISASSEMBLY if no keyword specified
-				case 0:				// DISASSEMBLY
+			switch ((argv.size() >= 3) ? parseKeyword(g_mapParseOutputType, makeUpperCopy(argv.at(1))) : OTE_DISASSEMBLY) {	// Assume DISASSEMBLY if no keyword specified
+				case OTE_DISASSEMBLY:		// DISASSEMBLY
 					if (!m_sOutputFilename.empty()) {
 						bRetVal = false;
 						m_ParseError = "*** Warning: Disassembly Output filename already defined";
 					}
 					m_sOutputFilename = argv.at((argv.size() >= 3) ? 2 : 1);
 					break;
-				case 1:				// FUNCTIONS
+				case OTE_FUNCTIONS:			// FUNCTIONS
 					if (!m_sFunctionsFilename.empty()) {
 						bRetVal = false;
 						m_ParseError = "*** Warning: Functions Output filename already defined";
@@ -631,7 +658,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 					break;
 			}
 			break;
-		case 5:		// LABEL <addr> <name> [<comment>]    (note: use double quotes for whitespace in <comment>)
+		case CCE_LABEL:			// LABEL <addr> <name> [<comment>]    (note: use double quotes for whitespace in <comment>)
 			if ((argv.size() != 3) && (argv.size() != 4)) {
 				nArgError = (argv.size() < 3) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
@@ -649,7 +676,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				m_ParseError = "*** Warning: Failed to add <comment> field";
 			}
 			break;
-		case 6:		// ADDRESSES [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_ADDRESSES:		// ADDRESSES [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bAddrFlag = true;		// Default is ON
 				break;
@@ -659,7 +686,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bAddrFlag);
 			break;
-		case 7:		// INDIRECT [CODE | DATA] <addr> [<name>]
+		case CCE_INDIRECT:		// INDIRECT [CODE | DATA] <addr> [<name>]
 		{
 			if ((argv.size() < 2) || (argv.size() > 4)) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
@@ -719,8 +746,8 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			break;
 		}
-		case 8:		// OPCODES [ON | OFF | TRUE | FALSE | YES | NO]
-					// OPBYTES [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_OPBYTES:		// OPCODES [ON | OFF | TRUE | FALSE | YES | NO]
+								// OPBYTES [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bOpcodeFlag = true;		// Default is ON
 				break;
@@ -730,7 +757,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bOpcodeFlag);
 			break;
-		case 9:		// ASCII [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_ASCII:			// ASCII [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bAsciiFlag = true;		// Default is ON
 				break;
@@ -740,7 +767,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bAddrFlag);
 			break;
-		case 10:	// SPIT [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_SPIT:			// SPIT [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bSpitFlag = true;		// Default is ON
 				break;
@@ -750,7 +777,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bSpitFlag);
 			break;
-		case 11:	// BASE [OFF | BIN | OCT | DEC | HEX]
+		case CCE_BASE:			// BASE [OFF | BIN | OCT | DEC | HEX]
 		{
 			if (argv.size() < 2) {
 				m_nBase = 0;		// Default is OFF
@@ -767,28 +794,28 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			break;
 		}
-		case 12:	// MAXNONPRINT <value>
+		case CCE_MAXNONPRINT:	// MAXNONPRINT <value>
 			if (argv.size() != 2) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			}
 			m_nMaxNonPrint = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
 			break;
-		case 13:	// MAXPRINT <value>
+		case CCE_MAXPRINT:		// MAXPRINT <value>
 			if (argv.size() != 2) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			}
 			m_nMaxPrint = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
 			break;
-		case 14:	// DFC <library>
+		case CCE_DFC:			// DFC <library>
 			if (argv.size() != 2) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			}
 			m_sDFC = argv.at(1);
 			break;
-		case 15:	// TABS [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_TABS:			// TABS [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bTabsFlag = true;		// Default is ON
 				break;
@@ -798,14 +825,14 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bTabsFlag);
 			break;
-		case 16:	// TABWIDTH <value>
+		case CCE_TABWIDTH:		// TABWIDTH <value>
 			if (argv.size() != 2) {
 				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
 			}
 			m_nTabWidth = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
 			break;
-		case 17:	// ASCIIBYTES [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_ASCIIBYTES:	// ASCIIBYTES [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bAsciiBytesFlag = true;		// Default is ON
 				break;
@@ -815,7 +842,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bAsciiBytesFlag);
 			break;
-		case 18:	// DATAOPBYTES [ON | OFF | TRUE | FALSE | YES | NO]
+		case CCE_DATAOPBYTES:	// DATAOPBYTES [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
 				m_bDataOpBytesFlag = true;		// Default is ON
 				break;
@@ -825,7 +852,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			fnSetBoolean(argv.at(1), m_bDataOpBytesFlag);
 			break;
-		case 19:	// EXITFUNCTION <addr> [<name>]
+		case CCE_EXITFUNCTION:	// EXITFUNCTION <addr> [<name>]
 			if (argv.size() < 2) {
 				nArgError = ARGERR_Not_Enough_Args;
 				break;
@@ -852,7 +879,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				}
 			}
 			break;
-		case 20:	// MEMMAP [ROM | RAM | IO] <addr> <size>
+		case CCE_MEMMAP:		// MEMMAP [ROM | RAM | IO] <addr> <size>
 		{
 			if ((argv.size() != 3) && (argv.size() != 4)) {
 				nArgError = (argv.size() < 3) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
