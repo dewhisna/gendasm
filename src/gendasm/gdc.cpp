@@ -92,6 +92,12 @@ namespace {
 		{ "^FUNCTION|FUNCTIONS|FUNC|FUNCS|FUNCT|FUNCTS$", 1 },
 	};
 
+
+	// --------------------------------
+
+	static const std::string g_arrstrMemRanges[CDisassembler::NUM_MEMORY_TYPES] = {		// Both Human readable names for ranges for printing AND names used in Functions file!
+		"ROM", "RAM", "IO",
+	};
 };
 
 // ----------------------------------------------------------------------------
@@ -136,6 +142,15 @@ unsigned int CDisassembler::GetVersionNumber() const
 }
 
 // ----------------------------------------------------------------------------
+
+static std::string::size_type getLongestMemMapName()
+{
+	std::string::size_type nMax = 0;
+	for (int nMemType = 0; nMemType < CDisassembler::NUM_MEMORY_TYPES; ++nMemType) {
+		if (g_arrstrMemRanges[nMemType].size() > nMax) nMax = g_arrstrMemRanges[nMemType].size();
+	}
+	return nMax;
+}
 
 static void parseArgLine(const std::string aLine, CStringArray &args)
 {
@@ -298,20 +313,11 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 				(*msgFile) << "        Memory Mappings:\n";
 
 				for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
-					switch (nMemType) {
-						case MT_ROM:
-							(*msgFile) << "            ROM Memory Map:";
-							break;
-						case MT_RAM:
-							(*msgFile) << "            RAM Memory Map:";
-							break;
-						case MT_IO:
-							(*msgFile) << "             IO Memory Map:";
-							break;
-						default:
-							assert(false);
-							break;
+					(*msgFile) << "            ";
+					for (std::string::size_type i = (getLongestMemMapName() - g_arrstrMemRanges[nMemType].size()); i; --i) {
+						(*msgFile) << " ";
 					}
+					(*msgFile) << g_arrstrMemRanges[nMemType] << " Memory Map:";
 
 					if (m_MemoryRanges[nMemType].isNullRange()) {
 						(*msgFile) << " <Not Defined>\n";
@@ -876,37 +882,14 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			m_MemoryRanges[nType].sort();
 
 			if (!m_bAllowMemRangeOverlap) {
-				switch (nType) {
-					case MT_ROM:
-						if (m_MemoryRanges[MT_RAM].addressInRange(nAddress)) {
-							bRetVal = false;
-							m_ParseError = "*** Warning: Specified ROM Mapping conflicts with RAM Mapping";
-						} else if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) {
-							bRetVal = false;
-							m_ParseError = "*** Warning: Specified ROM Mapping conflicts with IO Mapping";
-						}
+				for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
+					if (nType == nMemType) continue;
+					if (m_MemoryRanges[nMemType].addressInRange(nAddress)) {
+						bRetVal = false;
+						m_ParseError = "*** Warning: Specified " + g_arrstrMemRanges[nType] +
+										" Mapping conflicts with " + g_arrstrMemRanges[nMemType] + " Mapping";
 						break;
-					case MT_RAM:
-						if (m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
-							bRetVal = false;
-							m_ParseError = "*** Warning: Specified RAM Mapping conflicts with ROM Mapping";
-						} else if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) {
-							bRetVal = false;
-							m_ParseError = "*** Warning: Specified RAM Mapping conflicts with IO Mapping";
-						}
-						break;
-					case MT_IO:
-						if (m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
-							bRetVal = false;
-							m_ParseError = "*** Warning: Specified IO Mapping conflicts with ROM Mapping";
-						} else if (m_MemoryRanges[MT_RAM].addressInRange(nAddress)) {
-							bRetVal = false;
-							m_ParseError = "*** Warning: Specified IO Mapping conflicts with RAM Mapping";
-						}
-						break;
-					default:
-						assert(false);
-						break;
+					}
 				}
 			}
 			break;
@@ -1201,20 +1184,12 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 	aFunctionsFile << "; Memory Mappings:";
 
 	for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
-		switch (nMemType) {
-			case MT_ROM:
-				aFunctionsFile << "  ROM Memory Map: ";
-				break;
-			case MT_RAM:
-				aFunctionsFile << ";                   RAM Memory Map: ";
-				break;
-			case MT_IO:
-				aFunctionsFile << ";                    IO Memory Map: ";
-				break;
-			default:
-				assert(false);
-				break;
+		aFunctionsFile << ((nMemType == 0) ? "  " : ";                   ");
+		for (std::string::size_type i = (getLongestMemMapName() - g_arrstrMemRanges[nMemType].size()); i; --i) {
+			aFunctionsFile << " ";
 		}
+		aFunctionsFile << g_arrstrMemRanges[nMemType] << " Memory Map:";
+
 		if (m_MemoryRanges[nMemType].isNullRange()) {
 			aFunctionsFile << "<Not Defined>\n";
 		} else {
@@ -1247,21 +1222,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			std::ostringstream sstrTemp;
 
 			if (itrMemRange.isNullRange()) continue;
-			switch (nMemType) {
-				case MT_ROM:
-					sstrTemp << "#ROM|";
-					break;
-				case MT_RAM:
-					sstrTemp << "#RAM|";
-					break;
-				case MT_IO:
-					sstrTemp << "#IO|";
-					break;
-				default:
-					assert(false);
-					break;
-			}
-
+			sstrTemp << "#" << g_arrstrMemRanges[nMemType] << "|";
 			sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrMemRange.startAddr();
 			sstrTemp << "|"  << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrMemRange.size();
 			sstrTemp << "\n";
@@ -1805,21 +1766,12 @@ bool CDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, st
 	outFile << MakeOutputLine(saOutLine) << "\n";
 
 	for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
-		switch (nMemType) {
-			case MT_ROM:
-				saOutLine[FC_LABEL] = GetCommentStartDelim() + " Memory Mappings:";
-				saOutLine[FC_LABEL] += "  ROM Memory Map: ";
-				break;
-			case MT_RAM:
-				saOutLine[FC_LABEL] = GetCommentStartDelim() + "                   RAM Memory Map: ";
-				break;
-			case MT_IO:
-				saOutLine[FC_LABEL] = GetCommentStartDelim() + "                    IO Memory Map: ";
-				break;
-			default:
-				assert(false);
-				break;
+		saOutLine[FC_LABEL] = GetCommentStartDelim();
+		saOutLine[FC_LABEL] += ((nMemType == 0) ? " Memory Mappings:  " : "                   ");
+		for (std::string::size_type i = (getLongestMemMapName() - g_arrstrMemRanges[nMemType].size()); i; --i) {
+			saOutLine[FC_LABEL] += " ";
 		}
+		saOutLine[FC_LABEL] += g_arrstrMemRanges[nMemType] + " Memory Map:";
 
 		if (m_MemoryRanges[nMemType].isNullRange()) {
 			saOutLine[FC_LABEL] += "<Not Defined>" + GetCommentEndDelim() + "\n";
