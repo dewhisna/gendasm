@@ -60,6 +60,7 @@ namespace {
 		CCE_DATAOPBYTES,
 		CCE_EXITFUNCTION,
 		CCE_MEMMAP,
+		CCE_COMMENT,
 	};
 
 	enum OUTPUT_TYPE_ENUM {
@@ -89,6 +90,7 @@ namespace {
 		{ "^DATAOPBYTES$", CCE_DATAOPBYTES },
 		{ "^EXITFUNCTION$", CCE_EXITFUNCTION },
 		{ "^MEMMAP$", CCE_MEMMAP },
+		{ "^COMMENT$", CCE_COMMENT },
 	};
 
 	static const TKeywordMap g_mapParseTrueFalse = {
@@ -118,6 +120,13 @@ namespace {
 	static const TKeywordMap g_mapParseOutputType = {
 		{ "^DISASSEMBLY|DISASSEMBLE|DISASSEM|DISASM|DIS|DASM$", OTE_DISASSEMBLY },
 		{ "^FUNCTION|FUNCTIONS|FUNC|FUNCS|FUNCT|FUNCTS$", OTE_FUNCTIONS },
+	};
+
+	static const TKeywordMap g_mapParseCommentType = {
+		{ "^EQUATE$", CDisassembler::CTF_EQUATE },
+		{ "^DATA$", CDisassembler::CTF_DATA },
+		{ "^CODE$", CDisassembler::CTF_CODE },
+		{ "^REF$", CDisassembler::CTF_REF },
 	};
 
 	// --------------------------------
@@ -917,6 +926,37 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 						break;
 					}
 				}
+			}
+			break;
+		}
+		case CCE_COMMENT:		// COMMENT <address> [<Type> ...] <comment>
+		{						//	Where <Type> is (EQUATE | DATA | CODE | REF)
+								//		Can be specified multiple times and are OR'd together
+								//		If omitted, "ALL" is assumed
+			if (argv.size() < 3) {
+				nArgError = ARGERR_Not_Enough_Args;
+				break;
+			}
+			COMMENT_TYPE_FLAGS ctfFlags = ((argv.size() == 3) ? CTF_ALL : CTF_NONE);
+			if (argv.size() > 3) {
+				bool bInvalidType = false;
+				for (CStringArray::size_type ndx = 2; ndx < (argv.size()-1); ++ndx) {
+					int nParsedType = parseKeyword(g_mapParseCommentType, makeUpperCopy(argv.at(ndx)));
+					if (nParsedType == -1) {
+						bInvalidType = true;
+						break;
+					}
+					ctfFlags |= static_cast<COMMENT_TYPE_FLAGS>(nParsedType);
+				}
+				if (bInvalidType) {
+					nArgError = ARGERR_Illegal_Arg;
+					break;
+				}
+			}
+			nAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
+			if (!AddComment(nAddress, CComment(ctfFlags, argv.at(argv.size()-1)))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Failed to add <comment> field";
 			}
 			break;
 		}
