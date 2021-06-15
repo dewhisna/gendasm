@@ -191,12 +191,11 @@ static void parseArgLine(const std::string aLine, CStringArray &args)
 		bool bQuoted = false;
 		bool bQuoteLiteral = false;
 		bool bNonWhitespaceSeen = false;
-		bool bEndOfField = strLine.empty();
 		bool bDropField = false;
 
 		std::string::value_type ch;
 
-		while (!bEndOfField && !strLine.empty()) {
+		while (!strLine.empty()) {
 			ch = strLine.at(0);
 			strLine = strLine.substr(1);
 
@@ -228,15 +227,15 @@ static void parseArgLine(const std::string aLine, CStringArray &args)
 			}
 
 			if ((!bQuoted) && (strDelim.find(ch) != std::string::npos)) {
-				bEndOfField = true;
+				break;	// Hitting the delimiter ends the field
 			} else if ((!bQuoted) && (ch == ';')) {
 				// Unquoted comment marker ends the field and drops remainder of line
 				strLine.clear();
-				bEndOfField = true;
 				if (strString.empty()) bDropField = true;	// Drop the field if this comment was it
+				break;
 			} else if (strLine.empty()) {
 				strString.push_back(ch);
-				bEndOfField = true;
+				break;	// Hitting the end of the string ends the field and the line
 			} else {
 				strString.push_back(ch);
 			}
