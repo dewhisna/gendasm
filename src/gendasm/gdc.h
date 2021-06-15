@@ -21,8 +21,63 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <utility>
 
 #include <assert.h>
+
+// ============================================================================
+
+// Templates are defined here in order to avoid a dependency on C++ <type_traits> header file,
+// or on compiler-specific contructs.
+extern "C++" {
+    template <size_t S>
+    struct _ENUM_FLAG_INTEGER_FOR_SIZE;
+
+    template <>
+    struct _ENUM_FLAG_INTEGER_FOR_SIZE<1>
+    {
+        typedef int8_t type;
+    };
+
+    template <>
+    struct _ENUM_FLAG_INTEGER_FOR_SIZE<2>
+    {
+        typedef int16_t type;
+    };
+
+    template <>
+    struct _ENUM_FLAG_INTEGER_FOR_SIZE<4>
+    {
+        typedef int32_t type;
+    };
+
+    template <>
+    struct _ENUM_FLAG_INTEGER_FOR_SIZE<8>
+    {
+        typedef int64_t type;
+    };
+
+    // used as an approximation of std::underlying_type<T>
+    template <class T>
+    struct _ENUM_FLAG_SIZED_INTEGER
+    {
+        typedef typename _ENUM_FLAG_INTEGER_FOR_SIZE<sizeof(T)>::type type;
+    };
+}
+
+#ifndef DEFINE_ENUM_FLAG_OPERATORS
+#define _ENUM_FLAG_CONSTEXPR constexpr
+#define DEFINE_ENUM_FLAG_OPERATORS(ENUMTYPE) \
+extern "C++" { \
+inline _ENUM_FLAG_CONSTEXPR ENUMTYPE operator | (ENUMTYPE a, ENUMTYPE b) throw() { return ENUMTYPE(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) | ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+inline ENUMTYPE &operator |= (ENUMTYPE &a, ENUMTYPE b) throw() { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) |= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+inline _ENUM_FLAG_CONSTEXPR ENUMTYPE operator & (ENUMTYPE a, ENUMTYPE b) throw() { return ENUMTYPE(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) & ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+inline ENUMTYPE &operator &= (ENUMTYPE &a, ENUMTYPE b) throw() { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) &= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+inline _ENUM_FLAG_CONSTEXPR ENUMTYPE operator ~ (ENUMTYPE a) throw() { return ENUMTYPE(~((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a)); } \
+inline _ENUM_FLAG_CONSTEXPR ENUMTYPE operator ^ (ENUMTYPE a, ENUMTYPE b) throw() { return ENUMTYPE(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)a) ^ ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+inline ENUMTYPE &operator ^= (ENUMTYPE &a, ENUMTYPE b) throw() { return (ENUMTYPE &)(((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type &)a) ^= ((_ENUM_FLAG_SIZED_INTEGER<ENUMTYPE>::type)b)); } \
+}
+#endif
 
 // ============================================================================
 
@@ -48,16 +103,13 @@ typedef std::vector<std::string> CStringArray;
 
 typedef std::string TLabel;									// Basic Label type (should support basic_string)
 typedef std::string TMnemonic;								// Basic Mnemonic type (should support basic_string)
-typedef std::string TComment;								// Basic Comment type (should support basic_string)
 
 typedef std::vector<TLabel> CLabelArray;					// Array of labels
-typedef std::vector<TComment> CCommentArray;				// Array of Comments
 typedef std::vector<TAddress> CAddressArray;				// Array of addresses
 typedef std::set<TAddress> CAddressSet;						// Set of addresses as collection of addresses discovered
 typedef std::map<TAddress, CAddressArray> CAddressTableMap;	// Mapping of Address to Array of Addresses
 typedef std::map<TAddress, TLabel> CAddressLabelMap;		// Mapping of Address to single Label
 typedef std::map<TAddress, CLabelArray> CLabelTableMap;		// Mapping of Address to Array of Labels
-typedef std::map<TAddress, CCommentArray> CCommentTableMap;	// Mapping of Address or Array of Comments
 
 // ----------------------------------------------------------------------------
 
@@ -320,6 +372,33 @@ public:
 	// The following defines the memory types:
 	enum MEMORY_TYPE { MT_ROM, MT_RAM, MT_IO, NUM_MEMORY_TYPES };
 
+	// The following defines the commit type flags for determining when to output
+	//	specific user-defined comments.  It is used by the FormatComments function.
+	//	This enum can be added to in overrides, but the existing entries should not
+	//	be changed.  Note: These are bit-flags.
+	enum COMMENT_TYPE_FLAGS {
+		CTF_NONE = 0,
+		CTF_EQUATE = 1,			// Labels for things appearing outside Code and Data areas defined with equates (MC_EQUATE output)
+		CTF_DATA = 2,			// Labels for things in Data (MC_DATABYTE and MC_ASCII output)
+		CTF_CODE = 4,			// Labels for things in Code (MC_OPCODE and MC_ILLOP output)
+		CTF_REF = 8,			// Labels for indirect references (MC_INDIRECT output)
+		CTF_ALL = (CTF_EQUATE | CTF_DATA | CTF_CODE | CTF_REF)
+	};
+
+	struct CComment {
+		CComment() {}
+		CComment(COMMENT_TYPE_FLAGS nFlags, const std::string &strComment)
+			:	m_nFlags(nFlags),
+				m_strComment(strComment)
+		{ }
+
+		COMMENT_TYPE_FLAGS m_nFlags;	// Flags of where to use it
+		std::string m_strComment;		// Comment text
+	};
+
+	typedef std::vector<CComment> CCommentArray;					// Array of Comments
+	typedef std::map<TAddress, CCommentArray> CCommentTableMap;		// Mapping of Address or Array of Comments
+
 public:
 	CDisassembler();
 	virtual ~CDisassembler();
@@ -400,7 +479,8 @@ protected:
 	virtual std::string FormatAddress(TAddress nAddress);					// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
 	virtual std::string FormatOpBytes() = 0;								// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
 	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
-	virtual std::string FormatReferences(TAddress nAddress);			// Makes a string to place in the comment field that contains all references for the specified address
+	virtual std::string FormatReferences(MNEMONIC_CODE nMCCode, TAddress nAddress);			// Makes a string to place in the comment field that contains all references for the specified address
+	virtual std::string FormatUserComments(MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
 
 	virtual int GetFieldWidth(FIELD_CODE nFC) const;						// Defines the widths of each output field.  Can be overridden to alter output formatting.  To eliminate space/tab mixing, these should typically be a multiple of the tab width
 	virtual std::string MakeOutputLine(CStringArray& saOutputData) const;	// Formats the data in saOutputData, which should have indicies corresponding to FIELD_CODE enum, to a string that can be sent to the output file
@@ -454,7 +534,7 @@ protected:
 
 	virtual bool AddLabel(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0, const TLabel & strLabel = TLabel());		// Sets strLabel string as the label for nAddress.  If nAddress is already set with that string, returns FALSE else returns TRUE or all OK.  If address has a label and strLabel = empty or zero length, nothing is added!  If strLabel is empty or zero length, an empty string is added to later get resolved to Lxxxx form.  If bAddRef, then nRefAddress is added to the reference list
 	virtual bool AddBranch(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0);	// Adds nAddress to the branch table with nRefAddress as the referring address.  Returns T if all ok, F if branch address is outside of loaded space.  If nAddRef is false, a branch is added without a reference
-	virtual bool AddComment(TAddress nAddress, const TComment &strComment);
+	virtual bool AddComment(TAddress nAddress, const CComment &strComment);
 
 	virtual void GenDataLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress -- unlike calling direct, this function outputs the new label to msgFile if specified...
 	virtual void GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress, then calls AddBranch to add a branch address -- unlike calling direct, this function outputs the new label to msgFile if specified and displays "out of source" errors for the branches to errFile...
@@ -541,6 +621,8 @@ private:
 
 	int m_LAdrDplyCnt;					// Label address display count -- used to format output
 };
+
+DEFINE_ENUM_FLAG_OPERATORS(CDisassembler::COMMENT_TYPE_FLAGS);
 
 // ============================================================================
 

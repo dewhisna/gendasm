@@ -670,7 +670,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate label";
 			}
-			if ((argv.size() > 3) && !AddComment(nAddress, argv.at(3))) {
+			if ((argv.size() > 3) && !AddComment(nAddress, CComment(CTF_ALL, argv.at(3)))) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Failed to add <comment> field";
 			}
@@ -1503,8 +1503,10 @@ std::string CDisassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, 
 	return sstrTemp.str();
 }
 
-std::string CDisassembler::FormatReferences(TAddress nAddress)
+std::string CDisassembler::FormatReferences(MNEMONIC_CODE nMCCode, TAddress nAddress)
 {
+	UNUSED(nMCCode);
+
 	std::string strRetVal;
 	bool bFlag = false;
 
@@ -1541,6 +1543,46 @@ std::string CDisassembler::FormatReferences(TAddress nAddress)
 			}
 		}
 	}
+
+	return strRetVal;
+}
+
+std::string CDisassembler::FormatUserComments(MNEMONIC_CODE nMCCode, TAddress nAddress)
+{
+	CCommentTableMap::const_iterator itrUserComments = m_CommentTable.find(nAddress);
+	if (itrUserComments == m_CommentTable.cend()) return std::string();
+
+	COMMENT_TYPE_FLAGS ctfType = CTF_NONE;
+	switch (nMCCode) {
+		case MC_OPCODE:
+		case MC_ILLOP:
+			ctfType = CTF_CODE;
+			break;
+		case MC_EQUATE:
+			ctfType = CTF_EQUATE;
+			break;
+		case MC_DATABYTE:
+		case MC_ASCII:
+			ctfType = CTF_DATA;
+			break;
+		case MC_INDIRECT:
+			ctfType = CTF_REF;
+			break;
+		default:
+			assert(false);
+			break;
+	}
+
+	std::ostringstream ssUserComments;
+
+	for (auto const & itrComment : itrUserComments->second) {
+		if (itrComment.m_nFlags & ctfType) {
+			ssUserComments << itrComment.m_strComment << "\n";
+		}
+	}
+
+	std::string strRetVal = ssUserComments.str();
+	rtrim(strRetVal);				// Trim extra trailing '\n' from above
 
 	return strRetVal;
 }
@@ -2497,7 +2539,7 @@ bool CDisassembler::AddBranch(TAddress nAddress, bool bAddRef, TAddress nRefAddr
 	return IsAddressLoaded(nAddress, 1);
 }
 
-bool CDisassembler::AddComment(TAddress nAddress, const TComment &strComment)
+bool CDisassembler::AddComment(TAddress nAddress, const CComment &strComment)
 {
 	CCommentTableMap::iterator itrComments = m_CommentTable.find(nAddress);
 	if (itrComments == m_CommentTable.end()) {
