@@ -758,6 +758,20 @@ std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
 
 	// Add user comments:
 	strRetVal = FormatUserComments(nMCCode, m_PC - m_OpMemory.size());
+	if (nMCCode == MC_OPCODE) {
+		m_nOpPointer = m_CurrentOpcode.opcode().size();	// Get position of start of operands following opcode
+
+		std::string strRefComment = FormatOperandRefComments(OGRP_DST());
+		if (!strRefComment.empty()) {
+			if (!strRetVal.empty()) strRetVal += "\n";
+			strRetVal += strRefComment;
+		}
+		strRefComment = FormatOperandRefComments(OGRP_SRC());
+		if (!strRefComment.empty()) {
+			if (!strRetVal.empty()) strRetVal += "\n";
+			strRetVal += strRefComment;
+		}
+	}
 
 	// Handle Undetermined Branch:
 	switch (nMCCode) {
@@ -1279,6 +1293,54 @@ void CM6811Disassembler::CreateOperand(TM6811Disassembler::TGroupFlags nGroup, s
 			m_nOpPointer++;
 			break;
 	}
+}
+
+std::string CM6811Disassembler::FormatOperandRefComments(TM6811Disassembler::TGroupFlags nGroup)
+{
+	TAddress nAddress = 0;
+
+	switch (nGroup) {
+		case 0x1:								// absolute 8-bit, assume msb=$00
+			nAddress = m_OpMemory.at(m_nOpPointer);
+			m_nOpPointer++;
+			break;
+		case 0x2:								// 16-bit Absolute
+			nAddress = m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1);
+			m_nOpPointer += 2;
+			break;
+		case 0x3:								// 8-bit Relative
+			nAddress = m_PC+(signed long)(signed char)(m_OpMemory.at(m_nOpPointer));
+			m_nOpPointer++;
+			break;
+		case 0x4:								// 16-bit Relative
+			nAddress = m_PC+(signed long)(signed short)(m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
+			m_nOpPointer += 2;
+			break;
+		case 0x5:								// Immediate 8-bit data
+			m_nOpPointer++;
+			return std::string();
+		case 0x6:								// Immediate 16-bit data
+			m_nOpPointer += 2;
+			return std::string();
+		case 0x7:								// 8-bit Absolute address, and mask
+			nAddress = m_OpMemory.at(m_nOpPointer);
+			m_nOpPointer += 2;
+			break;
+		case 0x8:								// 8-bit offset and 8-bit mask (x)
+			m_nOpPointer += 2;
+			return std::string();
+		case 0x9:								// 8-bit offset and 8-bit mask (y)
+			m_nOpPointer += 2;
+			return std::string();
+		case 0xA:								// 8-bit offset (x)
+			m_nOpPointer++;
+			return std::string();
+		case 0xB:								// 8-bit offset (y)
+			m_nOpPointer++;
+			return std::string();
+}
+
+	return FormatUserComments(MC_INDIRECT, nAddress);
 }
 
 bool CM6811Disassembler::CheckBranchOutside(TM6811Disassembler::TGroupFlags nGroup)
