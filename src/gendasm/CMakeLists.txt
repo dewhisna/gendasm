@@ -74,6 +74,20 @@ set(cpu_m6811_Headers
 
 # -----------------------------------------------------------------------------
 
+#
+# AVR Disassembler
+#
+
+set(cpu_avr_Sources
+	cpu/avr/avrgdc.cpp
+)
+
+set(cpu_avr_Headers
+	cpu/avr/avrgdc.h
+)
+
+# -----------------------------------------------------------------------------
+
 add_executable(gendasm
 	${gendasm_Sources}
 	${gendasm_Headers}
