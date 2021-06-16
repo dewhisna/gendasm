@@ -165,6 +165,9 @@ template<typename TDisassembler>
 class COpcodeEntry
 {
 public:
+	typedef bool (*TOpcodeMatchFunc)(const COpcodeEntry &anOpcode,
+									 const typename TDisassembler::COpcodeSymbolArray &arrOpMemory);
+
 	COpcodeEntry()
 	{ }
 	COpcodeEntry(	const typename TDisassembler::COpcodeSymbolArray &opcode,
@@ -172,12 +175,14 @@ public:
 					const typename TDisassembler::TGroupFlags &group,
 					const typename TDisassembler::TControlFlags &control,
 					const TMnemonic &mnemonic,
+					const TOpcodeMatchFunc fncMatch = nullptr,
 					const TUserData &userdata = {})
 		:	m_Opcode(opcode),
 			m_OpcodeMask(opcodeMask),
 			m_Group(group),
 			m_Control(control),
 			m_Mnemonic(mnemonic),
+			m_fncMatch(fncMatch),
 			m_UserData(userdata)
 	{ }
 
@@ -200,12 +205,13 @@ public:
 	void setUserData(const TUserData &userdata) { m_UserData = userdata; }
 
 private:
-	typename TDisassembler::COpcodeSymbolArray	m_Opcode = {};		// Array of opcode symbols for this entry
-	typename TDisassembler::COpcodeSymbolArray	m_OpcodeMask = {};	// Array of opcode symbol masks for this entry
-	typename TDisassembler::TGroupFlags			m_Group = {};		// Group declaration
-	typename TDisassembler::TControlFlags		m_Control = {};		// Flow control
-	TMnemonic									m_Mnemonic = {};	// Printed mnemonic
-	TUserData									m_UserData = {};	// User defined addition data storage
+	typename TDisassembler::COpcodeSymbolArray	m_Opcode = {};			// Array of opcode symbols for this entry
+	typename TDisassembler::COpcodeSymbolArray	m_OpcodeMask = {};		// Array of opcode symbol masks for this entry
+	typename TDisassembler::TGroupFlags			m_Group = {};			// Group declaration
+	typename TDisassembler::TControlFlags		m_Control = {};			// Flow control
+	TMnemonic									m_Mnemonic = {};		// Printed mnemonic
+	TOpcodeMatchFunc							m_fncMatch = nullptr;	// Optional matching function for this opcode
+	TUserData									m_UserData = {};		// User defined addition data storage
 };
 
 template<typename TDisassembler> using COpcodeEntryArray = std::vector< COpcodeEntry<TDisassembler> >;
