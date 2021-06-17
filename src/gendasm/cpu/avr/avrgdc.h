@@ -78,6 +78,10 @@ class CAVRDisassembler : public CDisassembler, protected CDisassemblerData<CAVRD
 public:
 	CAVRDisassembler();
 
+	virtual unsigned int GetVersionNumber() const;
+	virtual std::string GetGDCLongName() const;
+	virtual std::string GetGDCShortName() const;
+
 	// --------------------------------
 
 protected:

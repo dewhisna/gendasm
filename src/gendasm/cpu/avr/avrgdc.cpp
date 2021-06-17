@@ -315,7 +315,7 @@
 #define ComDelimE	""			// Comment End delimiter
 #define HexDelim	"0x"		// Hex. delimiter
 
-#define VERSION 0x0200				// M6811 Disassembler Version number 2.00
+#define VERSION 0x0100			// AVR Disassembler Version number 1.00
 
 #ifndef UNUSED
 	#define UNUSED(x) ((void)(x))
@@ -536,4 +536,23 @@ CAVRDisassembler::CAVRDisassembler()
 	//		For now just use ATmega328PB
 	m_Memory.push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x8000ul, 0, DMEM_NOTLOADED });	// 32K of code memory available to processor as one block
 }
+
+// ----------------------------------------------------------------------------
+
+unsigned int CAVRDisassembler::GetVersionNumber() const
+{
+	return (CDisassembler::GetVersionNumber() | VERSION);			// Get GDC version and append our version to it
+}
+
+std::string CAVRDisassembler::GetGDCLongName() const
+{
+	return "AVR Disassembler";
+}
+
+std::string CAVRDisassembler::GetGDCShortName() const
+{
+	return "AVR";
+}
+
+// ----------------------------------------------------------------------------
 
