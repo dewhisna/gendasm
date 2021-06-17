@@ -115,14 +115,14 @@ typedef std::map<TAddress, CLabelArray> CLabelTableMap;		// Mapping of Address t
 
 // Type definitions for a specific disassembler:
 template <	typename TOpcodeSymbol_,
-			typename TControlFlags_,
-			typename TGroupFlags_>
+			typename TGroupFlags_,
+			typename TControlFlags_>
 class TDisassemblerTypes
 {
 public:
 	typedef TOpcodeSymbol_ TOpcodeSymbol;						// Opcode symbol type (should be numeric)
-	typedef TControlFlags_ TControlFlags;						// Control Flags type (should be numeric)
 	typedef TGroupFlags_ TGroupFlags;							// Group Flags type (should be numeric)
+	typedef TControlFlags_ TControlFlags;						// Control Flags type (should be numeric)
 	// --------------------------------
 	typedef std::vector<TOpcodeSymbol> COpcodeSymbolArray;		// Array of bytes or symbols in complete opcode
 

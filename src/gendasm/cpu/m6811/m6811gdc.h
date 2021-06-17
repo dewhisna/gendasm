@@ -17,8 +17,8 @@
 
 typedef TDisassemblerTypes<
 		uint8_t,		// TOpcodeSymbol
-		uint32_t,		// TControlFlags
-		uint32_t		// TGroupFlags
+		uint32_t,		// TGroupFlags
+		uint32_t		// TControlFlags
 > TM6811Disassembler;
 
 // ----------------------------------------------------------------------------

@@ -84,8 +84,8 @@ namespace TAVRDisassembler_ENUMS {
 
 typedef TDisassemblerTypes<
 		uint16_t,								// TOpcodeSymbol (AVR Uses Words instead of bytes)
-		TAVRDisassembler_ENUMS::OpcodeControl,	// TControlFlags
-		TAVRDisassembler_ENUMS::OpcodeGroups	// TGroupFlags
+		TAVRDisassembler_ENUMS::OpcodeGroups,	// TGroupFlags
+		TAVRDisassembler_ENUMS::OpcodeControl	// TControlFlags
 > TAVRDisassembler;
 
 // ----------------------------------------------------------------------------
