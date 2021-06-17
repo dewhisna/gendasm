@@ -147,7 +147,7 @@ public:
 	//	occupying certain bit positions -- with proper "and/or" masks and
 	//	bit-shifting these can easily be converted to/from bit-field equivalents.
 	//	(Names use OCTL_xxxx form)
-	static constexpr TControlFlags OCTL_STOP = 0x80000000ul;		// Discontinue Disassembly - Upper-bit = 1
+	static constexpr TControlFlags OCTL_STOP = static_cast<TControlFlags>(0x80000000ul);		// Discontinue Disassembly - Upper-bit = 1
 
 	// Currently, all m_Group entries are used exclusively by processor
 	//	dependent functions.  But, it too should follow the guidelines above

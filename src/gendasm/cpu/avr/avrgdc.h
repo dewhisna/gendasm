@@ -15,7 +15,7 @@
 
 // ============================================================================
 
-namespace TAVRDisassembler_OpcodeGroups {
+namespace TAVRDisassembler_ENUMS {
 	enum OpcodeGroups {
 		S_IBYTE,		// 0xF000 : Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
 		S_IWORD,		// 0xFF00 : Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
@@ -63,12 +63,29 @@ namespace TAVRDisassembler_OpcodeGroups {
 		S_INH_Zp,		// 0xFFFF : Z+       ---- ---- ---- ----  (AVRxm,AVRxt)
 		S_INH,			// 0xFFFF : -        ---- ---- ---- ----
 	};
+
+
+	enum OpcodeControl {
+		CTL_None,				//	Disassemble as code
+		CTL_DataLabel,			//	Disassemble as code, with data addr label
+		CTL_IOLabel,			//	Disassemble as code, with I/O addr label
+		CTL_UndetBra,			//	Disassemble as undeterminable branch address (Comment code)
+		CTL_DetBra,				//	Disassemble as determinable branch, add branch addr and label
+		CTL_Skip,				//	Disassemble as Skip Branch.  Next two instructions flagged as code even if next one would be terminal
+		CTL_SkipIOLabel,		//	Disassemble as Skip Branch, but with I/O addr label
+
+		CTL_MASK = 0xFFFFul,	//	Mask for the CTL portion above
+
+		OCTL_TwoWordCode = 0x10000ul,		// Flag for Two-Word Instruction
+		OCTL_ArchExtAddr = 0x20000ul,		// Flag for Architecture Specific extended addressing (such as RAMPD for LDS/STS instructions for >= 64K)
+	};
+	DEFINE_ENUM_FLAG_OPERATORS(OpcodeControl)
 }
 
 typedef TDisassemblerTypes<
-		uint16_t,		// TOpcodeSymbol
-		uint32_t,		// TControlFlags
-		TAVRDisassembler_OpcodeGroups::OpcodeGroups		// TGroupFlags
+		uint16_t,								// TOpcodeSymbol (AVR Uses Words instead of bytes)
+		TAVRDisassembler_ENUMS::OpcodeControl,	// TControlFlags
+		TAVRDisassembler_ENUMS::OpcodeGroups	// TGroupFlags
 > TAVRDisassembler;
 
 // ----------------------------------------------------------------------------
@@ -85,22 +102,6 @@ public:
 	// --------------------------------
 
 protected:
-	static constexpr TAVRDisassembler::TControlFlags OCTL_MASK = 0xFFFF;		// Mask for our control byte
-
-	static inline TAVRDisassembler::TControlFlags MAKEOCTL(TAVRDisassembler::TControlFlags d, TAVRDisassembler::TControlFlags s)
-	{
-		return (((d & 0xFF) << 8) | (s & 0xFF));
-	}
-
-	inline TAVRDisassembler::TControlFlags OCTL_SRC() const
-	{
-		return (m_CurrentOpcode.control() & 0xFF);
-	}
-
-	inline TAVRDisassembler::TControlFlags OCTL_DST() const
-	{
-		return ((m_CurrentOpcode.control() >> 8) & 0xFF);
-	}
 
 	// --------------------------------
 
