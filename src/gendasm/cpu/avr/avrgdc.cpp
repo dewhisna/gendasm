@@ -10,52 +10,86 @@
 //	AVRGDC -- This is the implementation for the AVR Disassembler GDC module
 //
 //
-//	Groups: (Grp) : xy
-//	  Where x (msnb = destination = FIRST operand)
-//			y (lsnb = source = LAST operand)
+//	Groups: (Grp) :
+//		S_IBYTE,		// 0xF000 : Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		S_IWORD,		// 0xFF00 : Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
+//		S_SNGL,			// 0xFE0F : Rd       ---- ---d dddd ---- (d: 0-31)
+//		S_SAME,			// 0xFC00 : Rd       ---- --dd dddd dddd (d: 0-31)x2 (these are all ambiguous with corresponding S_DUBL, so must come AHEAD of S_DUBL and use a Match Function)
+//		S_DUBL,			// 0xFC00 : Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		S_MOVW,			// 0xFF00 : Rd, Rr   ---- ---- dddd rrrr (d: 0,2,4,...,30), (r: 0,2,4,...,30)
+//		S_MULS,			// 0xFF00 : Rd, Rr   ---- ---- dddd rrrr (d: 16-31), (r: 16-31)
+//		S_FMUL,			// 0xFF88 : Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+//		S_SER,			// 0xFF0F : Rd       ---- ---- dddd ---- (d: 16-31)
+//		S_TFLG,			// 0xFE08 : Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
+//		S_BRA,			// 0xFC07 : k        ---- --kk kkkk k--- (k: -64 - 63)
+//		S_JMP,			// 0xFE0E : k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute, PC+2
+//		S_RJMP,			// 0xF000 : k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
+//		S_IOR,			// 0xFF00 : A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
+//		S_IN,			// 0xF800 : Rd, A    ---- -AAd dddd AAAA (A: 0-63), (d: 0-31)
+//		S_OUT,			// 0xF800 : A, Rr    ---- -AAr rrrr AAAA (A: 0-63), (r: 0-31)
+//		S_SNGL_X,		// 0xFE0F : Rd, X    ---- ---d dddd ---- (d: 0-31) (implied X for source)
+//		S_SNGL_Xp,		// 0xFE0F : Rd, X+   ---- ---d dddd ---- (d: 0-31) (implied X for source w/Post-Increment)
+//		S_SNGL_nX,		// 0xFE0F : Rd, -X   ---- ---d dddd ---- (d: 0-31) (implied X for source w/Pre-Decrement)
+//		S_SNGL_Y,		// 0xFE0F : Rd, Y    ---- ---d dddd ---- (d: 0-31) (implied Y for source)
+//		S_SNGL_Yp,		// 0xFE0F : Rd, Y+   ---- ---d dddd ---- (d: 0-31) (implied Y for source w/Post-Increment)
+//		S_SNGL_nY,		// 0xFE0F : Rd, -Y   ---- ---d dddd ---- (d: 0-31) (implied Y for source w/Pre-Decrement)
+//		S_SNGL_Z,		// 0xFE0F : Rd, Z    ---- ---d dddd ---- (d: 0-31) (implied Z for source)
+//		S_SNGL_Zp,		// 0xFE0F : Rd, Z+   ---- ---d dddd ---- (d: 0-31) (implied Z for source w/Post-Increment)
+//		S_SNGL_nZ,		// 0xFE0F : Rd, -Z   ---- ---d dddd ---- (d: 0-31) (implied Z for source w/Pre-Decrement)
+//		S_X_SNGL,		// 0xFE0F : X, Rr    ---- ---r rrrr ---- (r: 0-31) (implied X for destination)
+//		S_Xp_SNGL,		// 0xFE0F : X+, Rr   ---- ---r rrrr ---- (r: 0-31) (implied X for destination w/Post-Increment)
+//		S_nX_SNGL,		// 0xFE0F : -X, Rr   ---- ---r rrrr ---- (r: 0-31) (implied X for destination w/Pre-Decrement)
+//		S_Y_SNGL,		// 0xFE0F : Y, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Y for destination)
+//		S_Yp_SNGL,		// 0xFE0F : Y+, Rr   ---- ---r rrrr ---- (r: 0-31) (implied Y for destination w/Post-Increment)
+//		S_nY_SNGL,		// 0xFE0F : -Y, Rr   ---- ---r rrrr ---- (r: 0-31) (implied Y for destination w/Pre-Decrement)
+//		S_Z_SNGL,		// 0xFE0F : Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+//		S_Zp_SNGL,		// 0xFE0F : Z+, Rr   ---- ---r rrrr ---- (r: 0-31) (implied Z for destination w/Post-Increment)
+//		S_nZ_SNGL,		// 0xFE0F : -Z, Rr   ---- ---r rrrr ---- (r: 0-31) (implied Z for destination w/Pre-Decrement)
+//		S_SNGL_Yq,		// 0xD208 : Rd, Y+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
+//		S_SNGL_Zq,		// 0xD208 : Rd, Z+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
+//		S_Yq_SNGL,		// 0xD208 : Y+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
+//		S_Zq_SNGL,		// 0xD208 : Z+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
+//		S_LDS,			// 0xFE0F : Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k), PC+2
+//		S_LDSrc,		// 0xF800 : Rd, k    ---- -kkk dddd kkkk (d: 16-31), (k: 0-127)
+//		S_STS,			// 0xFE0F : k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k), PC+2
+//		S_STSrc,		// 0xF800 : k, Rr    ---- -kkk rrrr kkkk (r: 16-31), (k: 0-127)
+//		S_DES,			// 0xFF0F : K        ---- ---- KKKK ----  (K: 0-15)
+//		S_INH_Zp,		// 0xFFFF : Z+       ---- ---- ---- ----  (AVRxm,AVRxt)
+//		S_INH,			// 0xFFFF : -        ---- ---- ---- ----
 //
-//			0 = opcode only, nothing follows
-//			1 = Register Direct, Single Register: Destination Register (Rd)
-//			2 = Register Direct, Two Registers: Destination Register (Rd), Source Register (Rr)
-//			3 = I/O Direct Addressing, Single Register: Source/Destination Register (Rd/Rr), I/O Address (A) [IO Range 0-63]
-//			4 = Direct Addressing, Single Register: Source/Destination Register (Rd/Rr), 16-Bit Data Address (A), Note: LDS instruction uses RAMPD register for >64KB access
-//			5 = Register Indirect X, Single Register: Source/Destination Register (Rd/Rr)
-//			6 = Register Indirect Y, Single Register: Source/Destination Register (Rd/Rr)
-//			7 = Register Indirect Z, Single Register: Source/Destination Register (Rd/Rr)
-//			8 = Register Indirect X Pre-Decrement, Single Register: Source/Destination Register (Rd/Rr)
-//			9 = Register Indirect Y Pre-Decrement, Single Register: Source/Destination Register (Rd/Rr)
-//			A = Register Indirect Z Pre-Decrement, Single Register: Source/Destination Register (Rd/Rr)
-//			B = Register Indirect X Post-Increment, Single Register: Source/Destination Register (Rd/Rr)
-//			C = Register Indirect Y Post-Increment, Single Register: Source/Destination Register (Rd/Rr)
-//			D = Register Indirect Z Post-Increment, Single Register: Source/Destination Register (Rd/Rr)
-//			E = Register Indirect Y w/Displacement, Single Register: Source/Destination Register (Rd/Rr)
-//			F = Register Indirect Z w/Displacement, Single Register: Source/Destination Register (Rd/Rr)
-//			10 = Program Memory Constant Addressing Z, Single Register: Destination Register (Rd), for LPM, ELPM
+//			Addressing Types:
+//			-----------------
+//			0 = opcode only, nothing follows [S_INH]
+//			1 = Register Direct, Single Register: Destination Register (Rd) [S_SNGL]
+//			2 = Register Direct, Two Registers: Destination Register (Rd), Source Register (Rr) [S_DUBL] [S_SAME]
+//			3 = I/O Direct Addressing, Single Register: Source/Destination Register (Rd/Rr), I/O Address (A) [IO Range 0-63]  [S_IN] [S_OUT]
+//			4 = Direct Addressing, Single Register: Source/Destination Register (Rd/Rr), 16-Bit Data Address (A), Note: LDS instruction uses RAMPD register for >64KB access [S_LDS] [S_STS]
+//			5 = Register Indirect X, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_X] [S_X_SNGL]
+//			6 = Register Indirect Y, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Y] [S_Y_SNGL]
+//			7 = Register Indirect Z, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Z] [S_Z_SNGL]
+//			8 = Register Indirect X Pre-Decrement, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_nX] [S_nX_SNGL]
+//			9 = Register Indirect Y Pre-Decrement, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_nY] [S_nY_SNGL]
+//			A = Register Indirect Z Pre-Decrement, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_nZ] [S_nZ_SNGL]
+//			B = Register Indirect X Post-Increment, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Xp] [S_Xp_SNGL]
+//			C = Register Indirect Y Post-Increment, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Yp] [S_Yp_SNGL]
+//			D = Register Indirect Z Post-Increment, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Zp] [S_Zp_SNGL]
+//			E = Register Indirect Y w/Displacement, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Yq] [S_Yq_SNGL]
+//			F = Register Indirect Z w/Displacement, Single Register: Source/Destination Register (Rd/Rr) [S_SNGL_Zq] [S_Zq_SNGL]
+//			10 = Program Memory Constant Addressing Z, Single Register: Destination Register (Rd), for LPM, ELPM [S_SNGL_Z]
 //					Note: While this is technically for SPM too, SPM always has r0/r1 as Source Registers
 //					there is no operand for the "spm" instruction.  Therefore, Group(0) is used for SPM for both Src/Dst
-//					Note: LPM/ELPM have an implied form with no arguments that implies r0 which will use Group(0)
-//			11 = Program Memory Constant Addressing Z Post-Increment, Single Register: Destination Register (Rd), for LPM, ELPM, SPM
+//					Note: LPM/ELPM have an implied form with no arguments that implies r0 which will use Group(0) [S_INH]
+//			11 = Program Memory Constant Addressing Z Post-Increment, Single Register: Destination Register (Rd), for LPM, ELPM, SPM [S_SNGL_Zp]
 //					Note: SPM always has r0/r1 as Source Registers
-//			12 = Register Direct with Bit index, Single Register: Destination Register (Rd), w/Bit index (BLD, BST)
-//			13 = 16-bit/22-bit absolute address (JMP, CALL)
-//			14 = 12-bit relative address (RJMP, RCALL)
-//			15 = 6-bit relative address (BRBC, BRBS)
+//			12 = Register Direct with Bit index, Single Register: Destination Register (Rd), w/Bit index (BLD, BST) [S_TFLG]
+//			13 = 16-bit/22-bit absolute address (JMP, CALL) [S_JMP]
+//			14 = 12-bit relative address (RJMP, RCALL) [S_RJMP]
+//			15 = 6-bit relative address (BRBC, BRBS) [S_BRA]
 //					Note: Actual BRBC and BRBS opcodes aren't used as they are ambiguous with the
-//					individualized ones BRCC, BRCS, BREQ, BRNE, etc.
+//					individualized ones BRCC, BRCS, BREQ, BRNE, ..., BRxx
 //
 
 
-//			1 = 8-bit absolute address follows only
-//			2 = 16-bit absolute address follows only
-//			3 = 8-bit relative address follows only
-//			4 = 16-bit relative address follows only
-//			5 = 8-bit data follows only
-//			6 = 16-bit data follows only
-//			7 = 8-bit absolute address followed by 8-bit mask
-//			8 = 8-bit X offset address followed by 8-bit mask
-//			9 = 8-bit Y offset address followed by 8-bit mask
-//			A = 8-bit X offset address
-//			B = 8-bit Y offset address
 //
 //	Control: (Algorithm control) : xy
 //	  Where x (msnb = destination = FIRST operand)
@@ -74,187 +108,188 @@
 //					with data addr label, (on opcodes with post-byte, label generation is dependent
 //					upon post-byte value. conditional upon post-byte)
 //
-//	This version setup for compatibility with the asavr assembler
+//	This version setup for compatibility with the avra assembler
+//		(https://github.com/Ro5bert/avra)
 //
 
 // ============================================================================
 //
 // Opcode List:
-//		{	"andi",		S_IBYTE,	0x7000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-//		{	"cpi",		S_IBYTE,	0x3000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-//		{	"ldi",		S_IBYTE,	0xE000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-//		{	"ori",		S_IBYTE,	0x6000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-//		{	"sbci",		S_IBYTE,	0x4000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-//		{	"sbr",		S_IBYTE,	0x6000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-//		{	"subi",		S_IBYTE,	0x5000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"andi",		S_IBYTE,	0x7000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"cpi",		S_IBYTE,	0x3000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"ldi",		S_IBYTE,	0xE000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"ori",		S_IBYTE,	0x6000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"sbci",		S_IBYTE,	0x4000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"sbr",		S_IBYTE,	0x6000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+//		{	"subi",		S_IBYTE,	0x5000	}, 0xF000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
 //
-//		{	"cbr",		S_CBR,		0x7000	}, F000  Rd, k    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)  xxx dup -> andi Rd,(0xFF-K)
+//		{	"cbr",		S_CBR,		0x7000	}, 0xF000  Rd, k    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)  xxx dup -> andi Rd,(0xFF-K)
 //
-//		{	"adiw",		S_IWORD,	0x9600	}, FF00  Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
-//		{	"sbiw",		S_IWORD,	0x9700	}, FF00  Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
+//		{	"adiw",		S_IWORD,	0x9600	}, 0xFF00  Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
+//		{	"sbiw",		S_IWORD,	0x9700	}, 0xFF00  Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
 //
-//		{	"asr",		S_SNGL,		0x9405	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"com",		S_SNGL,		0x9400	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"dec",		S_SNGL,		0x940A	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"inc",		S_SNGL,		0x9403	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"lsr",		S_SNGL,		0x9406	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"neg",		S_SNGL,		0x9401	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"pop",		S_SNGL,		0x900F	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"push",		S_SNGL,		0x920F	}, FE0F  Rr       ---- ---r rrrr ---- (r: 0-31)
-//		{	"ror",		S_SNGL,		0x9407	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"swap",		S_SNGL,		0x9402	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-//		{	"xch",		S_SNGL,		0x9204	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"asr",		S_SNGL,		0x9405	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"com",		S_SNGL,		0x9400	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"dec",		S_SNGL,		0x940A	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"inc",		S_SNGL,		0x9403	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"lsr",		S_SNGL,		0x9406	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"neg",		S_SNGL,		0x9401	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"pop",		S_SNGL,		0x900F	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"push",		S_SNGL,		0x920F	}, 0xFE0F  Rr       ---- ---r rrrr ---- (r: 0-31)
+//		{	"ror",		S_SNGL,		0x9407	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"swap",		S_SNGL,		0x9402	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+//		{	"xch",		S_SNGL,		0x9204	}, 0xFE0F  Rd       ---- ---d dddd ---- (d: 0-31)
 //
-//		{	"lac",		S_LA??,		0x9206	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
-//		{	"las",		S_LA??,		0x9205	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
-//		{	"lat",		S_LA??,		0x9207	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+//		{	"lac",		S_Z_SNGL,	0x9206	}, 0xFE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+//		{	"las",		S_Z_SNGL,	0x9205	}, 0xFE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+//		{	"lat",		S_Z_SNGL,	0x9207	}, 0xFE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
 //
-//		{	"clr",		S_SAME,		0x2400	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup eor
-//		{	"lsl",		S_SAME,		0x0C00	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup add
-//		{	"rol",		S_SAME,		0x1C00	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup adc
-//		{	"tst",		S_SAME,		0x2000	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup and
+//		{	"clr",		S_SAME,		0x2400	}, 0xFC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  eor Rd,Rd
+//		{	"lsl",		S_SAME,		0x0C00	}, 0xFC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  add Rd,Rd
+//		{	"rol",		S_SAME,		0x1C00	}, 0xFC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  adc Rd,Rd
+//		{	"tst",		S_SAME,		0x2000	}, 0xFC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  and Rd,Rd
 //
-//		{	"adc",		S_DUBL,		0x1C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"add",		S_DUBL,		0x0C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"and",		S_DUBL,		0x2000	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"cp",		S_DUBL,		0x1400	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"cpc",		S_DUBL,		0x0400	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"cpse",		S_DUBL,		0x1000	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31), Difficult control requiring lookahead
-//		{	"eor",		S_DUBL,		0x2400	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"mov",		S_DUBL,		0x2C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"or",		S_DUBL,		0x2800	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"sbc",		S_DUBL,		0x0800	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-//		{	"sub",		S_DUBL,		0x1800	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"adc",		S_DUBL,		0x1C00	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"add",		S_DUBL,		0x0C00	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"and",		S_DUBL,		0x2000	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"cp",		S_DUBL,		0x1400	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"cpc",		S_DUBL,		0x0400	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"cpse",		S_DUBL,		0x1000	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31), Difficult control requiring lookahead
+//		{	"eor",		S_DUBL,		0x2400	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"mov",		S_DUBL,		0x2C00	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"or",		S_DUBL,		0x2800	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"sbc",		S_DUBL,		0x0800	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+//		{	"sub",		S_DUBL,		0x1800	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
 //
-//		{	"movw",		S_MOVW,		0x0100	}, FF00  Rd, Rr   ---- ---- dddd rrrr (d: 0,2,4,...,30), (r: 0,2,4,...,30)
+//		{	"movw",		S_MOVW,		0x0100	}, 0xFF00  Rd, Rr   ---- ---- dddd rrrr (d: 0,2,4,...,30), (r: 0,2,4,...,30)
 //
-//		{	"mul",		S_MUL,		0x9C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)  ?? S_DUBL
-//		{	"muls",		S_MULS,		0x0200	}, FF00  Rd, Rr   ---- ---- dddd rrrr (d: 16-31), (r: 16-31)
-//		{	"mulsu",	S_FMUL,		0x0300	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
-//		{	"fmul",		S_FMUL,		0x0308	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
-//		{	"fmuls",	S_FMUL,		0x0380	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
-//		{	"fmulsu",	S_FMUL,		0x0388	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+//		{	"mul",		S_MUL,		0x9C00	}, 0xFC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)  ?? S_DUBL
+//		{	"muls",		S_MULS,		0x0200	}, 0xFF00  Rd, Rr   ---- ---- dddd rrrr (d: 16-31), (r: 16-31)
+//		{	"mulsu",	S_FMUL,		0x0300	}, 0xFF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+//		{	"fmul",		S_FMUL,		0x0308	}, 0xFF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+//		{	"fmuls",	S_FMUL,		0x0380	}, 0xFF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+//		{	"fmulsu",	S_FMUL,		0x0388	}, 0xFF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
 //
-//		{	"ser",		S_SER,		0xEF0F	}, FF0F  Rd       ---- ---- dddd ---- (d: 16-31)  <<< SPC: ldi Rd,0xFF
+//		{	"ser",		S_SER,		0xEF0F	}, 0xFF0F  Rd       ---- ---- dddd ---- (d: 16-31)  <<< SPC: ldi Rd,0xFF
 //
-//		{	"bclr",		S_SREG,		0x9488	}, FF8F  s        ---- ---- -sss ---- (s: 0-7)  xxx dup (see: S_INH)
-//		{	"bset",		S_SREG,		0x9408	}, FF8F  s        ---- ---- -sss ---- (s: 0-7)  xxx dup (see: S_INH)
+//		{	"bclr",		S_SREG,		0x9488	}, 0xFF8F  s        ---- ---- -sss ---- (s: 0-7)  xxx dup (see: S_INH)
+//		{	"bset",		S_SREG,		0x9408	}, 0xFF8F  s        ---- ---- -sss ---- (s: 0-7)  xxx dup (see: S_INH)
 //
-//		{	"bld",		S_TFLG,		0xF800	}, FE08  Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
-//		{	"bst",		S_TFLG,		0xFA00	}, FE08  Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
+//		{	"bld",		S_TFLG,		0xF800	}, 0xFE08  Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
+//		{	"bst",		S_TFLG,		0xFA00	}, 0xFE08  Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
 //
-//		{	"brcc",		S_BRA,		0xF400	}, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)
-//		{	"brcs",		S_BRA,		0xF000	}, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)
-//		{	"breq",		S_BRA,		0xF001	}, FC07  k        ---- --kk kkkk k001 (k: -64 - 63)
-//		{	"brge",		S_BRA,		0xF404	}, FC07  k        ---- --kk kkkk k100 (k: -64 - 63)
-//		{	"brhc",		S_BRA,		0xF405	}, FC07  k        ---- --kk kkkk k101 (k: -64 - 63)
-//		{	"brhs",		S_BRA,		0xF005	}, FC07  k        ---- --kk kkkk k101 (k: -64 - 63)
-//		{	"brid",		S_BRA,		0xF407	}, FC07  k        ---- --kk kkkk k111 (k: -64 - 63)
-//		{	"brie",		S_BRA,		0xF007	}, FC07  k        ---- --kk kkkk k111 (k: -64 - 63)
-//		{	"brlo",		S_BRA,		0xF000	}, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)  xxx dup brcs
-//		{	"brlt",		S_BRA,		0xF004	}, FC07  k        ---- --kk kkkk k100 (k: -64 - 63)
-//		{	"brmi",		S_BRA,		0xF002	}, FC07  k        ---- --kk kkkk k010 (k: -64 - 63)
-//		{	"brne",		S_BRA,		0xF401	}, FC07  k        ---- --kk kkkk k001 (k: -64 - 63)
-//		{	"brpl",		S_BRA,		0xF402	}, FC07  k        ---- --kk kkkk k010 (k: -64 - 63)
-//		{	"brsh",		S_BRA,		0xF400  }, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)  xxx dup brcc
-//		{	"brtc",		S_BRA,		0xF406	}, FC07  k        ---- --kk kkkk k110 (k: -64 - 63)
-//		{	"brts",		S_BRA,		0xF006	}, FC07  k        ---- --kk kkkk k110 (k: -64 - 63)
-//		{	"brvc",		S_BRA,		0xF403	}, FC07  k        ---- --kk kkkk k011 (k: -64 - 63)
-//		{	"brvs",		S_BRA,		0xF003	}, FC07  k        ---- --kk kkkk k011 (k: -64 - 63)
+//		{	"brcc",		S_BRA,		0xF400	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brcs",		S_BRA,		0xF000	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"breq",		S_BRA,		0xF001	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brge",		S_BRA,		0xF404	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brhc",		S_BRA,		0xF405	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brhs",		S_BRA,		0xF005	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brid",		S_BRA,		0xF407	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brie",		S_BRA,		0xF007	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brlo",		S_BRA,		0xF000	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)  xxx dup brcs
+//		{	"brlt",		S_BRA,		0xF004	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brmi",		S_BRA,		0xF002	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brne",		S_BRA,		0xF401	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brpl",		S_BRA,		0xF402	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brsh",		S_BRA,		0xF400  }, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)  xxx dup brcc
+//		{	"brtc",		S_BRA,		0xF406	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brts",		S_BRA,		0xF006	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brvc",		S_BRA,		0xF403	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
+//		{	"brvs",		S_BRA,		0xF003	}, 0xFC07  k        ---- --kk kkkk k--- (k: -64 - 63)
 //
-//		{	"brbc",		S_SBRA,		0xF400	}, FC00  s, k     ---- --kk kkkk ksss (k: -64 - 63), (s: 0-7)
-//		{	"brbs",		S_SBRA,		0xF000	}, FC00  s, k     ---- --kk kkkk ksss (k: -64 - 63), (s: 0-7)
+//		{	"brbc",		S_SBRA,		0xF400	}, 0xFC00  s, k     ---- --kk kkkk ksss (k: -64 - 63), (s: 0-7)  xxx dup brxx
+//		{	"brbs",		S_SBRA,		0xF000	}, 0xFC00  s, k     ---- --kk kkkk ksss (k: -64 - 63), (s: 0-7)  xxx dup brxx
 //
-//		{	"sbrc",		S_SKIP,		0xFC00	}, FE08  Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7)  ?? S_TFLG, Difficult control requiring lookahead
-//		{	"sbrs",		S_SKIP,		0xFE00	}, FE08  Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7)  ?? S_TFLG, Difficult control requiring lookahead
+//		{	"sbrc",		S_SKIP,		0xFC00	}, 0xFE08  Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7)  ?? S_TFLG, Difficult control requiring lookahead
+//		{	"sbrs",		S_SKIP,		0xFE00	}, 0xFE08  Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7)  ?? S_TFLG, Difficult control requiring lookahead
 //
-//		{	"call",		S_JMP,		0x940E	}, FE0E  k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
-//		{	"jmp",		S_JMP,		0x940C	}, FE0E  k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
+//		{	"call",		S_JMP,		0x940E	}, 0xFE0E  k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
+//		{	"jmp",		S_JMP,		0x940C	}, 0xFE0E  k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
 //
-//		{	"rcall",	S_RJMP,		0xD000	}, F000  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
-//		{	"rjmp",		S_RJMP,		0xC000	}, F000  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
+//		{	"rcall",	S_RJMP,		0xD000	}, 0xF000  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
+//		{	"rjmp",		S_RJMP,		0xC000	}, 0xF000  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
 //
-//		{	"cbi",		S_IOR,		0x9800	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
-//		{	"sbi",		S_IOR,		0x9A00	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
-//		{	"sbic",		S_IOR,		0x9900	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
-//		{	"sbis",		S_IOR,		0x9B00	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
+//		{	"cbi",		S_IOR,		0x9800	}, 0xFF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
+//		{	"sbi",		S_IOR,		0x9A00	}, 0xFF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
+//		{	"sbic",		S_IOR,		0x9900	}, 0xFF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
+//		{	"sbis",		S_IOR,		0x9B00	}, 0xFF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
 //
-//		{	"in",		S_IN,		0xB000	}, F800  Rd, A    ---- -AAd dddd AAAA (A: 0-63), (d: 0-31)
-//		{	"out",		S_OUT,		0xB800	}, F800  A, Rr    ---- -AAr rrrr AAAA (A: 0-63), (r: 0-31)
+//		{	"in",		S_IN,		0xB000	}, 0xF800  Rd, A    ---- -AAd dddd AAAA (A: 0-63), (d: 0-31)
+//		{	"out",		S_OUT,		0xB800	}, 0xF800  A, Rr    ---- -AAr rrrr AAAA (A: 0-63), (r: 0-31)
 //
 //		{	"ld",		S_LD,		0x8000	}, ????? (Z only?)
-//		{	"ld",		S_LD/X		0x900C	}, FE0F  Rd, X    ---- ---d dddd ---- (d: 0-31)
-//		{	"ld",		S_LD/X+		0x900D	}, FE0F  Rd, X+   ---- ---d dddd ---- (d: 0-31)
-//		{	"ld",		S_LD/-X		0x900E	}, FE0F  Rd, -X   ---- ---d dddd ---- (d: 0-31)
-//		{	"ld",		S_LD/Y		0x8008	}, FE0F  Rd, Y    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Y+0
-//		{	"ld",		S_LD/Y+		0x9009	}, FE0F  Rd, Y+   ---- ---d dddd ---- (d: 0-31)
-//		{	"ld",		S_LD/-Y		0x900A	}, FE0F  Rd, -Y   ---- ---d dddd ---- (d: 0-31)
-//		{	"ld",		S_LD/Z		0x8000	}, FE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Z+0
-//		{	"ld",		S_LD/Z+		0x9001	}, FE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
-//		{	"ld",		S_LD/-Z		0x9002	}, FE0F  Rd, -Z   ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/X		0x900C	}, 0xFE0F  Rd, X    ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/X+		0x900D	}, 0xFE0F  Rd, X+   ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/-X		0x900E	}, 0xFE0F  Rd, -X   ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/Y		0x8008	}, 0xFE0F  Rd, Y    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Y+0
+//		{	"ld",		S_LD/Y+		0x9009	}, 0xFE0F  Rd, Y+   ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/-Y		0x900A	}, 0xFE0F  Rd, -Y   ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/Z		0x8000	}, 0xFE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Z+0
+//		{	"ld",		S_LD/Z+		0x9001	}, 0xFE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+//		{	"ld",		S_LD/-Z		0x9002	}, 0xFE0F  Rd, -Z   ---- ---d dddd ---- (d: 0-31)
 //		{	"st",		S_ST,		0x8200	}, ????? (Z only?)
-//		{	"st",		S_ST/X		0x920C	}, FE0F  X, Rr    ---- ---r rrrr ---- (r: 0-31)
-//		{	"st",		S_ST/X+		0x920D	}, FE0F  X+, Rr   ---- ---r rrrr ---- (r: 0-31)
-//		{	"st",		S_ST/-X		0x920E	}, FE0F  -X, Rr   ---- ---r rrrr ---- (r: 0-31)
-//		{	"st",		S_ST/Y		0x8208	}, FE0F  Y, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Y+0
-//		{	"st",		S_ST/Y+		0x9209	}, FE0F  Y+, Rr   ---- ---r rrrr ---- (r: 0-31)
-//		{	"st",		S_ST/-Y		0x920A	}, FE0F  -Y, Rr   ---- ---r rrrr ---- (r: 0-31)
-//		{	"st",		S_ST/Z		0x8200	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Z+0
-//		{	"st",		S_ST/Z+		0x9201	}, FE0F  Z+, Rr   ---- ---r rrrr ---- (r: 0-31)
-//		{	"st",		S_ST/-Z		0x9202	}, FE0F  -Z, Rr   ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/X		0x920C	}, 0xFE0F  X, Rr    ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/X+		0x920D	}, 0xFE0F  X+, Rr   ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/-X		0x920E	}, 0xFE0F  -X, Rr   ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/Y		0x8208	}, 0xFE0F  Y, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Y+0
+//		{	"st",		S_ST/Y+		0x9209	}, 0xFE0F  Y+, Rr   ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/-Y		0x920A	}, 0xFE0F  -Y, Rr   ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/Z		0x8200	}, 0xFE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Z+0
+//		{	"st",		S_ST/Z+		0x9201	}, 0xFE0F  Z+, Rr   ---- ---r rrrr ---- (r: 0-31)
+//		{	"st",		S_ST/-Z		0x9202	}, 0xFE0F  -Z, Rr   ---- ---r rrrr ---- (r: 0-31)
 //
 //		{	"ldd",		S_ILD,		0x8000	}, ????? (Z only?)
-//		{	"ldd",		S_ILD/Y+q	0x8008	}, D208  Rd, Y+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
-//		{	"ldd",		S_ILD/Z+q	0x8000	}, D208  Rd, Z+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
+//		{	"ldd",		S_ILD/Y+q	0x8008	}, 0xD208  Rd, Y+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
+//		{	"ldd",		S_ILD/Z+q	0x8000	}, 0xD208  Rd, Z+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
 //		{	"std",		S_IST,		0x8200	}, ????? (Z only?)
-//		{	"std",		S_IST/Y+q	0x8208	}, D208  Y+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
-//		{	"std",		S_IST/Z+q	0x8200	}, D208  Z+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
+//		{	"std",		S_IST/Y+q	0x8208	}, 0xD208  Y+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
+//		{	"std",		S_IST/Z+q	0x8200	}, 0xD208  Z+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
 //
-//		{	"lds",		S_LDS,		0x9000	}, FE0F  Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k)
-//		{	"lds",	S_LDS(AVRrc)	0xA000	}, F800  Rd, k    ---- -kkk dddd kkkk (d: 16-31), (k: 0-127)
-//		{	"sts",		S_STS,		0x9200	}, FE0F  k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k)
-//		{	"sts",	S_STS(AVRrc)	0xA800	}, F800  k, Rr    ---- -kkk rrrr kkkk (r: 16-31), (k: 0-127)
+//		{	"lds",		S_LDS,		0x9000	}, 0xFE0F  Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k)
+//		{	"lds",	S_LDS(AVRrc)	0xA000	}, 0xF800  Rd, k    ---- -kkk dddd kkkk (d: 16-31), (k: 0-127)
+//		{	"sts",		S_STS,		0x9200	}, 0xFE0F  k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k)
+//		{	"sts",	S_STS(AVRrc)	0xA800	}, 0xF800  k, Rr    ---- -kkk rrrr kkkk (r: 16-31), (k: 0-127)
 //
-//		{	"elpm",	S_ELPM|S_INH,	0x95D8	}, FFFF  -        ---- ---- ---- ----
-//		{	"elpm",	S_SNGL/Z,		0x9006	}, FE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)
-//		{	"elpm",	S_SNGL/Z+,		0x9007	}, FE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
-//		{	"lpm",	S_LPM|S_INH,	0x95C8	}, FFFF  -        ---- ---- ---- ----
-//		{	"lpm",	S_SNGL/Z,		0x9004	}, FE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)
-//		{	"lpm",	S_SNGL/Z+,		0x9005	}, FE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+//		{	"elpm",	S_ELPM|S_INH,	0x95D8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"elpm",	S_SNGL/Z,		0x9006	}, 0xFE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)
+//		{	"elpm",	S_SNGL/Z+,		0x9007	}, 0xFE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+//		{	"lpm",	S_LPM|S_INH,	0x95C8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"lpm",	S_SNGL/Z,		0x9004	}, 0xFE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)
+//		{	"lpm",	S_SNGL/Z+,		0x9005	}, 0xFE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
 //
-//		{	"eicall",	S_INH,		0x9519	}, FFFF  -        ---- ---- ---- ----
-//		{	"eijmp",	S_INH,		0x9419	}, FFFF  -        ---- ---- ---- ----
-//		{	"ijmp",		S_INH,		0x9409	}, FFFF  -        ---- ---- ---- ----
-//		{	"icall",	S_INH,		0x9509	}, FFFF  -        ---- ---- ---- ----
-//		{	"ret",		S_INH,		0x9508	}, FFFF  -        ---- ---- ---- ----
-//		{	"reti",		S_INH,		0x9518	}, FFFF  -        ---- ---- ---- ----
+//		{	"eicall",	S_INH,		0x9519	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"eijmp",	S_INH,		0x9419	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"ijmp",		S_INH,		0x9409	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"icall",	S_INH,		0x9509	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"ret",		S_INH,		0x9508	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"reti",		S_INH,		0x9518	}, 0xFFFF  -        ---- ---- ---- ----
 //
-//		{	"sec",		S_INH,		0x9408	}, FFFF  -        ---- ---- ---- ----
-//		{	"sez",		S_INH,		0x9418	}, FFFF  -        ---- ---- ---- ----
-//		{	"sen",		S_INH,		0x9428	}, FFFF  -        ---- ---- ---- ----
-//		{	"sev",		S_INH,		0x9438	}, FFFF  -        ---- ---- ---- ----
-//		{	"ses",		S_INH,		0x9448	}, FFFF  -        ---- ---- ---- ----
-//		{	"seh",		S_INH,		0x9458	}, FFFF  -        ---- ---- ---- ----
-//		{	"set",		S_INH,		0x9468	}, FFFF  -        ---- ---- ---- ----
-//		{	"sei",		S_INH,		0x9478	}, FFFF  -        ---- ---- ---- ----
+//		{	"sec",		S_INH,		0x9408	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"sez",		S_INH,		0x9418	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"sen",		S_INH,		0x9428	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"sev",		S_INH,		0x9438	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"ses",		S_INH,		0x9448	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"seh",		S_INH,		0x9458	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"set",		S_INH,		0x9468	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"sei",		S_INH,		0x9478	}, 0xFFFF  -        ---- ---- ---- ----
 //
-//		{	"clc",		S_INH,		0x9488	}, FFFF  -        ---- ---- ---- ----
-//		{	"clz",		S_INH,		0x9498	}, FFFF  -        ---- ---- ---- ----
-//		{	"cln",		S_INH,		0x94A8	}, FFFF  -        ---- ---- ---- ----
-//		{	"clv",		S_INH,		0x94B8	}, FFFF  -        ---- ---- ---- ----
-//		{	"cls",		S_INH,		0x94C8	}, FFFF  -        ---- ---- ---- ----
-//		{	"clh",		S_INH,		0x94D8	}, FFFF  -        ---- ---- ---- ----
-//		{	"clt",		S_INH,		0x94E8	}, FFFF  -        ---- ---- ---- ----
-//		{	"cli",		S_INH,		0x94F8	}, FFFF  -        ---- ---- ---- ----
+//		{	"clc",		S_INH,		0x9488	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"clz",		S_INH,		0x9498	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"cln",		S_INH,		0x94A8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"clv",		S_INH,		0x94B8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"cls",		S_INH,		0x94C8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"clh",		S_INH,		0x94D8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"clt",		S_INH,		0x94E8	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"cli",		S_INH,		0x94F8	}, 0xFFFF  -        ---- ---- ---- ----
 //
-//		{	"nop",		S_INH,		0x0000	}, FFFF  -        ---- ---- ---- ----
-//		{	"sleep",	S_INH,		0x9588	}, FFFF  -        ---- ---- ---- ----
-//		{	"break",	S_INH,		0x9598	}, FFFF  -        ---- ---- ---- ----
-//		{	"spm",		S_INH,		0x95E8	}, FFFF  -        ---- ---- ---- ----		AVRe,AVRxm,AVRxt
-//		{	"spm",		S_INH/Z+	0x95F8	}, FFFF  Z+       ---- ---- ---- ----		AVRxm,AVRxt
-//		{	"wdr",		S_INH,		0x95A8	}, FFFF  -        ---- ---- ---- ----
+//		{	"nop",		S_INH,		0x0000	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"sleep",	S_INH,		0x9588	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"break",	S_INH,		0x9598	}, 0xFFFF  -        ---- ---- ---- ----
+//		{	"spm",		S_INH,		0x95E8	}, 0xFFFF  -        ---- ---- ---- ----		AVRe,AVRxm,AVRxt
+//		{	"spm",		S_INH/Z+	0x95F8	}, 0xFFFF  Z+       ---- ---- ---- ----		AVRxm,AVRxt
+//		{	"wdr",		S_INH,		0x95A8	}, 0xFFFF  -        ---- ---- ---- ----
 //
-//		{	"des",		S_DES,		0x940B	}, FF0F  K        ---- ---- KKKK ----  (K: 0-15)
+//		{	"des",		S_DES,		0x940B	}, 0xFF0F  K        ---- ---- KKKK ----  (K: 0-15)
 //
 //
 // ============================================================================
@@ -286,189 +321,219 @@
 	#define UNUSED(x) ((void)(x))
 #endif
 
+#ifndef _countof
+#define _countof(x) (sizeof(x)/sizeof(x[0]))
+#endif
+
 // ----------------------------------------------------------------------------
 //	CAVRDisassembler
 // ----------------------------------------------------------------------------
+
+static bool isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
+										 const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	assert(arrOpMemory.size() == 1);
+	assert(anOpcode.opcode().size() == 1);
+	assert(anOpcode.opcodeMask().size() == 1);
+	assert(anOpcode.group() == TAVRDisassembler_OpcodeGroups::S_SAME);
+
+	// First make sure this is the same OpCode:
+	assert(anOpcode.opcodeMask().at(0) == 0xFC00);
+	assert((anOpcode.opcodeMask().at(0) & arrOpMemory.at(0)) == anOpcode.opcode().at(0));
+	if ((anOpcode.opcodeMask().at(0) & arrOpMemory.at(0)) != anOpcode.opcode().at(0)) return false;
+
+	// See if Rd == Rr (i.e. that this is a S_DUBL with the same register referenced):
+	//	S_SAME,			// 0xFC00 : Rd       ---- --dd dddd dddd (d: 0-31)x2
+	//	S_DUBL,			// 0xFC00 : Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+
+	TAVRDisassembler::TOpcodeSymbol Rd = ((arrOpMemory.at(0) & 0x01F0) >> 4);
+	TAVRDisassembler::TOpcodeSymbol Rr = ((arrOpMemory.at(0) & 0x0200) >> 5) | (arrOpMemory.at(0) & 0x000F);
+
+	return (Rd == Rr);
+}
+
+
 CAVRDisassembler::CAVRDisassembler()
+	:	m_nOpPointer(0),
+		m_nStartPC(0),
+		m_nSectionCount(0)
 {
 	//                = ((NBytes: 0; OpCode: (0, 0); Grp: 0; Control: 1; Mnemonic: '???'),
 
+	using namespace TAVRDisassembler_OpcodeGroups;
 
-	{	"andi",		S_IBYTE,	0x7000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-	{	"cpi",		S_IBYTE,	0x3000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-	{	"ldi",		S_IBYTE,	0xE000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-	{	"ori",		S_IBYTE,	0x6000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-	{	"sbci",		S_IBYTE,	0x4000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-	{	"sbr",		S_IBYTE,	0x6000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
-	{	"subi",		S_IBYTE,	0x5000	}, F000  Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+	const COpcodeEntry<TAVRDisassembler> arrOpcodes[] = {
+		{ { 0xEF0F }, { 0xFF0F }, S_SER, 0, "ser", },		// ser    Rd       ---- ---- dddd ---- (d: 16-31)  <<< SPC: ldi Rd,0xFF  (must be listed ahead of it)
 
-	{	"cbr",		S_CBR,		0x7000	}, F000  Rd, k    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)  xxx dup -> andi Rd,(0xFF-K)
+		{ { 0x7000 }, { 0xF000 }, S_IBYTE, 0, "andi"  },	// andi   Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+		{ { 0x3000 }, { 0xF000 }, S_IBYTE, 0, "cpi",  },	// cpi    Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+		{ { 0xE000 }, { 0xF000 }, S_IBYTE, 0, "ldi", },		// ldi    Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+		{ { 0x6000 }, { 0xF000 }, S_IBYTE, 0, "ori", },		// ori    Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+		{ { 0x4000 }, { 0xF000 }, S_IBYTE, 0, "sbci", },	// sbci   Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+		{ { 0x6000 }, { 0xF000 }, S_IBYTE, 0, "sbr", },		// sbr    Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
+		{ { 0x5000 }, { 0xF000 }, S_IBYTE, 0, "subi", },	// subi   Rd, K    ---- KKKK dddd KKKK (K: 0-255), (d: 16-31)
 
-	{	"adiw",		S_IWORD,	0x9600	}, FF00  Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
-	{	"sbiw",		S_IWORD,	0x9700	}, FF00  Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
+		{ { 0x9600 }, { 0xFF00 }, S_IWORD, 0, "adiw", },	// adiw   Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
+		{ { 0x9700 }, { 0xFF00 }, S_IWORD, 0, "sbiw", },	// sbiw   Rd, K    ---- ---- KKdd KKKK (K: 0-63), (d: 24, 26, 28, 30)
 
-	{	"asr",		S_SNGL,		0x9405	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"com",		S_SNGL,		0x9400	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"dec",		S_SNGL,		0x940A	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"inc",		S_SNGL,		0x9403	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"lsr",		S_SNGL,		0x9406	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"neg",		S_SNGL,		0x9401	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"pop",		S_SNGL,		0x900F	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"push",		S_SNGL,		0x920F	}, FE0F  Rr       ---- ---r rrrr ---- (r: 0-31)
-	{	"ror",		S_SNGL,		0x9407	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"swap",		S_SNGL,		0x9402	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
-	{	"xch",		S_SNGL,		0x9204	}, FE0F  Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9405 }, { 0xFE0F }, S_SNGL, 0, "asr", },		// asr    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9400 }, { 0xFE0F }, S_SNGL, 0, "com", },		// com    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x940A }, { 0xFE0F }, S_SNGL, 0, "dec", },		// dec    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9403 }, { 0xFE0F }, S_SNGL, 0, "inc", },		// inc    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9406 }, { 0xFE0F }, S_SNGL, 0, "lsr", },		// lsr    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9401 }, { 0xFE0F }, S_SNGL, 0, "neg", },		// neg    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x900F }, { 0xFE0F }, S_SNGL, 0, "pop", },		// pop    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x920F }, { 0xFE0F }, S_SNGL, 0, "push", },		// push   Rr       ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x9407 }, { 0xFE0F }, S_SNGL, 0, "ror", },		// ror    Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9402 }, { 0xFE0F }, S_SNGL, 0, "swap", },		// swap   Rd       ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9204 }, { 0xFE0F }, S_SNGL, 0, "xch", },		// xch    Rd       ---- ---d dddd ---- (d: 0-31)
 
-	{	"lac",		S_LA??,		0x9206	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
-	{	"las",		S_LA??,		0x9205	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
-	{	"lat",		S_LA??,		0x9207	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+		{ { 0x9206 }, { 0xFE0F }, S_Z_SNGL, 0, "lac", },	// lac    Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+		{ { 0x9205 }, { 0xFE0F }, S_Z_SNGL, 0, "las", },	// las    Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
+		{ { 0x9207 }, { 0xFE0F }, S_Z_SNGL, 0, "lat", },	// lat    Z, Rr    ---- ---r rrrr ---- (r: 0-31) (implied Z for destination)
 
-	{	"clr",		S_SAME,		0x2400	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup eor
-	{	"lsl",		S_SAME,		0x0C00	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup add
-	{	"rol",		S_SAME,		0x1C00	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup adc
-	{	"tst",		S_SAME,		0x2000	}, FC00  Rd       ---- --dd dddd dddd (d: 0-31)x2 xxx dup and
+		{ { 0x2400 }, { 0xFC00 }, S_SAME, 0, "clr", isDUBLSameRegister, },		// clr    Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  eor Rd,Rd  (must be listed ahead of it)
+		{ { 0x0C00 }, { 0xFC00 }, S_SAME, 0, "lsl", isDUBLSameRegister, },		// lsl    Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  add Rd,Rd  (must be listed ahead of it)
+		{ { 0x1C00 }, { 0xFC00 }, S_SAME, 0, "rol", isDUBLSameRegister, },		// rol    Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  adc Rd,Rd  (must be listed ahead of it)
+		{ { 0x2000 }, { 0xFC00 }, S_SAME, 0, "tst", isDUBLSameRegister, },		// tst    Rd       ---- --dd dddd dddd (d: 0-31)x2 <<< SPC:  and Rd,Rd  (must be listed ahead of it)
 
-	{	"adc",		S_DUBL,		0x1C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"add",		S_DUBL,		0x0C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"and",		S_DUBL,		0x2000	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"cp",		S_DUBL,		0x1400	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"cpc",		S_DUBL,		0x0400	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"cpse",		S_DUBL,		0x1000	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31), Difficult control requiring lookahead
-	{	"eor",		S_DUBL,		0x2400	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"mov",		S_DUBL,		0x2C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"or",		S_DUBL,		0x2800	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"sbc",		S_DUBL,		0x0800	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
-	{	"sub",		S_DUBL,		0x1800	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x1C00 }, { 0xFC00 }, S_DUBL, 0, "adc", },		// adc    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x0C00 }, { 0xFC00 }, S_DUBL, 0, "add", },		// add    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x2000 }, { 0xFC00 }, S_DUBL, 0, "and", },		// and    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x1400 }, { 0xFC00 }, S_DUBL, 0, "cp", },		// cp     Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x0400 }, { 0xFC00 }, S_DUBL, 0, "cpc", },		// cpc    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x1000 }, { 0xFC00 }, S_DUBL, 0, "cpse", },		// cpse   Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31), Difficult control requiring lookahead
+		{ { 0x2400 }, { 0xFC00 }, S_DUBL, 0, "eor", },		// eor    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x2C00 }, { 0xFC00 }, S_DUBL, 0, "mov", },		// mov    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x2800 }, { 0xFC00 }, S_DUBL, 0, "or", },		// or     Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x0800 }, { 0xFC00 }, S_DUBL, 0, "sbc", },		// sbc    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x1800 }, { 0xFC00 }, S_DUBL, 0, "sub", },		// sub    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
 
-	{	"movw",		S_MOVW,		0x0100	}, FF00  Rd, Rr   ---- ---- dddd rrrr (d: 0,2,4,...,30), (r: 0,2,4,...,30)
+		{ { 0x0100 }, { 0xFF00 }, S_MOVW, 0, "movw", },		// movw   Rd, Rr   ---- ---- dddd rrrr (d: 0,2,4,...,30), (r: 0,2,4,...,30)
 
-	{	"mul",		S_MUL,		0x9C00	}, FC00  Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)  ?? S_DUBL
-	{	"muls",		S_MULS,		0x0200	}, FF00  Rd, Rr   ---- ---- dddd rrrr (d: 16-31), (r: 16-31)
-	{	"mulsu",	S_FMUL,		0x0300	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
-	{	"fmul",		S_FMUL,		0x0308	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
-	{	"fmuls",	S_FMUL,		0x0380	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
-	{	"fmulsu",	S_FMUL,		0x0388	}, FF88  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+		{ { 0x9C00 }, { 0xFC00 }, S_DUBL, 0, "mul", },		// mul    Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
+		{ { 0x0200 }, { 0xFF00 }, S_MULS, 0, "muls", },		// muls   Rd, Rr   ---- ---- dddd rrrr (d: 16-31), (r: 16-31)
+		{ { 0x0300 }, { 0xFF88 }, S_FMUL, 0, "mulsu", },	// mulsu  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+		{ { 0x0308 }, { 0xFF88 }, S_FMUL, 0, "fmul", },		// fmul   Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+		{ { 0x0380 }, { 0xFF88 }, S_FMUL, 0, "fmuls", },	// fmuls  Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
+		{ { 0x0388 }, { 0xFF88 }, S_FMUL, 0, "fmulsu", },	// fmulsu Rd, Rr   ---- ---- -ddd -rrr (d: 16-23), (r: 16-23)
 
-	{	"ser",		S_SER,		0xEF0F	}, FF0F  Rd       ---- ---- dddd ---- (d: 16-31)  <<< SPC: ldi Rd,0xFF
+		{ { 0xF800 }, { 0xFE08 }, S_TFLG, 0, "bld", },		// bld    Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
+		{ { 0xFA00 }, { 0xFE08 }, S_TFLG, 0, "bst", },		// bst    Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
 
-	{	"bclr",		S_SREG,		0x9488	}, FF8F  s        ---- ---- -sss ---- (s: 0-7)  xxx dup (see: S_INH)
-	{	"bset",		S_SREG,		0x9408	}, FF8F  s        ---- ---- -sss ---- (s: 0-7)  xxx dup (see: S_INH)
+		{ { 0xF400 }, { 0xFC07 }, S_BRA, 0, "brcc", },		// brcc   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF000 }, { 0xFC07 }, S_BRA, 0, "brcs", },		// brcs   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF001 }, { 0xFC07 }, S_BRA, 0, "breq", },		// breq   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF404 }, { 0xFC07 }, S_BRA, 0, "brge", },		// brge   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF405 }, { 0xFC07 }, S_BRA, 0, "brhc", },		// brhc   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF005 }, { 0xFC07 }, S_BRA, 0, "brhs", },		// brhs   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF407 }, { 0xFC07 }, S_BRA, 0, "brid", },		// brid   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF007 }, { 0xFC07 }, S_BRA, 0, "brie", },		// brie   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF004 }, { 0xFC07 }, S_BRA, 0, "brlt", },		// brlt   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF002 }, { 0xFC07 }, S_BRA, 0, "brmi", },		// brmi   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF401 }, { 0xFC07 }, S_BRA, 0, "brne", },		// brne   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF402 }, { 0xFC07 }, S_BRA, 0, "brpl", },		// brpl   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF406 }, { 0xFC07 }, S_BRA, 0, "brtc", },		// brtc   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF006 }, { 0xFC07 }, S_BRA, 0, "brts", },		// brts   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF403 }, { 0xFC07 }, S_BRA, 0, "brvc", },		// brvc   k        ---- --kk kkkk k--- (k: -64 - 63)
+		{ { 0xF003 }, { 0xFC07 }, S_BRA, 0, "brvs", },		// brvs   k        ---- --kk kkkk k--- (k: -64 - 63)
 
-	{	"bld",		S_TFLG,		0xF800	}, FE08  Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
-	{	"bst",		S_TFLG,		0xFA00	}, FE08  Rd, b    ---- ---d dddd -bbb (d: 0-31), (b: 0-7)
+		{ { 0xFC00 }, { 0xFE08 }, S_TFLG, 0, "sbrc", },		// sbrc   Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7), Difficult control requiring lookahead
+		{ { 0xFE00 }, { 0xFE08 }, S_TFLG, 0, "sbrs", },		// sbrs   Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7), Difficult control requiring lookahead
 
-	{	"brcc",		S_BRA,		0xF400	}, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)
-	{	"brcs",		S_BRA,		0xF000	}, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)
-	{	"breq",		S_BRA,		0xF001	}, FC07  k        ---- --kk kkkk k001 (k: -64 - 63)
-	{	"brge",		S_BRA,		0xF404	}, FC07  k        ---- --kk kkkk k100 (k: -64 - 63)
-	{	"brhc",		S_BRA,		0xF405	}, FC07  k        ---- --kk kkkk k101 (k: -64 - 63)
-	{	"brhs",		S_BRA,		0xF005	}, FC07  k        ---- --kk kkkk k101 (k: -64 - 63)
-	{	"brid",		S_BRA,		0xF407	}, FC07  k        ---- --kk kkkk k111 (k: -64 - 63)
-	{	"brie",		S_BRA,		0xF007	}, FC07  k        ---- --kk kkkk k111 (k: -64 - 63)
-	{	"brlo",		S_BRA,		0xF000	}, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)  xxx dup brcs
-	{	"brlt",		S_BRA,		0xF004	}, FC07  k        ---- --kk kkkk k100 (k: -64 - 63)
-	{	"brmi",		S_BRA,		0xF002	}, FC07  k        ---- --kk kkkk k010 (k: -64 - 63)
-	{	"brne",		S_BRA,		0xF401	}, FC07  k        ---- --kk kkkk k001 (k: -64 - 63)
-	{	"brpl",		S_BRA,		0xF402	}, FC07  k        ---- --kk kkkk k010 (k: -64 - 63)
-	{	"brsh",		S_BRA,		0xF400  }, FC07  k        ---- --kk kkkk k000 (k: -64 - 63)  xxx dup brcc
-	{	"brtc",		S_BRA,		0xF406	}, FC07  k        ---- --kk kkkk k110 (k: -64 - 63)
-	{	"brts",		S_BRA,		0xF006	}, FC07  k        ---- --kk kkkk k110 (k: -64 - 63)
-	{	"brvc",		S_BRA,		0xF403	}, FC07  k        ---- --kk kkkk k011 (k: -64 - 63)
-	{	"brvs",		S_BRA,		0xF003	}, FC07  k        ---- --kk kkkk k011 (k: -64 - 63)
+		{ { 0x940E }, { 0xFE0E }, S_JMP, 0, "call", },		// call   k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
+		{ { 0x940C }, { 0xFE0E }, S_JMP, 0, "jmp", },		// jmp    k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
 
-	{	"brbc",		S_SBRA,		0xF400	}, FC00  s, k     ---- --kk kkkk ksss (k: -64 - 63), (s: 0-7)
-	{	"brbs",		S_SBRA,		0xF000	}, FC00  s, k     ---- --kk kkkk ksss (k: -64 - 63), (s: 0-7)
+		{ { 0xD000 }, { 0xF000 }, S_RJMP, 0, "rcall", },	// rcall  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
+		{ { 0xC000 }, { 0xF000 }, S_RJMP, 0, "rjmp", },		// rjmp   k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
 
-	{	"sbrc",		S_SKIP,		0xFC00	}, FE08  Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7)  ?? S_TFLG, Difficult control requiring lookahead
-	{	"sbrs",		S_SKIP,		0xFE00	}, FE08  Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7)  ?? S_TFLG, Difficult control requiring lookahead
+		{ { 0x9800 }, { 0xFF00 }, S_IOR, 0, "cbi", },		// cbi    A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
+		{ { 0x9A00 }, { 0xFF00 }, S_IOR, 0, "sbi", },		// sbi    A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
+		{ { 0x9900 }, { 0xFF00 }, S_IOR, 0, "sbic", },		// sbic   A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
+		{ { 0x9B00 }, { 0xFF00 }, S_IOR, 0, "sbis", },		// sbis   A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
 
-	{	"call",		S_JMP,		0x940E	}, FE0E  k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
-	{	"jmp",		S_JMP,		0x940C	}, FE0E  k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
+		{ { 0xB000 }, { 0xF800 }, S_IN, 0, "in", },			// in     Rd, A    ---- -AAd dddd AAAA (A: 0-63), (d: 0-31)
+		{ { 0xB800 }, { 0xF800 }, S_OUT, 0, "out", },		// out    A, Rr    ---- -AAr rrrr AAAA (A: 0-63), (r: 0-31)
 
-	{	"rcall",	S_RJMP,		0xD000	}, F000  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
-	{	"rjmp",		S_RJMP,		0xC000	}, F000  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
+		{ { 0x900C }, { 0xFE0F }, S_SNGL_X, 0, "ld", },		// ld     Rd, X    ---- ---d dddd ---- (d: 0-31)
+		{ { 0x900D }, { 0xFE0F }, S_SNGL_Xp, 0, "ld", },	// ld     Rd, X+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x900E }, { 0xFE0F }, S_SNGL_nX, 0, "ld", },	// ld     Rd, -X   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x8008 }, { 0xFE0F }, S_SNGL_Y, 0, "ld", },		// ld     Rd, Y    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Y+0  (must be listed ahead of it)
+		{ { 0x9009 }, { 0xFE0F }, S_SNGL_Yp, 0, "ld", },	// ld     Rd, Y+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x900A }, { 0xFE0F }, S_SNGL_nY, 0, "ld", },	// ld     Rd, -Y   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x8000 }, { 0xFE0F }, S_SNGL_Z, 0, "ld", },		// ld     Rd, Z    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Z+0  (must be listed ahead of it)
+		{ { 0x9001 }, { 0xFE0F }, S_SNGL_Zp, 0, "ld", },	// ld     Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9002 }, { 0xFE0F }, S_SNGL_nZ, 0, "ld", },	// ld     Rd, -Z   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x920C }, { 0xFE0F }, S_X_SNGL, 0, "st", },		// st     X, Rr    ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x920D }, { 0xFE0F }, S_Xp_SNGL, 0, "st", },	// st     X+, Rr   ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x920E }, { 0xFE0F }, S_nX_SNGL, 0, "st", },	// st     -X, Rr   ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x8208 }, { 0xFE0F }, S_Y_SNGL, 0, "st", },		// st     Y, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Y+0  (must be listed ahead of it)
+		{ { 0x9209 }, { 0xFE0F }, S_Yp_SNGL, 0, "st", },	// st     Y+, Rr   ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x920A }, { 0xFE0F }, S_nY_SNGL, 0, "st", },	// st     -Y, Rr   ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x8200 }, { 0xFE0F }, S_Z_SNGL, 0, "st", },		// st     Z, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Z+0  (must be listed ahead of it)
+		{ { 0x9201 }, { 0xFE0F }, S_Zp_SNGL, 0, "st", },	// st     Z+, Rr   ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x9202 }, { 0xFE0F }, S_nZ_SNGL, 0, "st", },	// st     -Z, Rr   ---- ---r rrrr ---- (r: 0-31)
 
-	{	"cbi",		S_IOR,		0x9800	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
-	{	"sbi",		S_IOR,		0x9A00	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7)
-	{	"sbic",		S_IOR,		0x9900	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
-	{	"sbis",		S_IOR,		0x9B00	}, FF00  A, b     ---- ---- AAAA Abbb (A: 0-31), (b: 0-7), Difficult control requiring lookahead
+		{ { 0x8008 }, { 0xD208 }, S_SNGL_Yq, 0, "ldd", },	// ldd    Rd, Y+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
+		{ { 0x8000 }, { 0xD208 }, S_SNGL_Zq, 0, "ldd", },	// ldd    Rd, Z+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
+		{ { 0x8208 }, { 0xD208 }, S_Yq_SNGL, 0, "std", },	// std    Y+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
+		{ { 0x8200 }, { 0xD208 }, S_Zq_SNGL, 0, "std", },	// std    Z+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
 
-	{	"in",		S_IN,		0xB000	}, F800  Rd, A    ---- -AAd dddd AAAA (A: 0-63), (d: 0-31)
-	{	"out",		S_OUT,		0xB800	}, F800  A, Rr    ---- -AAr rrrr AAAA (A: 0-63), (r: 0-31)
+		{ { 0x9000 }, { 0xFE0F }, S_LDS, 0, "lds", },		// lds    Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k)
+		{ { 0xA000 }, { 0xF800 }, S_LDSrc, 0, "lds", },		// lds    Rd, k    ---- -kkk dddd kkkk (d: 16-31), (k: 0-127)
+		{ { 0x9200 }, { 0xFE0F }, S_STS, 0, "sts", },		// sts    k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k)
+		{ { 0xA800 }, { 0xF800 }, S_STSrc, 0, "sts", },		// sts    k, Rr    ---- -kkk rrrr kkkk (r: 16-31), (k: 0-127)
 
-	{	"ld",		S_LD,		0x8000	}, ????? (Z only?)
-	{	"ld",		S_LD/X		0x900C	}, FE0F  Rd, X    ---- ---d dddd ---- (d: 0-31)
-	{	"ld",		S_LD/X+		0x900D	}, FE0F  Rd, X+   ---- ---d dddd ---- (d: 0-31)
-	{	"ld",		S_LD/-X		0x900E	}, FE0F  Rd, -X   ---- ---d dddd ---- (d: 0-31)
-	{	"ld",		S_LD/Y		0x8008	}, FE0F  Rd, Y    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Y+0
-	{	"ld",		S_LD/Y+		0x9009	}, FE0F  Rd, Y+   ---- ---d dddd ---- (d: 0-31)
-	{	"ld",		S_LD/-Y		0x900A	}, FE0F  Rd, -Y   ---- ---d dddd ---- (d: 0-31)
-	{	"ld",		S_LD/Z		0x8000	}, FE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)  <<< SPC: ldd Rd,Z+0
-	{	"ld",		S_LD/Z+		0x9001	}, FE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
-	{	"ld",		S_LD/-Z		0x9002	}, FE0F  Rd, -Z   ---- ---d dddd ---- (d: 0-31)
-	{	"st",		S_ST,		0x8200	}, ????? (Z only?)
-	{	"st",		S_ST/X		0x920C	}, FE0F  X, Rr    ---- ---r rrrr ---- (r: 0-31)
-	{	"st",		S_ST/X+		0x920D	}, FE0F  X+, Rr   ---- ---r rrrr ---- (r: 0-31)
-	{	"st",		S_ST/-X		0x920E	}, FE0F  -X, Rr   ---- ---r rrrr ---- (r: 0-31)
-	{	"st",		S_ST/Y		0x8208	}, FE0F  Y, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Y+0
-	{	"st",		S_ST/Y+		0x9209	}, FE0F  Y+, Rr   ---- ---r rrrr ---- (r: 0-31)
-	{	"st",		S_ST/-Y		0x920A	}, FE0F  -Y, Rr   ---- ---r rrrr ---- (r: 0-31)
-	{	"st",		S_ST/Z		0x8200	}, FE0F  Z, Rr    ---- ---r rrrr ---- (r: 0-31)  <<< SPC: std Rd,Z+0
-	{	"st",		S_ST/Z+		0x9201	}, FE0F  Z+, Rr   ---- ---r rrrr ---- (r: 0-31)
-	{	"st",		S_ST/-Z		0x9202	}, FE0F  -Z, Rr   ---- ---r rrrr ---- (r: 0-31)
+		{ { 0x95D8 }, { 0xFFFF }, S_INH, 0, "elpm", },		// elpm   -        ---- ---- ---- ----
+		{ { 0x9006 }, { 0xFE0F }, S_SNGL_Z, 0, "elpm", },	// elpm   Rd, Z    ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9007 }, { 0xFE0F }, S_SNGL_Zp, 0, "elpm", },	// elpm   Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x95C8 }, { 0xFFFF }, S_INH, 0, "lpm", },		// lpm    -        ---- ---- ---- ----
+		{ { 0x9004 }, { 0xFE0F }, S_SNGL_Z, 0, "lpm", },	// lpm    Rd, Z    ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9005 }, { 0xFE0F }, S_SNGL_Zp, 0, "lpm", },	// lpm    Rd, Z+   ---- ---d dddd ---- (d: 0-31)
 
-	{	"ldd",		S_ILD,		0x8000	}, ????? (Z only?)
-	{	"ldd",		S_ILD/Y+q	0x8008	}, D208  Rd, Y+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
-	{	"ldd",		S_ILD/Z+q	0x8000	}, D208  Rd, Z+q  --q- qq-d dddd -qqq (d: 0-31), (q: 0-63)
-	{	"std",		S_IST,		0x8200	}, ????? (Z only?)
-	{	"std",		S_IST/Y+q	0x8208	}, D208  Y+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
-	{	"std",		S_IST/Z+q	0x8200	}, D208  Z+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
+		{ { 0x9519 }, { 0xFFFF }, S_INH, 0, "eicall", },	// eicall -        ---- ---- ---- ----
+		{ { 0x9419 }, { 0xFFFF }, S_INH, 0, "eijmp", },		// eijmp  -        ---- ---- ---- ----
+		{ { 0x9409 }, { 0xFFFF }, S_INH, 0, "ijmp", },		// ijmp   -        ---- ---- ---- ----
+		{ { 0x9509 }, { 0xFFFF }, S_INH, 0, "icall", },		// icall  -        ---- ---- ---- ----
+		{ { 0x9508 }, { 0xFFFF }, S_INH, 0, "ret", },		// ret    -        ---- ---- ---- ----
+		{ { 0x9518 }, { 0xFFFF }, S_INH, 0, "reti", },		// reti   -        ---- ---- ---- ----
 
-	{	"lds",		S_LDS,		0x9000	}, FE0F  Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k)
-	{	"lds",	S_LDS(AVRrc)	0xA000	}, F800  Rd, k    ---- -kkk dddd kkkk (d: 16-31), (k: 0-127)
-	{	"sts",		S_STS,		0x9200	}, FE0F  k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k)
-	{	"sts",	S_STS(AVRrc)	0xA800	}, F800  k, Rr    ---- -kkk rrrr kkkk (r: 16-31), (k: 0-127)
+		{ { 0x9408 }, { 0xFFFF }, S_INH, 0, "sec", },		// sec    -        ---- ---- ---- ----
+		{ { 0x9418 }, { 0xFFFF }, S_INH, 0, "sez", },		// sez    -        ---- ---- ---- ----
+		{ { 0x9428 }, { 0xFFFF }, S_INH, 0, "sen", },		// sen    -        ---- ---- ---- ----
+		{ { 0x9438 }, { 0xFFFF }, S_INH, 0, "sev", },		// sev    -        ---- ---- ---- ----
+		{ { 0x9448 }, { 0xFFFF }, S_INH, 0, "ses", },		// ses    -        ---- ---- ---- ----
+		{ { 0x9458 }, { 0xFFFF }, S_INH, 0, "seh", },		// seh    -        ---- ---- ---- ----
+		{ { 0x9468 }, { 0xFFFF }, S_INH, 0, "set", },		// set    -        ---- ---- ---- ----
+		{ { 0x9478 }, { 0xFFFF }, S_INH, 0, "sei", },		// sei    -        ---- ---- ---- ----
 
-	{	"elpm",	S_ELPM|S_INH,	0x95D8	}, FFFF  -        ---- ---- ---- ----
-	{	"elpm",	S_SNGL/Z,		0x9006	}, FE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)
-	{	"elpm",	S_SNGL/Z+,		0x9007	}, FE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
-	{	"lpm",	S_LPM|S_INH,	0x95C8	}, FFFF  -        ---- ---- ---- ----
-	{	"lpm",	S_SNGL/Z,		0x9004	}, FE0F  Rd, Z    ---- ---d dddd ---- (d: 0-31)
-	{	"lpm",	S_SNGL/Z+,		0x9005	}, FE0F  Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9488 }, { 0xFFFF }, S_INH, 0, "clc", },		// clc    -        ---- ---- ---- ----
+		{ { 0x9498 }, { 0xFFFF }, S_INH, 0, "clz", },		// clz    -        ---- ---- ---- ----
+		{ { 0x94A8 }, { 0xFFFF }, S_INH, 0, "cln", },		// cln    -        ---- ---- ---- ----
+		{ { 0x94B8 }, { 0xFFFF }, S_INH, 0, "clv", },		// clv    -        ---- ---- ---- ----
+		{ { 0x94C8 }, { 0xFFFF }, S_INH, 0, "cls", },		// cls    -        ---- ---- ---- ----
+		{ { 0x94D8 }, { 0xFFFF }, S_INH, 0, "clh", },		// clh    -        ---- ---- ---- ----
+		{ { 0x94E8 }, { 0xFFFF }, S_INH, 0, "clt", },		// clt    -        ---- ---- ---- ----
+		{ { 0x94F8 }, { 0xFFFF }, S_INH, 0, "cli", },		// cli    -        ---- ---- ---- ----
 
-	{	"eicall",	S_INH,		0x9519	}, FFFF  -        ---- ---- ---- ----
-	{	"eijmp",	S_INH,		0x9419	}, FFFF  -        ---- ---- ---- ----
-	{	"ijmp",		S_INH,		0x9409	}, FFFF  -        ---- ---- ---- ----
-	{	"icall",	S_INH,		0x9509	}, FFFF  -        ---- ---- ---- ----
-	{	"ret",		S_INH,		0x9508	}, FFFF  -        ---- ---- ---- ----
-	{	"reti",		S_INH,		0x9518	}, FFFF  -        ---- ---- ---- ----
+		{ { 0x0000 }, { 0xFFFF }, S_INH, 0, "nop", },		// nop    -        ---- ---- ---- ----
+		{ { 0x9588 }, { 0xFFFF }, S_INH, 0, "sleep", },		// sleep  -        ---- ---- ---- ----
+		{ { 0x9598 }, { 0xFFFF }, S_INH, 0, "break", },		// break  -        ---- ---- ---- ----
+		{ { 0x95E8 }, { 0xFFFF }, S_INH, 0, "spm", },		// spm    -        ---- ---- ---- ----		AVRe,AVRxm,AVRxt
+		{ { 0x95F8 }, { 0xFFFF }, S_INH_Zp, 0, "spm", },	// spm    Z+       ---- ---- ---- ----		AVRxm,AVRxt
+		{ { 0x95A8 }, { 0xFFFF }, S_INH, 0, "wdr", },		// wdr    -        ---- ---- ---- ----
 
-	{	"sec",		S_INH,		0x9408	}, FFFF  -        ---- ---- ---- ----
-	{	"sez",		S_INH,		0x9418	}, FFFF  -        ---- ---- ---- ----
-	{	"sen",		S_INH,		0x9428	}, FFFF  -        ---- ---- ---- ----
-	{	"sev",		S_INH,		0x9438	}, FFFF  -        ---- ---- ---- ----
-	{	"ses",		S_INH,		0x9448	}, FFFF  -        ---- ---- ---- ----
-	{	"seh",		S_INH,		0x9458	}, FFFF  -        ---- ---- ---- ----
-	{	"set",		S_INH,		0x9468	}, FFFF  -        ---- ---- ---- ----
-	{	"sei",		S_INH,		0x9478	}, FFFF  -        ---- ---- ---- ----
+		{ { 0x940B }, { 0xFF0F }, S_DES, 0, "des", },		// des    K        ---- ---- KKKK ----  (K: 0-15)
+	};
 
-	{	"clc",		S_INH,		0x9488	}, FFFF  -        ---- ---- ---- ----
-	{	"clz",		S_INH,		0x9498	}, FFFF  -        ---- ---- ---- ----
-	{	"cln",		S_INH,		0x94A8	}, FFFF  -        ---- ---- ---- ----
-	{	"clv",		S_INH,		0x94B8	}, FFFF  -        ---- ---- ---- ----
-	{	"cls",		S_INH,		0x94C8	}, FFFF  -        ---- ---- ---- ----
-	{	"clh",		S_INH,		0x94D8	}, FFFF  -        ---- ---- ---- ----
-	{	"clt",		S_INH,		0x94E8	}, FFFF  -        ---- ---- ---- ----
-	{	"cli",		S_INH,		0x94F8	}, FFFF  -        ---- ---- ---- ----
+	for (size_t ndx = 0; ndx < _countof(arrOpcodes); ++ndx) {
+		m_Opcodes.AddOpcode(arrOpcodes[ndx]);
+	}
 
-	{	"nop",		S_INH,		0x0000	}, FFFF  -        ---- ---- ---- ----
-	{	"sleep",	S_INH,		0x9588	}, FFFF  -        ---- ---- ---- ----
-	{	"break",	S_INH,		0x9598	}, FFFF  -        ---- ---- ---- ----
-	{	"spm",		S_INH,		0x95E8	}, FFFF  -        ---- ---- ---- ----		AVRe,AVRxm,AVRxt
-	{	"spm",		S_INH/Z+	0x95F8	}, FFFF  Z+       ---- ---- ---- ----		AVRxm,AVRxt
-	{	"wdr",		S_INH,		0x95A8	}, FFFF  -        ---- ---- ---- ----
+	m_bAllowMemRangeOverlap = true;
 
-	{	"des",		S_DES,		0x940B	}, FF0F  K        ---- ---- KKKK ----  (K: 0-15)
-
+	// TODO : Allow for various CPU types and associated memory layouts.
+	//		For now just use ATmega328PB
+	m_Memory.push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x8000ul, 0, DMEM_NOTLOADED });	// 32K of code memory available to processor as one block
 }
 

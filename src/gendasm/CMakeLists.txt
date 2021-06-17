@@ -100,5 +100,8 @@ add_executable(gendasm
 	# ----
 	${cpu_m6811_Sources}
 	${cpu_m6811_Headers}
+	# ----
+	${cpu_avr_Sources}
+	${cpu_avr_Headers}
 )
 
