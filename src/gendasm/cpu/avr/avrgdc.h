@@ -68,6 +68,7 @@ namespace TAVRDisassembler_ENUMS {
 	enum OpcodeControl {
 		CTL_None,				//	Disassemble as code
 		CTL_DataLabel,			//	Disassemble as code, with data addr label
+		CTL_DataRegAddr,		//	Disassemble as code, with data address via register (i.e. unknown data address, such as LPM, etc)
 		CTL_IOLabel,			//	Disassemble as code, with I/O addr label
 		CTL_UndetBra,			//	Disassemble as undeterminable branch address (Comment code)
 		CTL_DetBra,				//	Disassemble as determinable branch, add branch addr and label
@@ -76,8 +77,7 @@ namespace TAVRDisassembler_ENUMS {
 
 		CTL_MASK = 0xFFFFul,	//	Mask for the CTL portion above
 
-		OCTL_TwoWordCode = 0x10000ul,		// Flag for Two-Word Instruction
-		OCTL_ArchExtAddr = 0x20000ul,		// Flag for Architecture Specific extended addressing (such as RAMPD for LDS/STS instructions for >= 64K)
+		OCTL_ArchExtAddr = 0x10000ul,		// Flag for Architecture Specific extended addressing (such as RAMPD for LDS/STS instructions for >= 64K)
 	};
 	DEFINE_ENUM_FLAG_OPERATORS(OpcodeControl)
 }
@@ -90,7 +90,8 @@ typedef TDisassemblerTypes<
 
 // ----------------------------------------------------------------------------
 
-class CAVRDisassembler : public CDisassembler, protected CDisassemblerData<CAVRDisassembler, TAVRDisassembler>
+class CAVRDisassembler : public CDisassembler,
+		protected CDisassemblerData<CAVRDisassembler, TAVRDisassembler, COpcodeTableArray<TAVRDisassembler> >
 {
 public:
 	CAVRDisassembler();
@@ -101,13 +102,83 @@ public:
 
 	// --------------------------------
 
+	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
+	virtual bool CompleteObjRead(bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
+	virtual bool CurrentOpcodeIsStop() const;
+
+	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
+
+	virtual std::string FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+
+	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
+
+	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
+
+	virtual bool ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType);
+
+	virtual std::string GetExcludedPrintChars() const;
+	virtual std::string GetHexDelim() const;
+	virtual std::string GetCommentStartDelim() const;
+	virtual std::string	GetCommentEndDelim() const;
+
+	virtual void clearOpMemory();
+	virtual size_t opcodeSymbolSize() const;
+	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue);
+	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues);
+
+	// --------------------------------
+
 protected:
 
 	// --------------------------------
 
 private:
-	decltype(m_OpMemory)::size_type m_nOpPointer;
-	TAddress m_nStartPC;
+	// Opcode Decode Helpers:
+	static unsigned int opDstReg0_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_SNGL
+	static unsigned int opDstReg16_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_IBYTE/S_MULS/S_SER/S_LDSrc/S_STSrc
+	static unsigned int opDstReg16_23(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_FMUL
+	static unsigned int opDstRegEven0_30(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);	// S_MOVW
+	static unsigned int opDstRegEven24_30(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);	// S_IWORD
+	static unsigned int opSrcReg0_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_DUBL/S_SAME
+	static unsigned int opSrcReg16_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_MULS
+	static unsigned int opSrcReg16_23(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_FMUL
+	static unsigned int opSrcRegEven0_30(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);	// S_MOVW
+	static uint8_t opIByte(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);				// S_IBYTE
+	static uint8_t opIWord(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);				// S_IWORD
+	static unsigned int opBit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);				// S_TFLG/S_IOR
+	static TAddress opIO0_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);				// S_IOR
+	static TAddress opIO0_63(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);				// S_IN/S_OUT
+	static TAddressOffset opCRel7bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_BRA
+	static TAddressOffset opCRel12bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_RJMP
+	static TAddress opCAbs22bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);			// S_JMP
+	static TAddress opDAbs16bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);			// S_LDS/S_STS
+	static TAddress opLDSrc7bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);			// S_LDSrc/S_STSrc
+	static unsigned int opRegYZqval(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);		// S_SNGL_Yq/S_SNGL_Zq/S_Yq_SNGL/S_Zq_SNGL
+	static unsigned int opDESK(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);			// S_DES
+
+	bool DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std::ostream *errFile);
+	std::string CreateOperand();
+	TAddress CreateOperandAddress();
+	std::string FormatOperandRefComments();
+	bool CheckBranchAddressLoaded(TAddress nAddress);
+	TLabel CodeLabelDeref(TAddress nAddress);
+	TLabel DataLabelDeref(TAddress nAddress);
+	TLabel IOLabelDeref(TAddress nAddress);
+
+	// --------------------------------
+
+	static bool isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
+											 const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);
+
+	// --------------------------------
+
+	bool m_bCurrentOpcodeIsSkip;			// Set to true if the current opcode being processes is a CTL_Skip or CTL_SkipIOLabel
+	bool m_bLastOpcodeWasSkip;				// Set to true if the last opcode processed was a CTL_Skip or CTL_SkipIOLabel (i.e. we are on the opcode that would be skipped)
+
+	TAddress m_nStartPC;					// Address for first instruction word for m_CurrentOpcode during DecodeOpcode(), CreateOperand(), etc.
 
 	int m_nSectionCount;
 };

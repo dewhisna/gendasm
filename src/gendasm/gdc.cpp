@@ -1257,7 +1257,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 		aFunctionsFile << g_arrstrMemRanges[nMemType] << " Memory Map:";
 
 		if (m_MemoryRanges[nMemType].isNullRange()) {
-			aFunctionsFile << "<Not Defined>\n";
+			aFunctionsFile << " <Not Defined>\n";
 		} else {
 			aFunctionsFile << "\n";
 			for (auto const & itrMemRange : m_MemoryRanges[nMemType]) {
@@ -1882,7 +1882,7 @@ bool CDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, st
 		saOutLine[FC_LABEL] += g_arrstrMemRanges[nMemType] + " Memory Map:";
 
 		if (m_MemoryRanges[nMemType].isNullRange()) {
-			saOutLine[FC_LABEL] += "<Not Defined>" + GetCommentEndDelim() + "\n";
+			saOutLine[FC_LABEL] += " <Not Defined>" + GetCommentEndDelim() + "\n";
 			outFile << MakeOutputLine(saOutLine) << "\n";
 		} else {
 			saOutLine[FC_LABEL] += GetCommentEndDelim() + "\n";
@@ -1937,7 +1937,7 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 	CStringArray saOutLine;
 	bool bRetVal;
 
-	clearOpMemory();				// TODO : Figure out if this is really needed
+	clearOpMemory();				// This is needed so that m_OpMemory works correctly for Equates in functions like FormatComments that recalculate m_PC
 
 	bRetVal = WritePreEquates(outFile, msgFile, errFile);
 	if (bRetVal) {
@@ -1954,9 +1954,9 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 					saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 					for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
 						saOutLine[FC_LABEL] = FormatLabel(LC_EQUATE, itrLabels->second.at(i), m_PC);
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_EQUATE);
-						saOutLine[FC_OPERANDS] = FormatOperands(MC_EQUATE);
-						saOutLine[FC_COMMENT] = FormatComments(MC_EQUATE);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_EQUATE, m_PC);
+						saOutLine[FC_OPERANDS] = FormatOperands(MC_EQUATE, m_PC);
+						saOutLine[FC_COMMENT] = FormatComments(MC_EQUATE, m_PC);
 						outFile << MakeOutputLine(saOutLine) << "\n";
 					}
 				}
@@ -2111,6 +2111,11 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 	MEM_DESC nDesc;
 	TLabel strTempLabel;
 	CMemoryArray maTempOpMemory;
+	// Note: Even though maTempOpMemory is supposed to mirror COpcodeSymbolArray from TDisassembler,
+	//	we don't have a good way to get access to that type name.  That means that this CMemoryArray
+	//	will technically be the wrong type (or at least mismatched) when on processors with a
+	//	TOpcodeSymbol type that doesn't match TMemoryElement.  Not a major problem since this
+	//	is the 'data' section and specifically working on bytes.
 
 
 	ClearOutputLine(saOutLine);				// TODO : Is this line needed?
@@ -2149,10 +2154,10 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						if (nDesc != DMEM_DATA) bFlag = true;
 					}
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes();
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_DATABYTE);
-					saOutLine[FC_OPERANDS] = FormatOperands(MC_DATABYTE);
-					saOutLine[FC_COMMENT] = FormatComments(MC_DATABYTE);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(MC_DATABYTE, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_DATABYTE, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(MC_DATABYTE, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(MC_DATABYTE, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_PRINTDATA:
@@ -2160,7 +2165,8 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 					maTempOpMemory.clear();
 					bFlag = false;
 					while (!bFlag) {
-						maTempOpMemory.push_back(m_Memory.element(m_PC++));
+						maTempOpMemory.push_back(m_Memory.element(m_PC));
+						++m_PC;
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
 						if (nCount >= m_nMaxPrint) bFlag = true;
@@ -2182,7 +2188,7 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 
 							saOutLine[FC_LABEL] = GetCommentStartDelim() + " " + strTempLabel +
 												((!strTempLabel.empty()) ? " " : "") +
-												FormatOperands(MC_DATABYTE) + " " + GetCommentEndDelim();
+												FormatOperands(MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
 							saOutLine[FC_ADDRESS] = FormatAddress(nCurrentPC);
 							saOutLine[FC_MNEMONIC].clear();
 							saOutLine[FC_OPERANDS].clear();
@@ -2197,10 +2203,10 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 
 					// Then, print the line as it should be in the ASCII equivalent:
 					saOutLine[FC_ADDRESS] = FormatAddress(nSavedPC);
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes();
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_ASCII);
-					saOutLine[FC_OPERANDS] = FormatOperands(MC_ASCII);
-					saOutLine[FC_COMMENT] = FormatComments(MC_ASCII);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(MC_ASCII, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_ASCII, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(MC_ASCII, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(MC_ASCII, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_CODEINDIRECT:
@@ -2210,18 +2216,18 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 					//	the indirect.  So instead of throwing an error or causing problems,
 					//	we will treat it as a data byte instead:
 					if (RetrieveIndirect(msgFile, errFile) == false) {		// Bumps PC and fills in m_OpMemory
-						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes();
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_DATABYTE);
-						saOutLine[FC_OPERANDS] = FormatOperands(MC_DATABYTE);
-						saOutLine[FC_COMMENT] = FormatComments(MC_DATABYTE) + " -- Erroneous Indirect Stub";
+						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(MC_DATABYTE, nSavedPC);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_DATABYTE, nSavedPC);
+						saOutLine[FC_OPERANDS] = FormatOperands(MC_DATABYTE, nSavedPC);
+						saOutLine[FC_COMMENT] = FormatComments(MC_DATABYTE, nSavedPC) + " -- Erroneous Indirect Stub";
 						outFile << MakeOutputLine(saOutLine) << "\n";
 						break;
 					}
 
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes();
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_INDIRECT);
-					saOutLine[FC_OPERANDS] = FormatOperands(MC_INDIRECT);
-					saOutLine[FC_COMMENT] = FormatComments(MC_INDIRECT);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(MC_INDIRECT, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_INDIRECT, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(MC_INDIRECT, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(MC_INDIRECT, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 
@@ -2326,12 +2332,14 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 			switch (m_Memory.descriptor(m_PC)) {
 				case DMEM_ILLEGALCODE:
 					clearOpMemory();
-					pushBackOpMemory(m_PC, m_Memory.element(m_PC));
-					++m_PC;
-					saOutLine[FC_OPBYTES] = FormatOpBytes();
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_ILLOP);
-					saOutLine[FC_OPERANDS] = FormatOperands(MC_ILLOP);
-					saOutLine[FC_COMMENT] = FormatComments(MC_ILLOP);
+					for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
+						pushBackOpMemory(m_PC, m_Memory.element(m_PC));
+						++m_PC;
+					}
+					saOutLine[FC_OPBYTES] = FormatOpBytes(MC_ILLOP, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_ILLOP, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(MC_ILLOP, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(MC_ILLOP, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_CODE:
@@ -2340,18 +2348,20 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 					//	causing problems, we will treat it as an illegal opcode:
 					if (ReadNextObj(false, msgFile, errFile) == false) {		// Bumps PC and update m_OpMemory
 						// Flag it as illegal and then process it as such:
-						m_Memory.setDescriptor(nSavedPC, DMEM_ILLEGALCODE);
-						saOutLine[FC_OPBYTES] = FormatOpBytes();
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_ILLOP);
-						saOutLine[FC_OPERANDS] = FormatOperands(MC_ILLOP);
-						saOutLine[FC_COMMENT] = FormatComments(MC_ILLOP);
+						for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
+							m_Memory.setDescriptor(nSavedPC+ndx, DMEM_ILLEGALCODE);
+						}
+						saOutLine[FC_OPBYTES] = FormatOpBytes(MC_ILLOP, nSavedPC);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_ILLOP, nSavedPC);
+						saOutLine[FC_OPERANDS] = FormatOperands(MC_ILLOP, nSavedPC);
+						saOutLine[FC_COMMENT] = FormatComments(MC_ILLOP, nSavedPC);
 						outFile << MakeOutputLine(saOutLine) << "\n";
 						break;
 					}
-					saOutLine[FC_OPBYTES] = FormatOpBytes();
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_OPCODE);
-					saOutLine[FC_OPERANDS] = FormatOperands(MC_OPCODE);
-					saOutLine[FC_COMMENT] = FormatComments(MC_OPCODE);
+					saOutLine[FC_OPBYTES] = FormatOpBytes(MC_OPCODE, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_OPCODE, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(MC_OPCODE, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(MC_OPCODE, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				default:

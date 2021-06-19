@@ -23,7 +23,8 @@ typedef TDisassemblerTypes<
 
 // ----------------------------------------------------------------------------
 
-class CM6811Disassembler : public CDisassembler, protected CDisassemblerData<CM6811Disassembler, TM6811Disassembler>
+class CM6811Disassembler : public CDisassembler,
+		protected CDisassemblerData<CM6811Disassembler, TM6811Disassembler,  COpcodeTableMap<TM6811Disassembler> >
 {
 public:
 	CM6811Disassembler();
@@ -39,11 +40,11 @@ protected:
 
 	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 
-	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode);
-	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode);
-	virtual std::string FormatComments(MNEMONIC_CODE nMCCode);
+	virtual std::string FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
 
-	virtual std::string FormatOpBytes();
 	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
 
 	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
@@ -56,6 +57,7 @@ protected:
 	virtual std::string	GetCommentEndDelim() const;
 
 	virtual void clearOpMemory();
+	virtual size_t opcodeSymbolSize() const;
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue);
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues);
 
@@ -107,8 +109,8 @@ private:
 	TLabel LabelDeref2(TAddress nAddress);
 	TLabel LabelDeref4(TAddress nAddress);
 
-	decltype(m_OpMemory)::size_type m_nOpPointer;
-	TAddress m_nStartPC;
+	decltype(m_OpMemory)::size_type m_nOpPointer;	// Index into m_OpMemory for start of operands and gets incremented during DecodeOpcode()
+	TAddress m_nStartPC;		// Address for first instruction byte for m_CurrentOpcode during DecodeOpcode(), CreateOperand(), etc.
 
 	int m_nSectionCount;
 

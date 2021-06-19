@@ -148,6 +148,7 @@ public:
 	//	bit-shifting these can easily be converted to/from bit-field equivalents.
 	//	(Names use OCTL_xxxx form)
 	static constexpr TControlFlags OCTL_STOP = static_cast<TControlFlags>(0x80000000ul);		// Discontinue Disassembly - Upper-bit = 1
+	static constexpr TControlFlags OCTL_HARDSTOP = static_cast<TControlFlags>(0x40000000ul);	// Discontinue Disassembly and Flag for functions that are hard stops (like rts, rti, ret, reti, etc, but NOT jmp, call, etc.)
 
 	// Currently, all m_Group entries are used exclusively by processor
 	//	dependent functions.  But, it too should follow the guidelines above
@@ -201,6 +202,9 @@ public:
 	TMnemonic mnemonic() const { return m_Mnemonic; }
 	void setMnemonic(const TMnemonic &mnemonic) { m_Mnemonic = mnemonic; }
 
+	TOpcodeMatchFunc matchFunc() const { return m_fncMatch; }
+	void setMatchFunc(const TOpcodeMatchFunc fncMatch) { m_fncMatch = fncMatch; }
+
 	TUserData userData() const { return m_UserData; }
 	void setUserData(const TUserData &userdata) { m_UserData = userdata; }
 
@@ -219,9 +223,37 @@ template<typename TDisassembler> using COpcodeEntryArray = std::vector< COpcodeE
 
 // ============================================================================
 
-//	COpcodeTable
+// COpcodeTableArray
 //		This class manages a single table of opcodes by properly
-//		adding and maintaining opcode array's.  This class is a
+//		adding and maintaining opcode arrays.  This version uses a
+//		single flat array (unlike COpcodeTableMap which indexes by
+//		first TOpcodeSymbol first).
+//		It is also the users responsibility to not add duplicate or
+//		conflicting opcodes!
+template<typename TDisassembler>
+class COpcodeTableArray : public COpcodeEntryArray<TDisassembler>
+{
+	using array_type = COpcodeEntryArray<TDisassembler>;
+public:
+	void AddOpcode(const COpcodeEntry<TDisassembler> & entry)
+	{
+		if (entry.opcode().empty() || entry.opcodeMask().empty()) {
+			assert(false);
+			return;
+		}
+		if (entry.opcode().size() != entry.opcodeMask().size()) {
+			assert(false);
+			return;
+		}
+
+		array_type::push_back(entry);
+	}
+};
+
+
+//	COpcodeTableMap
+//		This class manages a single table of opcodes by properly
+//		adding and maintaining opcode arrays.  This class is a
 //		mapping of opcode 'first symbols' to an array of COpcodeEntryArray.
 //		When adding a new opcode, the AddOpcode function first checks to
 //		see if an array exists for its 'first symbol', if not it creates it.
@@ -232,13 +264,17 @@ template<typename TDisassembler> using COpcodeEntryArray = std::vector< COpcodeE
 //		It is also the users responsibility to not add duplicate or
 //		conflicting opcodes!
 template<typename TDisassembler>
-class COpcodeTable : public std::map<typename TDisassembler::TOpcodeSymbol, COpcodeEntryArray<TDisassembler> >
+class COpcodeTableMap : public std::map<typename TDisassembler::TOpcodeSymbol, COpcodeEntryArray<TDisassembler> >
 {
 	using map_type = std::map<typename TDisassembler::TOpcodeSymbol, COpcodeEntryArray<TDisassembler> >;
 public:
 	void AddOpcode(const COpcodeEntry<TDisassembler> & entry)
 	{
 		if (entry.opcode().empty() || entry.opcodeMask().empty()) {
+			assert(false);
+			return;
+		}
+		if (entry.opcode().size() != entry.opcodeMask().size()) {
 			assert(false);
 			return;
 		}
@@ -261,13 +297,16 @@ public:
 //		It's kept separate so that it can be fully templated from the
 //		origin disassembler typing and kept separate from the core
 //		CDisassembler virtual base logic
-template<typename TDisassemblerClass, typename TDisassembler>
+template<typename TDisassemblerClass, typename TDisassembler, typename TOpcodeTable>
 class CDisassemblerData
 {
 private:
+	using TOpcodeTable_type = TOpcodeTable;
+	using COpcodeSymbolArray_type = typename TDisassembler::COpcodeSymbolArray;
+
 	friend TDisassemblerClass;
 
-	COpcodeTable<TDisassembler>	m_Opcodes;		// Table of opcodes for this disassembler
+	TOpcodeTable m_Opcodes;		// Table of opcodes for this disassembler
 
 
 	typename TDisassembler::COpcodeSymbolArray m_OpMemory;		// Array to hold the opcode currently being processed
@@ -345,6 +384,7 @@ public:
 	//		40 = The memory is loaded, has been processed, and found to be code
 	//		41 = The memory is loaded, has been processed, and should be code, but was determined to be an illegal opcode
 	//	NOTE: These should NOT be changed -- enough room has been allowed for future expansion!
+	//		(Changing them will break functions like ResolveIndirect, for example)
 	enum MEM_DESC {	DMEM_NOTLOADED = 0,
 					DMEM_LOADED = 10,
 					DMEM_DATA = 20,
@@ -478,12 +518,12 @@ protected:
 
 	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) = 0;	// Pure Virtual. Retrieves the indirect address specified by m_PC and places it m_OpMemory for later formatting.  It is a pure virtual because of length and indian notation differences
 
-	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode) = 0;	// Pure Virtual.  This function should provide the specified mnemonic.  For normal opcodes, MC_OPCODE is used -- for which the override should return the mnemonic in the opcode table.  This is done to provide the assembler/processor dependent module opportunity to change/set the case of the mnemonic and to provide special opcodes.
-	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode) = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
-	virtual std::string FormatComments(MNEMONIC_CODE nMCCode) = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
+	virtual std::string FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
+	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should provide the specified mnemonic.  For normal opcodes, MC_OPCODE is used -- for which the override should return the mnemonic in the opcode table.  This is done to provide the assembler/processor dependent module opportunity to change/set the case of the mnemonic and to provide special opcodes.
+	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
+	virtual std::string FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
 
 	virtual std::string FormatAddress(TAddress nAddress);					// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
-	virtual std::string FormatOpBytes() = 0;								// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
 	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
 	virtual std::string FormatReferences(MNEMONIC_CODE nMCCode, TAddress nAddress);			// Makes a string to place in the comment field that contains all references for the specified address
 	virtual std::string FormatUserComments(MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
@@ -553,6 +593,7 @@ protected:
 	virtual std::string	GetCommentEndDelim() const = 0;			// Pure Virtual. Returns end of comment delimiter string
 
 	virtual void clearOpMemory() = 0;							// Pure Virtual to clear the data->OpMemory for the processor
+	virtual size_t opcodeSymbolSize() const = 0;				// Pure Virtual to return the sizeof TOpcodeSymbol or element size of m_OpMemory i.e. sizeof(TDisassemblerTypes::TOpcodeSymbol) or sizeof(decltype(m_OpMemory)::value_type)
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue) = 0;			// Pure Virtual to push back a TMemoryElement for the specified address.  The address is mostly for architecture purposes (like alignment, etc) if memory element type doesn't match CPU opcode type
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues) = 0;	// Pure Virtual to push back an array of TMemoryElement (see single value version above)
 

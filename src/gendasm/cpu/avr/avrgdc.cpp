@@ -92,18 +92,92 @@
 //	Control: (Algorithm control)
 //			CTL_None,			//	Disassemble as code
 //			CTL_DataLabel,		//	Disassemble as code, with data addr label
+//			CTL_DataRegAddr,	//	Disassemble as code, with data address via register (i.e. unknown data address, such as LPM, etc)
 //			CTL_IOLabel,		//	Disassemble as code, with I/O addr label
 //			CTL_UndetBra,		//	Disassemble as undeterminable branch address (Comment code)
 //			CTL_DetBra,			//	Disassemble as determinable branch, add branch addr and label
 //			CTL_Skip,			//	Disassemble as Skip Branch.  Next two instructions flagged as code even if next one would be terminal
 //			CTL_SkipIOLabel,	//	Disassemble as Skip Branch, but with I/O addr label
 //
-//			OCTL_TwoWordCode = 0x10000ul,		// Flag for Two-Word Instruction
-//			OCTL_ArchExtAddr = 0x20000ul,		// Flag for Architecture Specific extended addressing (such as RAMPD for LDS/STS instructions for >= 64K)
+//			OCTL_ArchExtAddr = 0x10000ul,		// Flag for Architecture Specific extended addressing (such as RAMPD for LDS/STS instructions for >= 64K or EIND for EICALL)
 //
 //
 //	This version setup for compatibility with the avra assembler
 //		(https://github.com/Ro5bert/avra)
+//
+
+//
+//	Format of Function Output File:
+//
+//		Any line beginning with a ";" is considered to be a commment line and is ignored
+//
+//		Memory Mapping:
+//			#type|addr|size
+//			   |    |    |____  Size of Mapped area (hex)
+//			   |    |_________  Absolute Address of Mapped area (hex)
+//			   |______________  Type of Mapped area (One of following: ROM, RAM, IO)
+//
+//		Label Definitions:
+//			!addr|label
+//			   |    |____ Label(s) for this address(comma separated)
+//			   |_________ Absolute Address (hex)
+//
+//		Start of New Function:
+//			@xxxx|name
+//			   |    |____ Name(s) of Function (comma separated list)
+//			   |_________ Absolute Address of Function Start relative to overall file (hex)
+//
+//		Mnemonic Line (inside function):
+//			xxxx|xxxx|label|xxxxxxxxxx|xxxxxx|xxxx|DST|SRC|mnemonic|operands
+//			  |    |    |        |        |     |   |   |     |        |____  Disassembled operand output (ascii)
+//			  |    |    |        |        |     |   |   |     |_____________  Disassembled mnemonic (ascii)
+//			  |    |    |        |        |     |   |___|___________________  See below for SRC/DST format
+//			  |    |    |        |        |     |___________________________  Addressing/Data bytes from operand portion of instruction (hex)
+//			  |    |    |        |        |_________________________________  Opcode bytes from instruction (hex)
+//			  |    |    |        |__________________________________________  All bytes from instruction (hex)
+//			  |    |    |___________________________________________________  Label(s) for this address (comma separated list)
+//			  |    |________________________________________________________  Absolute address of instruction (hex)
+//			  |_____________________________________________________________  Relative address of instruction to the function (hex)
+//
+//		Data Byte Line (inside function):
+//			xxxx|xxxx|label|xx
+//			  |    |    |    |____  Data Byte (hex)
+//			  |    |    |_________  Label(s) for this address (comma separated)
+//			  |    |______________  Absolute address of data byte (hex)
+//			  |___________________  Relative address of data byte to the function (hex)
+//
+//		SRC and DST entries:
+//			#xxxx			Immediate Data Value (xxxx=hex value)
+//			C@xxxx			Absolute Code Address (xxxx=hex address)
+//			C^n(xxxx)		Relative Code Address (n=signed offset in hex, xxxx=resolved absolute address in hex)
+//			C&xx(r)			Register Code Offset (xx=hex offset always 0, r=register number or name), ex: ijmp -> "C&00(Z)"; eijmp -> "C&00(EIND,Z)"
+//			D@xxxx			Absolute Data Address (xxxx=hex address) -- Used for both Data and Memmap I/O (all I/O instructions outputted as Memmap I/O here)
+//			D@xxxx,b		Absolute Data Address (xxxx=hex address), (b=bit number, 0-7) -- Used for I/O only
+//			D^n(xxxx)		Relative Data Address (n=signed offset in hex, xxxx=resolved absolute address in hex), None of these on AVR
+//			D&xx(r)			Register Data Offset (xx=hex offset, r=register number or name), ex: lpm -> "D&00(Z)"; elpm -> "D&00(RAMPZ:Z)"
+//			Rn				Register (n=register number, 0-31)
+//			Rn,b			Register (n=register number, 0-31), (b=bit number, 0-7)
+//			X				X Register
+//			X+				X Register with post-increment
+//			-X				X Register with pre-decrement
+//			Y				Y Register
+//			Y+				Y Register with post-increment
+//			-Y				Y Register with pre-decrement
+//			Y+q				Y Register with 'q' offset (in decimal)
+//			Z				Z Register
+//			Z+				Z Register with post-increment
+//			-Z				Z Register with pre-decrement
+//			Z+q				Z Register with 'q' offset (in decimal)
+//
+//			If any of the above also includes a mask, then the following will be added:
+//			,Mxx			Value mask (xx=hex mask value) [Note: Doesn't apply to AVR]
+//
+//		Note: The address sizes are consistent with the particular process.  That is, 16-bit data or
+//			address will use 4 hex digits, a 22-bit address will use 6 hex digits, etc.  Relative
+//			addresses (whether 7-bit or 12-bit, etc) in the main memory space will be converted to 16-bit addresses.
+//			The size of immediate data entries, offsets, and masks will reflect the actual value.
+//			That is, a 16-bit immediate value, offset, or mask, will be outputted as 4 hex digits,
+//			but an 8-bit immediate value, offset, or mask, will be outputted as only 2 hex digits.
 //
 
 // ============================================================================
@@ -297,6 +371,7 @@
 #include <cstdio>
 #include <vector>
 #include <iterator>
+#include <limits>
 
 #include <assert.h>
 
@@ -323,7 +398,7 @@
 //	CAVRDisassembler
 // ----------------------------------------------------------------------------
 
-static bool isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
+bool CAVRDisassembler::isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
 										 const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
 {
 	assert(arrOpMemory.size() == 1);
@@ -340,15 +415,13 @@ static bool isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
 	//	S_SAME,			// 0xFC00 : Rd       ---- --dd dddd dddd (d: 0-31)x2
 	//	S_DUBL,			// 0xFC00 : Rd, Rr   ---- --rd dddd rrrr (d: 0-31), (r: 0-31)
 
-	TAVRDisassembler::TOpcodeSymbol Rd = ((arrOpMemory.at(0) & 0x01F0) >> 4);
-	TAVRDisassembler::TOpcodeSymbol Rr = ((arrOpMemory.at(0) & 0x0200) >> 5) | (arrOpMemory.at(0) & 0x000F);
-
-	return (Rd == Rr);
+	return (opDstReg0_31(arrOpMemory) == opSrcReg0_31(arrOpMemory));
 }
 
 
 CAVRDisassembler::CAVRDisassembler()
-	:	m_nOpPointer(0),
+	:	m_bCurrentOpcodeIsSkip(false),
+		m_bLastOpcodeWasSkip(false),
 		m_nStartPC(0),
 		m_nSectionCount(0)
 {
@@ -433,8 +506,8 @@ CAVRDisassembler::CAVRDisassembler()
 		{ { 0xFC00 }, { 0xFE08 }, S_TFLG, CTL_Skip, "sbrc", },		// sbrc   Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7), Difficult control requiring lookahead
 		{ { 0xFE00 }, { 0xFE08 }, S_TFLG, CTL_Skip, "sbrs", },		// sbrs   Rr, b    ---- ---r rrrr -bbb (r: 0-31), (b: 0-7), Difficult control requiring lookahead
 
-		{ { 0x940E }, { 0xFE0E }, S_JMP, CTL_DetBra | OCTL_TwoWordCode, "call", },		// call   k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
-		{ { 0x940C }, { 0xFE0E }, S_JMP, CTL_DetBra | OCTL_TwoWordCode | TAVRDisassembler::OCTL_STOP, "jmp", },		// jmp    k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
+		{ { 0x940E, 0x0000 }, { 0xFE0E, 0x0000 }, S_JMP, CTL_DetBra, "call", },		// call   k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
+		{ { 0x940C, 0x0000 }, { 0xFE0E, 0x0000 }, S_JMP, CTL_DetBra | TAVRDisassembler::OCTL_STOP, "jmp", },		// jmp    k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute
 
 		{ { 0xD000 }, { 0xF000 }, S_RJMP, CTL_DetBra, "rcall", },	// rcall  k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
 		{ { 0xC000 }, { 0xF000 }, S_RJMP, CTL_DetBra | TAVRDisassembler::OCTL_STOP, "rjmp", },		// rjmp   k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative
@@ -471,24 +544,34 @@ CAVRDisassembler::CAVRDisassembler()
 		{ { 0x8208 }, { 0xD208 }, S_Yq_SNGL, CTL_None, "std", },	// std    Y+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
 		{ { 0x8200 }, { 0xD208 }, S_Zq_SNGL, CTL_None, "std", },	// std    Z+q, Rr  --q- qq-r rrrr -qqq (r: 0-31), (q: 0-63)
 
-		{ { 0x9000 }, { 0xFE0F }, S_LDS, CTL_DataLabel | OCTL_TwoWordCode | OCTL_ArchExtAddr, "lds", },		// lds    Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k)
+		{ { 0x9000, 0x0000 }, { 0xFE0F, 0x0000 }, S_LDS, CTL_DataLabel | OCTL_ArchExtAddr, "lds", },		// lds    Rd, k    ---- ---d dddd ---- | kkkk kkkk kkkk kkkk (d: 0-31),(k: 0-64k)
 		{ { 0xA000 }, { 0xF800 }, S_LDSrc, CTL_DataLabel, "lds", },	// lds    Rd, k    ---- -kkk dddd kkkk (d: 16-31), (k: 0-127)
-		{ { 0x9200 }, { 0xFE0F }, S_STS, CTL_DataLabel | OCTL_TwoWordCode | OCTL_ArchExtAddr, "sts", },		// sts    k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k)
+		{ { 0x9200, 0x0000 }, { 0xFE0F, 0x0000 }, S_STS, CTL_DataLabel | OCTL_ArchExtAddr, "sts", },		// sts    k, Rr    ---- ---r rrrr ---- | kkkk kkkk kkkk kkkk (r: 0-31),(k: 0-64k)
 		{ { 0xA800 }, { 0xF800 }, S_STSrc, CTL_DataLabel, "sts", },	// sts    k, Rr    ---- -kkk rrrr kkkk (r: 16-31), (k: 0-127)
 
-		{ { 0x95D8 }, { 0xFFFF }, S_INH, CTL_None, "elpm", },		// elpm   -        ---- ---- ---- ----
-		{ { 0x9006 }, { 0xFE0F }, S_SNGL_Z, CTL_None, "elpm", },	// elpm   Rd, Z    ---- ---d dddd ---- (d: 0-31)
-		{ { 0x9007 }, { 0xFE0F }, S_SNGL_Zp, CTL_None, "elpm", },	// elpm   Rd, Z+   ---- ---d dddd ---- (d: 0-31)
-		{ { 0x95C8 }, { 0xFFFF }, S_INH, CTL_None, "lpm", },		// lpm    -        ---- ---- ---- ----
-		{ { 0x9004 }, { 0xFE0F }, S_SNGL_Z, CTL_None, "lpm", },		// lpm    Rd, Z    ---- ---d dddd ---- (d: 0-31)
-		{ { 0x9005 }, { 0xFE0F }, S_SNGL_Zp, CTL_None, "lpm", },	// lpm    Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x95D8 }, { 0xFFFF }, S_INH, CTL_DataRegAddr | OCTL_ArchExtAddr, "elpm", },
+																	// elpm   -        ---- ---- ---- ----
+		{ { 0x9006 }, { 0xFE0F }, S_SNGL_Z, CTL_DataRegAddr | OCTL_ArchExtAddr, "elpm", },
+																	// elpm   Rd, Z    ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9007 }, { 0xFE0F }, S_SNGL_Zp, CTL_DataRegAddr | OCTL_ArchExtAddr, "elpm", },
+																	// elpm   Rd, Z+   ---- ---d dddd ---- (d: 0-31)
+		{ { 0x95C8 }, { 0xFFFF }, S_INH, CTL_DataRegAddr, "lpm", },	// lpm    -        ---- ---- ---- ----
+		{ { 0x9004 }, { 0xFE0F }, S_SNGL_Z, CTL_DataRegAddr, "lpm", },
+																	// lpm    Rd, Z    ---- ---d dddd ---- (d: 0-31)
+		{ { 0x9005 }, { 0xFE0F }, S_SNGL_Zp, CTL_DataRegAddr, "lpm", },
+																	// lpm    Rd, Z+   ---- ---d dddd ---- (d: 0-31)
 
-		{ { 0x9519 }, { 0xFFFF }, S_INH, CTL_UndetBra, "eicall", },	// eicall -        ---- ---- ---- ----
-		{ { 0x9419 }, { 0xFFFF }, S_INH, CTL_UndetBra | TAVRDisassembler::OCTL_STOP, "eijmp", },	// eijmp  -        ---- ---- ---- ----
+		{ { 0x9519 }, { 0xFFFF }, S_INH, CTL_UndetBra | OCTL_ArchExtAddr, "eicall", },
+																	// eicall -        ---- ---- ---- ----
+		{ { 0x9419 }, { 0xFFFF }, S_INH, CTL_UndetBra | OCTL_ArchExtAddr | TAVRDisassembler::OCTL_STOP, "eijmp", },
+																	// eijmp  -        ---- ---- ---- ----
 		{ { 0x9509 }, { 0xFFFF }, S_INH, CTL_UndetBra, "icall", },	// icall  -        ---- ---- ---- ----
-		{ { 0x9409 }, { 0xFFFF }, S_INH, CTL_UndetBra | TAVRDisassembler::OCTL_STOP, "ijmp", },		// ijmp   -        ---- ---- ---- ----
-		{ { 0x9508 }, { 0xFFFF }, S_INH, CTL_None | TAVRDisassembler::OCTL_STOP, "ret", },		// ret    -        ---- ---- ---- ----
-		{ { 0x9518 }, { 0xFFFF }, S_INH, CTL_None | TAVRDisassembler::OCTL_STOP, "reti", },		// reti   -        ---- ---- ---- ----
+		{ { 0x9409 }, { 0xFFFF }, S_INH, CTL_UndetBra | TAVRDisassembler::OCTL_STOP, "ijmp", },
+																	// ijmp   -        ---- ---- ---- ----
+		{ { 0x9508 }, { 0xFFFF }, S_INH, CTL_None | TAVRDisassembler::OCTL_HARDSTOP, "ret", },
+																	// ret    -        ---- ---- ---- ----
+		{ { 0x9518 }, { 0xFFFF }, S_INH, CTL_None |  TAVRDisassembler::OCTL_HARDSTOP, "reti", },
+																	// reti   -        ---- ---- ---- ----
 
 		{ { 0x9408 }, { 0xFFFF }, S_INH, CTL_None, "sec", },		// sec    -        ---- ---- ---- ----
 		{ { 0x9418 }, { 0xFFFF }, S_INH, CTL_None, "sez", },		// sez    -        ---- ---- ---- ----
@@ -511,8 +594,10 @@ CAVRDisassembler::CAVRDisassembler()
 		{ { 0x0000 }, { 0xFFFF }, S_INH, CTL_None, "nop", },		// nop    -        ---- ---- ---- ----
 		{ { 0x9588 }, { 0xFFFF }, S_INH, CTL_None, "sleep", },		// sleep  -        ---- ---- ---- ----
 		{ { 0x9598 }, { 0xFFFF }, S_INH, CTL_None, "break", },		// break  -        ---- ---- ---- ----
-		{ { 0x95E8 }, { 0xFFFF }, S_INH, CTL_None, "spm", },		// spm    -        ---- ---- ---- ----		AVRe,AVRxm,AVRxt
-		{ { 0x95F8 }, { 0xFFFF }, S_INH_Zp, CTL_None, "spm", },		// spm    Z+       ---- ---- ---- ----		AVRxm,AVRxt
+		{ { 0x95E8 }, { 0xFFFF }, S_INH, CTL_DataRegAddr | OCTL_ArchExtAddr, "spm", },
+																	// spm    -        ---- ---- ---- ----		AVRe,AVRxm,AVRxt
+		{ { 0x95F8 }, { 0xFFFF }, S_INH_Zp, CTL_DataRegAddr | OCTL_ArchExtAddr, "spm", },
+																	// spm    Z+       ---- ---- ---- ----		AVRxm,AVRxt
 		{ { 0x95A8 }, { 0xFFFF }, S_INH, CTL_None, "wdr", },		// wdr    -        ---- ---- ---- ----
 
 		{ { 0x940B }, { 0xFF0F }, S_DES, CTL_None, "des", },		// des    K        ---- ---- KKKK ----  (K: 0-15)
@@ -527,6 +612,15 @@ CAVRDisassembler::CAVRDisassembler()
 	// TODO : Allow for various CPU types and associated memory layouts.
 	//		For now just use ATmega328PB
 	m_Memory.push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x8000ul, 0, DMEM_NOTLOADED });	// 32K of code memory available to processor as one block
+
+	// Add Data Labels for memmap of registers:
+	for (unsigned int nReg = 0; nReg < 32; ++nReg) {
+		char buf[10];
+		std::sprintf(buf, "R%u", nReg);
+		AddLabel(nReg, false, 0, buf);
+	}
+
+	// TODO : Add I/O register names in memmap space (are they per CPU type?)
 }
 
 // ----------------------------------------------------------------------------
@@ -548,3 +642,1426 @@ std::string CAVRDisassembler::GetGDCShortName() const
 
 // ----------------------------------------------------------------------------
 
+bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::ostream *errFile)
+{
+	// Here, we'll read the next object code from memory and flag the memory as being
+	//	code, unless an illegal opcode is encountered whereby it will be flagged as
+	//	illegal code.  m_OpMemory is cleared and loaded with the memory bytes for the
+	//	opcode that was processed.  m_CurrentOpcode will be also be set to the opcode
+	//	that corresponds to the one found.  m_PC will also be incremented by the number
+	//	of words in the complete opcode and in the case of an illegal opcode, it will
+	//	increment only by 1 word so we can then test the following word to see if it
+	//	is legal to allow us to get back on track.  It sets Skip-Opcode Flags
+	//	appropriately.  This function will return True if the opcode was correct and
+	//	properly formed and fully existed in memory.  It will return false if the
+	//	opcode was illegal or if the opcode crossed over the bounds of loaded source memory.
+	// If bTagMemory is false, then memory descriptors aren't changed!  This is useful
+	//	if on-the-fly disassembly is desired without modifying the descriptors, such
+	//	as in pass 2 of the disassembly process.
+
+	TAVRDisassembler::TOpcodeSymbol nFirstWord;
+
+	TAddress nSavedPC;
+
+	m_sFunctionalOpcode.clear();
+
+	// Skip Opcode Examples:
+	//		cpse r1,r0		<< m_bCurrentOpcodeIsSkip becomes true
+	//		nop				<< (random non-skip opcode), m_bLastOpcodeWasSkip becomes true, m_bCurrentOpcodeIsSkip becomes false (Here we disable STOP! due to m_bLastOpcodeWasSkip)
+	//		nop				<< (other non-skip opcode), m_bLastOpcodeWasSkip becomes false, m_bCurrentOpcodeIsSkip stays false [Implied inline function jump-to address]
+	//
+	//		cpse r1,r0		<< m_bCurrentOpcodeIsSkip becomes true
+	//		cpse r2,r1		<< Another skip opcode, m_bLastOpcodeWasSkip becomes true, m_bCurrentOpcodeIsSkip stays true (He we disable STOP! due to m_bLastOpcodeWasSkip)
+	//		nop				<< (random non-skip opcode), m_bLastOpcodeWasSkip becomes true, m_bCurrentOpcodeIsSkip becomes false (Here we disable STOP! due to m_bLastOpcodeWasSkip)
+	//		nop				<< (other non-skip opcode), m_bLastOpcodeWasSkip becomes false, m_bCurrentOpcodeIsSkip stays false
+	//
+	m_bLastOpcodeWasSkip = m_bCurrentOpcodeIsSkip;
+	m_bCurrentOpcodeIsSkip = false;		// Note: This will get set below if this new opcode is a skip, but set now to false in case we exit early
+
+	assert(sizeof(nFirstWord) == 2);
+	assert(sizeof(decltype(m_OpMemory)::value_type) == 2);
+	assert(opcodeSymbolSize() == 2);
+	nFirstWord = m_Memory.element(m_PC) | (m_Memory.element(m_PC+1) << 8);		// Opcodes are words and are little endian
+	m_PC += opcodeSymbolSize();
+	m_OpMemory.clear();
+	if (!IsAddressLoaded(m_PC-opcodeSymbolSize(), opcodeSymbolSize())) return false;
+
+	bool bOpcodeFound = false;
+	for (TOpcodeTable_type::const_iterator itrOpcode = m_Opcodes.cbegin(); (!bOpcodeFound && (itrOpcode != m_Opcodes.cend())); ++itrOpcode) {
+		if (itrOpcode->opcode().at(0) != (nFirstWord & itrOpcode->opcodeMask().at(0))) continue;
+
+		COpcodeSymbolArray_type arrOpMemory;
+		arrOpMemory.push_back(nFirstWord);
+
+		bool bMatch = true;
+		for (COpcodeSymbolArray_type::size_type ndx = 1; (bMatch && (ndx < itrOpcode->opcode().size())); ++ndx) {
+			TAVRDisassembler::TOpcodeSymbol nNextWord = m_Memory.element(m_PC + (ndx-1)*opcodeSymbolSize()) |
+														(m_Memory.element(m_PC + (ndx-1)*opcodeSymbolSize() + 1) << 8);
+			if (!IsAddressLoaded(m_PC + (ndx-1)*opcodeSymbolSize(), opcodeSymbolSize())) {
+				bMatch = false;
+				continue;
+			}
+			if (itrOpcode->opcode().at(ndx) != (nNextWord & itrOpcode->opcodeMask().at(ndx))) {
+				bMatch = false;
+				continue;
+			}
+			arrOpMemory.push_back(nNextWord);
+		}
+		if (bMatch) {
+			if (itrOpcode->matchFunc() && !itrOpcode->matchFunc()(*itrOpcode, arrOpMemory)) bMatch = false;
+		}
+		if (bMatch) {
+			m_OpMemory = arrOpMemory;
+			m_CurrentOpcode = *itrOpcode;
+			bOpcodeFound = true;
+		}
+	}
+
+	if (!bOpcodeFound) {
+		if (bTagMemory) {
+			for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
+				m_Memory.setDescriptor(m_PC-opcodeSymbolSize()+ndx, DMEM_ILLEGALCODE);
+			}
+		}
+		return false;
+	}
+
+	// If we get here, then we've found a valid matching opcode.  m_CurrentOpcode has been set to the opcode value
+	//	and m_OpMemory has already been copied, tag the bytes in memory, increment m_PC, and call CompleteObjRead.
+	//	If CompleteObjRead returns FALSE, then we'll have to undo everything and return flagging an invalid opcode.
+	nSavedPC = m_PC;	// Remember m_PC in case we have to undo things (remember, m_PC has already been incremented by 2)!!
+	m_PC += (m_OpMemory.size()-1)*opcodeSymbolSize();		// minus 1 because we already did the first symbol above
+
+	if (!CompleteObjRead(true, msgFile, errFile))  {
+		// Undo things here:
+		m_OpMemory.clear();
+		m_OpMemory.push_back(nFirstWord);		// Keep only the first word in OpMemory for illegal opcode id
+		m_PC = nSavedPC;
+		if (bTagMemory) {
+			for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
+				m_Memory.setDescriptor(m_PC-opcodeSymbolSize()+ndx, DMEM_ILLEGALCODE);
+			}
+		}
+		return false;
+	}
+
+
+//	assert(CompleteObjRead(true, msgFile, errFile));
+
+
+	nSavedPC -= opcodeSymbolSize();
+	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {		// CompleteObjRead may add words to OpMemory, so we simply have to flag memory for that many bytes.  m_PC is already incremented by CompleteObjRead
+		if (bTagMemory) {
+			for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
+				m_Memory.setDescriptor(nSavedPC+ndx, DMEM_CODE);
+			}
+		}
+		nSavedPC += opcodeSymbolSize();
+	}
+	assert(nSavedPC == m_PC);		// If these aren't equal, something is wrong either here or in the CompleteObjRead!  m_PC should be incremented for every byte added to m_OpMemory by the complete routine!
+	return true;
+}
+
+bool CAVRDisassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile, std::ostream *errFile)
+{
+	// Procedure to finish reading any additional operand data from memory into m_OpMemory.
+	//	Plus branch/labels and data/labels are generated (according to function).
+
+	char strTemp[10];
+
+	m_nStartPC = m_PC - (m_OpMemory.size() * opcodeSymbolSize());		// Get PC of first byte of this instruction for branch references
+
+	// Note: We'll start with the absolute address.  Since we don't know what the relative address is
+	//		to the start of the function, then the function outputting function (which should know it),
+	//		will have to add it in:
+
+	std::sprintf(strTemp, "%04X|", m_nStartPC);
+	m_sFunctionalOpcode = strTemp;
+
+	// Add reference labels to this opcode to the function:
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(m_nStartPC);
+	if (itrLabel != m_LabelTable.cend()) {
+		for (CLabelArray::size_type i=0; i<itrLabel->second.size(); ++i) {
+			if (i != 0) m_sFunctionalOpcode += ",";
+			m_sFunctionalOpcode += FormatLabel(LC_REF, itrLabel->second.at(i), m_nStartPC);
+		}
+	}
+
+	m_sFunctionalOpcode += "|";
+
+	// All words of OpMemory:
+	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+		std::sprintf(strTemp, "%04X", m_OpMemory.at(i));
+		m_sFunctionalOpcode += strTemp;
+	}
+
+	m_sFunctionalOpcode += "|";
+
+	// All words of opcode part of OpMemory (will always be full OpMemory on RISC);
+	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+		std::sprintf(strTemp, "%04X", m_OpMemory.at(i));
+		m_sFunctionalOpcode += strTemp;
+	}
+
+	m_sFunctionalOpcode += "|";
+
+	// All bytes of operand part of OpMemory (will always be empty on RISC);
+
+	m_sFunctionalOpcode += "|";
+
+	// Decode Operands:
+	if (!DecodeOpcode(bAddLabels, msgFile, errFile)) return false;
+
+	m_sFunctionalOpcode += "|";
+	m_sFunctionalOpcode += FormatMnemonic(MC_OPCODE, m_nStartPC);
+	m_sFunctionalOpcode += "|";
+	m_sFunctionalOpcode += FormatOperands(MC_OPCODE, m_nStartPC);
+
+//
+// This case is now covered in DecodeOpcode??
+//
+//	// See if this is the end of a function.  Note: These preempt all previously
+//	//		decoded function tags -- such as call, etc:
+//	if (m_CurrentOpcode.control() & TAVRDisassembler::OCTL_HARDSTOP) {
+//		m_FunctionsTable[m_nStartPC] = FUNCF_HARDSTOP;
+//	}
+
+	return true;
+}
+
+bool CAVRDisassembler::CurrentOpcodeIsStop() const
+{
+	return (!m_bLastOpcodeWasSkip &&		// Note: Opcode being skipped can't be a stop
+			((m_CurrentOpcode.control() & (TAVRDisassembler::OCTL_STOP | TAVRDisassembler::OCTL_HARDSTOP)) != 0));
+}
+
+// ----------------------------------------------------------------------------
+
+bool CAVRDisassembler::RetrieveIndirect(std::ostream *msgFile, std::ostream *errFile)
+{
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
+	MEM_DESC b1d, b2d;
+
+	m_OpMemory.clear();
+	m_OpMemory.push_back(m_Memory.element(m_PC));
+	m_OpMemory.push_back(m_Memory.element(m_PC+1));
+	// We'll assume all indirects are little endian and are 2-bytes in length,
+	//	though someday we may need support for 22-bit addresses.
+	b1d = static_cast<MEM_DESC>(m_Memory.descriptor(m_PC));
+	b2d = static_cast<MEM_DESC>(m_Memory.descriptor(m_PC+1));
+	if (((b1d != DMEM_CODEINDIRECT) && (b1d != DMEM_DATAINDIRECT)) ||
+		((b2d != DMEM_CODEINDIRECT) && (b2d != DMEM_DATAINDIRECT))) {
+		m_PC += 2;
+		return false;			// Memory should be tagged as indirect!
+	}
+	if (b1d != b2d) {
+		m_PC += 2;
+		return false;			// Memory should be tagged as a correct pair!
+	}
+
+	if (((b1d == DMEM_CODEINDIRECT) && (!m_CodeIndirectTable.contains(m_PC))) ||
+		((b1d == DMEM_DATAINDIRECT) && (!m_DataIndirectTable.contains(m_PC)))) {
+		m_PC += 2;
+		return false;			// Location must exist in one of the two tables!
+	}
+	m_PC += 2;
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+
+std::string CAVRDisassembler::FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
+{
+	UNUSED(nStartAddress);
+
+	std::ostringstream sstrTemp;
+
+	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+		if (i) sstrTemp << " ";
+		if (nMCCode != MC_OPCODE) {		// MC_OPCODE will be words on AVR, everything else will be bytes here:
+			sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i))
+						<< std::nouppercase << std::setbase(0);
+		} else {
+			sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i) & 0xFF)
+						<< std::nouppercase << std::setbase(0);
+
+			sstrTemp << " ";
+
+			sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>((m_OpMemory.at(i) >> 8) & 0xFF)
+						<< std::nouppercase << std::setbase(0);
+		}
+	}
+	return sstrTemp.str();
+}
+
+std::string CAVRDisassembler::FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
+{
+	UNUSED(nStartAddress);
+
+	switch (nMCCode) {
+		case MC_OPCODE:
+			return m_CurrentOpcode.mnemonic();
+		case MC_ILLOP:
+			return "???";
+		case MC_EQUATE:
+			return "=";
+		case MC_DATABYTE:
+			return ".byte";
+		case MC_ASCII:
+			return ".ascii";
+		case MC_INDIRECT:
+			return ".word";
+		default:
+			assert(false);
+			break;
+	}
+	return "???";
+}
+
+std::string CAVRDisassembler::FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
+{
+	std::string strOpStr;
+	char strTemp[30];
+	TAddress nAddress;
+
+	switch (nMCCode) {
+		case MC_ILLOP:			// Note: Illop should always be multiples of 2-bytes here
+			assert((m_OpMemory.size() % 2) == 0);
+			// Unlike real opcode OpMemory symbols, these will always be bytes
+			for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); i+=2) {
+				if (i != 0) strOpStr += ",";
+				std::sprintf(strTemp, "%s%02X%02X", GetHexDelim().c_str(), m_OpMemory.at(i+1), m_OpMemory.at(i));	// Little-endian
+				strOpStr += strTemp;
+			}
+			break;
+		case MC_DATABYTE:
+			// Unlike real opcode OpMemory symbols, these will always be bytes
+			for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+				if (i != 0) strOpStr += ",";
+				std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), m_OpMemory.at(i));
+				strOpStr += strTemp;
+			}
+			break;
+		case MC_ASCII:
+			strOpStr += DataDelim;
+			// Unlike real opcode OpMemory symbols, these will always be bytes
+			for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+				std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(i)));
+				strOpStr += strTemp;
+			}
+			strOpStr += DataDelim;
+			break;
+		case MC_EQUATE:
+			std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), nStartAddress);
+			strOpStr = strTemp;
+			break;
+		case MC_INDIRECT:
+		{
+			// While AVR doesn't have any inherent indirects, there can
+			//	be indirect addresses loaded via commands like LDS and
+			//	used with an indirect jump opcode.  So we need this to
+			//	process user-found indirects:
+			// Will we ever need support for 22-bit indirects?
+			if (m_OpMemory.size() != 2) {
+				assert(false);			// Check code and make sure RetrieveIndirect got called and called correctly!
+				break;
+			}
+			// Unlike real opcode OpMemory symbols, these will always be bytes
+			nAddress = m_OpMemory.at(0)+m_OpMemory.at(1)*256;	// Little Endian, not big
+			std::string strLabel;
+			CAddressLabelMap::const_iterator itrLabel;
+			if ((itrLabel = m_CodeIndirectTable.find(nStartAddress)) != m_CodeIndirectTable.cend()) {
+				strLabel = itrLabel->second;
+			} else if ((itrLabel = m_DataIndirectTable.find(nStartAddress)) != m_DataIndirectTable.cend()) {
+				strLabel = itrLabel->second;
+			}
+			strOpStr = FormatLabel(LC_REF, strLabel, nAddress);
+			break;
+		}
+		case MC_OPCODE:
+			m_nStartPC = nStartAddress;		// Get PC of first byte of this instruction for branch references
+			strOpStr = CreateOperand();
+			break;
+		default:
+			assert(false);
+			break;
+	}
+
+	return strOpStr;
+}
+
+std::string CAVRDisassembler::FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
+{
+	std::string strRetVal;
+	bool bBranchOutside;
+	TAddress nAddress;
+
+	using namespace TAVRDisassembler_ENUMS;
+
+	// Add user comments:
+	strRetVal = FormatUserComments(nMCCode, nStartAddress);
+	if (nMCCode == MC_OPCODE) {
+		std::string strRefComment = FormatOperandRefComments();
+		if (!strRefComment.empty()) {
+			if (!strRetVal.empty()) strRetVal += "\n";
+			strRetVal += strRefComment;
+		}
+	}
+
+	// Handle Undetermined Branch:
+	switch (nMCCode) {
+		case MC_OPCODE:
+			if ((m_CurrentOpcode.control() & CTL_MASK) == CTL_UndetBra) {
+				if (!strRetVal.empty()) strRetVal += "\n";
+				strRetVal = "Undetermined Branch Address";
+			}
+			break;
+		default:
+			break;
+	}
+
+	// Handle out-of-source branch:
+	bBranchOutside = false;
+	switch (nMCCode) {
+		case MC_OPCODE:
+			if (((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra)
+// Note: We can't do check of skip here because we don't know the size of the next opcode:
+//				|| ((m_CurrentOpcode.control() & CTL_MASK) == CTL_Skip)
+//				|| ((m_CurrentOpcode.control() & CTL_MASK) == CTL_SkipIOLabel)
+				) {
+				if (!CheckBranchAddressLoaded(CreateOperandAddress())) bBranchOutside = true;
+			}
+			break;
+		case MC_INDIRECT:
+			// While AVR doesn't have any inherent indirects, there can
+			//	be indirect addresses loaded via commands like LDS and
+			//	used with an indirect jump opcode.  So we need this to
+			//	process user-found indirects:
+			// Will we ever need support for 22-bit indirects?
+			if (m_OpMemory.size() != 2) {
+				assert(false);			// Check code and make sure RetrieveIndirect got called and called correctly!
+				break;
+			}
+			// Unlike real opcode OpMemory symbols, these will always be bytes
+			nAddress = m_OpMemory.at(0)+m_OpMemory.at(1)*256;	// Little Endian, not big
+			if (m_CodeIndirectTable.contains(nStartAddress)) {
+				if (!CheckBranchAddressLoaded(nAddress)) bBranchOutside = true;
+			}
+			break;
+		default:
+			break;
+	}
+
+	if (bBranchOutside) {
+		if (!strRetVal.empty()) strRetVal += "\n";
+		strRetVal += "Branch Outside Loaded Source(s)";
+	}
+
+	// Add general reference stuff:
+	if (!strRetVal.empty()) strRetVal += "\n";
+	strRetVal += FormatReferences(nMCCode, nStartAddress);		// Add references
+
+	return strRetVal;
+}
+
+// ----------------------------------------------------------------------------
+
+std::string CAVRDisassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress)
+{
+	std::string strTemp = CDisassembler::FormatLabel(nLC, strLabel, nAddress);	// Call parent
+
+	switch (nLC) {
+		case LC_EQUATE:
+			strTemp += LbleDelim;
+			break;
+		case LC_DATA:
+		case LC_CODE:
+			strTemp += LblcDelim;
+			break;
+		default:
+			break;
+	}
+	return strTemp;
+}
+
+// ----------------------------------------------------------------------------
+
+bool CAVRDisassembler::WritePreSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+{
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
+	CStringArray saOutLine;
+	char strTemp[30];
+
+	ClearOutputLine(saOutLine);
+	saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
+	saOutLine[FC_MNEMONIC] = ".area";
+	std::sprintf(strTemp, "CODE%d\t(ABS)", ++m_nSectionCount);
+	saOutLine[FC_OPERANDS] = strTemp;
+	outFile << MakeOutputLine(saOutLine) << "\n";
+
+	saOutLine[FC_MNEMONIC] = ".org";
+	std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), m_PC);
+	saOutLine[FC_OPERANDS] = strTemp;
+	outFile << MakeOutputLine(saOutLine) << "\n";
+
+	saOutLine[FC_MNEMONIC].clear();
+	saOutLine[FC_OPERANDS].clear();
+	outFile << MakeOutputLine(saOutLine) << "\n";
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+
+bool CAVRDisassembler::ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
+{
+	// We will assume that all indirect addresses are 2-bytes in length
+	//	and stored in little endian format.
+	if (!IsAddressLoaded(nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
+		(m_Memory.descriptor(nAddress) != DMEM_LOADED) ||
+		(m_Memory.descriptor(nAddress+1) != DMEM_LOADED)) {
+		nResAddress = 0;
+		return false;
+	}
+	TAddress nVector = m_Memory.element(nAddress) + m_Memory.element(nAddress + 1) * 256ul;
+	nResAddress = nVector;
+	m_Memory.setDescriptor(nAddress, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);		// Flag the addresses as being the proper vector type
+	m_Memory.setDescriptor(nAddress+1, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+
+std::string CAVRDisassembler::GetExcludedPrintChars() const
+{
+	return "\\" DataDelim;
+}
+
+std::string CAVRDisassembler::GetHexDelim() const
+{
+	return HexDelim;
+}
+
+std::string CAVRDisassembler::GetCommentStartDelim() const
+{
+	return ComDelimS;
+}
+
+std::string CAVRDisassembler::GetCommentEndDelim() const
+{
+	return ComDelimE;
+}
+
+// ----------------------------------------------------------------------------
+
+void CAVRDisassembler::clearOpMemory()
+{
+	m_OpMemory.clear();
+}
+
+size_t CAVRDisassembler::opcodeSymbolSize() const
+{
+	return sizeof(TAVRDisassembler::TOpcodeSymbol);
+}
+
+void CAVRDisassembler::pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue)
+{
+	UNUSED(nLogicalAddress);
+	m_OpMemory.push_back(nValue);
+}
+
+void CAVRDisassembler::pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues)
+{
+	UNUSED(nLogicalAddress);
+	m_OpMemory.insert(m_OpMemory.end(), maValues.cbegin(), maValues.cend());
+}
+
+// ----------------------------------------------------------------------------
+
+unsigned int CAVRDisassembler::opDstReg0_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rd       ---- ---d dddd ---- (d: 0-31)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) >> 4) & 0x1F);
+}
+
+unsigned int CAVRDisassembler::opDstReg16_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rd       ---- ---- dddd ---- (d: 16-31)
+
+	assert(arrOpMemory.size() >= 1);
+	return (((arrOpMemory.at(0) >> 4) | 0x10) & 0x1F);
+}
+
+unsigned int CAVRDisassembler::opDstReg16_23(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rd       ---- ---- -ddd ---- (d: 16-23)
+
+	assert(arrOpMemory.size() >= 1);
+	return (((arrOpMemory.at(0) >> 4) | 0x10) & 0x17);
+}
+
+unsigned int CAVRDisassembler::opDstRegEven0_30(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rd       ---- ---- dddd ---- (d: 0,2,4,...,30)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) >> 3) & 0x1E);
+}
+
+unsigned int CAVRDisassembler::opDstRegEven24_30(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rd       ---- ---- --dd ---- (d: 24, 26, 28, 30)
+
+	assert(arrOpMemory.size() >= 1);
+	return (((arrOpMemory.at(0) >> 3) | 0x18) & 0x1E);
+}
+
+unsigned int CAVRDisassembler::opSrcReg0_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rr       ---- --r- ---- rrrr (r: 0-31)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) & 0x0200) >> 5) | (arrOpMemory.at(0) & 0x000F);
+}
+
+unsigned int CAVRDisassembler::opSrcReg16_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rr       ---- ---- ---- rrrr (r: 16-31)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) | 0x10) & 0x1F);
+}
+
+unsigned int CAVRDisassembler::opSrcReg16_23(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rr       ---- ---- ---- -rrr (r: 16-23)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) | 0x10) & 0x17);
+}
+
+unsigned int CAVRDisassembler::opSrcRegEven0_30(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Rr       ---- ---- ---- rrrr (r: 0,2,4,...,30)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) << 1) & 0x1E);
+}
+
+uint8_t CAVRDisassembler::opIByte(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// K        ---- KKKK ---- KKKK (K: 0-255)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) & 0x0F00) >> 4) | (arrOpMemory.at(0) & 0x000F);
+}
+
+uint8_t CAVRDisassembler::opIWord(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// K        ---- ---- KK-- KKKK (K: 0-63)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) & 0x00C0) >> 2) | (arrOpMemory.at(0) & 0x000F);
+}
+
+unsigned int CAVRDisassembler::opBit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// b        ---- ---- ---- -bbb (b: 0-7)
+
+	assert(arrOpMemory.size() >= 1);
+	return (arrOpMemory.at(0) & 0x07);
+}
+
+TAddress CAVRDisassembler::opIO0_31(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// A        ---- ---- AAAA A--- (A: 0-31)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) >> 3) & 0x1F);
+}
+
+TAddress CAVRDisassembler::opIO0_63(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// A        ---- -AA- ---- AAAA (A: 0-63)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) & 0x0600) >> 5) | (arrOpMemory.at(0) & 0x000F);
+}
+
+TAddressOffset CAVRDisassembler::opCRel7bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// k        ---- --kk kkkk k--- (k: -64 - 63)	NOTE: 'k' is opcode WORDS not bytes of memory!
+
+	assert(arrOpMemory.size() >= 1);
+	TAVRDisassembler::TOpcodeSymbol nValue = ((arrOpMemory.at(0) >> 2) & 0x00FE);
+	if (nValue & 0x80) {
+		TAddressOffset nOffset = -nValue;
+		nValue = nOffset &  0xFF;
+		nOffset = -nValue;
+		return nOffset;		// Sign extend if negative
+	}
+	return nValue;
+}
+
+TAddressOffset CAVRDisassembler::opCRel12bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// k        ---- kkkk kkkk kkkk (k: -2k - 2k), 12-bit relative, NOTE: 'k' is opcode WORDS not bytes of memory!
+
+	assert(arrOpMemory.size() >= 1);
+	TAVRDisassembler::TOpcodeSymbol nValue = (arrOpMemory.at(0) & 0x0FFF) << 1;
+	if (nValue & 0x1000) {
+		TAddressOffset nOffset = -nValue;
+		nValue = nOffset &  0x1FFF;
+		nOffset = -nValue;
+		return nOffset;		// Sign extend if negative
+	}
+	return nValue;
+}
+
+TAddress CAVRDisassembler::opCAbs22bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// k        ---- ---k kkkk ---k | kkkk kkkk kkkk kkkk (k: 0-64k, 0-4M), 16/22-bit absolute, NOTE: 'k' is opcode WORDS not bytes of memory!
+
+	assert(arrOpMemory.size() >= 2);
+	TAddress nAddress = ((arrOpMemory.at(0) & 0x01F0) >> 3) | (arrOpMemory.at(0) & 0x0001);	// Upper 6-bits
+	nAddress = nAddress << 16;
+	nAddress |= arrOpMemory.at(1);	// Lower 16-bits
+	return (nAddress << 1);
+}
+
+TAddress CAVRDisassembler::opDAbs16bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// k        ---- ---- ---- ---- | kkkk kkkk kkkk kkkk (k: 0-64k), NOTE: 'k' is DATA BYTES of memory!
+
+	assert(arrOpMemory.size() >= 2);
+	return arrOpMemory.at(1);
+}
+
+TAddress CAVRDisassembler::opLDSrc7bit(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// k        ---- -kkk ---- kkkk (k: 0-127), NOTE: 'k' is DATA BYTES of memory!
+
+	assert(arrOpMemory.size() >= 1);
+	return (((arrOpMemory.at(0) & 0x0700) >> 4) | (arrOpMemory.at(0) & 0x000F));
+}
+
+unsigned int CAVRDisassembler::opRegYZqval(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// Y+q      --q- qq-- ---- -qqq (q: 0-63)
+
+	assert(arrOpMemory.size() >= 1);
+	return (((arrOpMemory.at(0) & 0x2000) >> 8) |
+			((arrOpMemory.at(0) & 0x0C00) >> 7) |
+			(arrOpMemory.at(0) & 0x0007));
+}
+
+unsigned int CAVRDisassembler::opDESK(const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
+{
+	// K        ---- ---- KKKK ----  (K: 0-15)
+
+	assert(arrOpMemory.size() >= 1);
+	return ((arrOpMemory.at(0) & 0x00F0) >> 4);
+}
+
+// ----------------------------------------------------------------------------
+
+bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std::ostream *errFile)
+{
+	using namespace TAVRDisassembler_ENUMS;
+
+	bool bRetVal = true;
+
+	char strDstTemp[40];
+	char strSrcTemp[30];
+	TAddress nTargetAddr = -1;
+	bool bAddFunctionBranchRef = false;
+
+	strDstTemp[0] = 0;
+	strSrcTemp[0] = 0;
+
+	switch (m_CurrentOpcode.group()) {
+		case S_IBYTE:		// Immediate 8-bit data -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg16_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "#%02X", static_cast<unsigned int>(opIByte(m_OpMemory)));
+			break;
+
+		case S_IWORD:		// Immediate 6-bit data -- no label
+			std::sprintf(strDstTemp, "R%u", opDstRegEven24_30(m_OpMemory));
+			std::sprintf(strSrcTemp, "#%02X", static_cast<unsigned int>(opIWord(m_OpMemory)));
+			break;
+
+		case S_SNGL:		// Single Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SAME:		// Single Register (Same Double Register) -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			assert(opDstReg0_31(m_OpMemory) == opSrcReg0_31(m_OpMemory));
+			break;
+
+		case S_DUBL:		// Double Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "R%u", opSrcReg0_31(m_OpMemory));
+			break;
+
+		case S_MOVW:		// Double Word Registers -- no label
+			std::sprintf(strDstTemp, "R%u", opDstRegEven0_30(m_OpMemory));
+			std::sprintf(strSrcTemp, "R%u", opSrcRegEven0_30(m_OpMemory));
+			break;
+
+		case S_MULS:		// Double High Registers -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg16_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "R%u", opSrcReg16_31(m_OpMemory));
+			break;
+
+		case S_FMUL:		// Double Middle-High Registers -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg16_23(m_OpMemory));
+			std::sprintf(strSrcTemp, "R%u", opSrcReg16_23(m_OpMemory));
+			break;
+
+		case S_SER:			// Single High Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg16_31(m_OpMemory));
+			break;
+
+		case S_TFLG:		// Single Register and bit -- no label
+			std::sprintf(strDstTemp, "R%u,%u", opDstReg0_31(m_OpMemory), opBit(m_OpMemory));
+			break;
+
+		case S_BRA:			// 7-bit Relative Code Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra);
+			if (bAddLabels) GenAddrLabel(m_PC + opCRel7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "C^%c%02lX(%06lX)",
+									((opCRel7bit(m_OpMemory) != labs(opCRel7bit(m_OpMemory))) ? '-' : '+'),
+									labs(opCRel7bit(m_OpMemory)),
+									static_cast<unsigned long>(m_PC+opCRel7bit(m_OpMemory)));
+			nTargetAddr = m_PC + opCRel7bit(m_OpMemory);
+			bAddFunctionBranchRef = true;
+			break;
+
+		case S_JMP:			// 22-bit Absolute Code Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra);
+			if (bAddLabels) GenAddrLabel(opCAbs22bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "C@%06lX", static_cast<unsigned long>(opCAbs22bit(m_OpMemory)));
+			nTargetAddr = opCAbs22bit(m_OpMemory);
+			bAddFunctionBranchRef = true;
+			break;
+
+		case S_RJMP:		// 12-bit Relative Code Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra);
+			if (bAddLabels) GenAddrLabel(m_PC + opCRel12bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "C^%c%04lX(%06lX)",
+									((opCRel12bit(m_OpMemory) != labs(opCRel12bit(m_OpMemory))) ? '-' : '+'),
+									labs(opCRel12bit(m_OpMemory)),
+									static_cast<unsigned long>(m_PC+opCRel12bit(m_OpMemory)));
+			nTargetAddr = m_PC + opCRel12bit(m_OpMemory);
+			bAddFunctionBranchRef = true;
+			break;
+
+		case S_IOR:			// 5-bit Absolute I/O Address and bit
+			// Note: Memmap Offset for I/O addresses is +0x20 to skip past registers:
+			if (bAddLabels) GenDataLabel(opIO0_31(m_OpMemory) + 0x20, m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "D@%04X,%u", opIO0_31(m_OpMemory) + 0x20, opBit(m_OpMemory));
+			break;
+
+		case S_IN:			// 6-bit Absolute I/O Address and Register
+			// Note: Memmap Offset for I/O addresses is +0x20 to skip past registers:
+			if (bAddLabels) GenDataLabel(opIO0_63(m_OpMemory) + 0x20, m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "D@%04X", opIO0_63(m_OpMemory) + 0x20);
+			break;
+
+		case S_OUT:			// 6-bit Absolute I/O Address and Register
+			// Note: Memmap Offset for I/O addresses is +0x20 to skip past registers:
+			if (bAddLabels) GenDataLabel(opIO0_63(m_OpMemory) + 0x20, m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "D@%04X", opIO0_63(m_OpMemory) + 0x20);
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_SNGL_X:		// Single Register and X Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "X");
+			break;
+
+		case S_SNGL_Xp:		// Single Register and X Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "X+");
+			break;
+
+		case S_SNGL_nX:		// Single Register and X Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "-X");
+			break;
+
+		case S_SNGL_Y:		// Single Register and Y Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "Y");
+			break;
+
+		case S_SNGL_Yp:		// Single Register and Y Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "Y+");
+			break;
+
+		case S_SNGL_nY:		// Single Register and Y Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "-Y");
+			break;
+
+		case S_SNGL_Z:		// Single Register and Z Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			if ((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataRegAddr) {
+				if (m_CurrentOpcode.control() & OCTL_ArchExtAddr) {
+					std::sprintf(strSrcTemp, "D&00(RAMPZ,Z)");		// Special Case for elpm
+				} else {
+					std::sprintf(strSrcTemp, "D&00(Z)");			// Special Case for elpm
+				}
+			} else {
+				std::sprintf(strSrcTemp, "Z");
+			}
+			break;
+
+		case S_SNGL_Zp:		// Single Register and Z Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			if ((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataRegAddr) {
+				if (m_CurrentOpcode.control() & OCTL_ArchExtAddr) {
+					std::sprintf(strSrcTemp, "D&00(RAMPZ,Z+)");		// Special Case for elpm
+				} else {
+					std::sprintf(strSrcTemp, "D&00(Z+)");			// Special Case for elpm
+				}
+			} else {
+				std::sprintf(strSrcTemp, "Z+");
+			}
+			break;
+
+		case S_SNGL_nZ:		// Single Register and Z Register -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "-Z");
+			break;
+
+		case S_X_SNGL:		// Single Register and X Register -- no label
+			std::sprintf(strDstTemp, "X");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Xp_SNGL:		// Single Register and X Register -- no label
+			std::sprintf(strDstTemp, "X+");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_nX_SNGL:		// Single Register and X Register -- no label
+			std::sprintf(strDstTemp, "-X");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Y_SNGL:		// Single Register and Y Register -- no label
+			std::sprintf(strDstTemp, "Y");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Yp_SNGL:		// Single Register and Y Register -- no label
+			std::sprintf(strDstTemp, "Y+");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_nY_SNGL:		// Single Register and Y Register -- no label
+			std::sprintf(strDstTemp, "-Y");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Z_SNGL:		// Single Register and Z Register -- no label
+			std::sprintf(strDstTemp, "Z");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Zp_SNGL:		// Single Register and Z Register -- no label
+			std::sprintf(strDstTemp, "Z+");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_nZ_SNGL:		// Single Register and Z Register -- no label
+			std::sprintf(strDstTemp, "-Z");
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_SNGL_Yq:		// Single Register and Y Register with Offset -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "Y+%u", opRegYZqval(m_OpMemory));
+			break;
+
+		case S_SNGL_Zq:		// Single Register and Z Register with Offset -- no label
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "Z+%u", opRegYZqval(m_OpMemory));
+			break;
+
+		case S_Yq_SNGL:		// Single Register and Y Register with Offset -- no label
+			std::sprintf(strDstTemp, "Y+%u", opRegYZqval(m_OpMemory));
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Zq_SNGL:		// Single Register and Z Register with Offset -- no label
+			std::sprintf(strDstTemp, "Z+%u", opRegYZqval(m_OpMemory));
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_LDS:			// 16-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
+			if (bAddLabels) GenDataLabel(opDAbs16bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "D@%04lX", static_cast<unsigned long>(opDAbs16bit(m_OpMemory)));
+			break;
+
+		case S_LDSrc:		// 7-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			if (bAddLabels) GenDataLabel(opLDSrc7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "R%u", opDstReg16_31(m_OpMemory));
+			std::sprintf(strSrcTemp, "D@%02lX", static_cast<unsigned long>(opLDSrc7bit(m_OpMemory)));
+			break;
+
+		case S_STS:			// 16-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
+			if (bAddLabels) GenDataLabel(opDAbs16bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "D@%04lX", static_cast<unsigned long>(opDAbs16bit(m_OpMemory)));
+			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_STSrc:		// 7-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			if (bAddLabels) GenDataLabel(opLDSrc7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "D@%02lX", static_cast<unsigned long>(opLDSrc7bit(m_OpMemory)));
+			std::sprintf(strSrcTemp, "R%u", opDstReg16_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_DES:			// Immediate "K" value -- no label
+			std::sprintf(strDstTemp, "#%01X", opDESK(m_OpMemory));
+			break;
+
+		case S_INH_Zp:		// Inherent with Z+ Register -- no label
+			if ((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataRegAddr) {
+				if (m_CurrentOpcode.control() & OCTL_ArchExtAddr) {
+					std::sprintf(strDstTemp, "D&00(RAMPD,Z+)");
+				} else {
+					std::sprintf(strDstTemp, "D&00(Z+)");
+				}
+			} else {
+				std::sprintf(strDstTemp, "Z+");
+			}
+			break;
+
+		case S_INH:			// Inherent -- no label
+			if ((m_CurrentOpcode.control() & CTL_MASK) == CTL_UndetBra) {
+				if (m_CurrentOpcode.control() & OCTL_ArchExtAddr) {
+					std::sprintf(strDstTemp, "C&00(EIND,Z)");
+				} else {
+					std::sprintf(strDstTemp, "C&00(Z)");
+				}
+			} else if ((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataRegAddr) {
+				if (compareNoCase(m_CurrentOpcode.mnemonic(), "spm") == 0) {	// Distinguish between lpm and spm
+					if (m_CurrentOpcode.control() & OCTL_ArchExtAddr) {
+						std::sprintf(strDstTemp, "D&00(RAMPZ,Z)");
+					} else {
+						std::sprintf(strDstTemp, "D&00(Z)");
+					}
+					std::sprintf(strSrcTemp, "R0");
+				} else {
+					std::sprintf(strDstTemp, "R0");
+					if (m_CurrentOpcode.control() & OCTL_ArchExtAddr) {
+						std::sprintf(strSrcTemp, "D&00(RAMPZ,Z)");				// elpm
+					} else {
+						std::sprintf(strSrcTemp, "D&00(Z)");					// lpm
+					}
+				}
+			}
+			break;
+
+		default:
+			bRetVal = false;
+			break;
+	}
+
+	m_sFunctionalOpcode += strDstTemp;
+
+	m_sFunctionalOpcode += "|";
+
+	m_sFunctionalOpcode += strSrcTemp;
+
+	// See if this is a function branch reference that needs to be added:
+	if (bAddFunctionBranchRef) {
+		if (((m_CurrentOpcode.group() == S_JMP) || (m_CurrentOpcode.group() == S_RJMP)) &&
+			((m_CurrentOpcode.control() & TAVRDisassembler::OCTL_STOP) == 0)) {		// Check for 'call' or 'rcall'
+			// Add these only if it is replacing a lower priority value:
+			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(nTargetAddr);
+			if (itrFunction == m_FunctionsTable.cend()) {
+				m_FunctionsTable[nTargetAddr] = FUNCF_CALL;
+			} else {
+				if (itrFunction->second > FUNCF_CALL) m_FunctionsTable[nTargetAddr] = FUNCF_CALL;
+			}
+
+			// See if this is the end of a function (explicitly tagged):
+			if (m_FuncExitAddresses.contains(nTargetAddr)) {
+				m_FunctionsTable[m_nStartPC] = FUNCF_EXITBRANCH;
+			}
+		} else {
+			// Here on 'brxx' branch statements and 'jmp' and 'rjmp'
+			// Add these only if there isn't a function tag here:
+			if (!m_FunctionsTable.contains(nTargetAddr)) m_FunctionsTable[nTargetAddr] = FUNCF_BRANCHIN;
+		}
+	}
+
+	if (m_bLastOpcodeWasSkip) {
+		// If the previous opcode was a skip, add a branchin for the next
+		//	opcode since it's what we "skipped" to:
+		if (!m_FunctionsTable.contains(m_PC)) m_FunctionsTable[m_PC] = FUNCF_BRANCHIN;
+	}
+
+	// See if this is the end of a function:
+	if (m_CurrentOpcode.control() & (TAVRDisassembler::OCTL_HARDSTOP | TAVRDisassembler::OCTL_STOP)) {		// jmp, rjmp, ret, reti, etc.
+		if (bAddFunctionBranchRef) {
+			if (m_FuncExitAddresses.contains(nTargetAddr)) {
+				m_FunctionsTable[m_nStartPC] = FUNCF_EXITBRANCH;
+			} else {
+				m_FunctionsTable[m_nStartPC] = FUNCF_BRANCHOUT;
+			}
+		} else {
+			if (CurrentOpcodeIsStop()) {		// Distinguish between just a branchout and hardstop on CTL_Skip cases
+				// Non-Deterministic branches get tagged as a hardstop (usually it exits the function):
+				m_FunctionsTable[m_nStartPC] = FUNCF_HARDSTOP;
+			} else {
+				// Non-Deterministic branches in a skip get tagged as a branchout:
+				m_FunctionsTable[m_nStartPC] = FUNCF_BRANCHOUT;
+			}
+		}
+	}
+
+	return bRetVal;
+}
+
+std::string CAVRDisassembler::CreateOperand()
+{
+	using namespace TAVRDisassembler_ENUMS;
+
+	std::string strOpStr;
+	char strTemp[30];
+	strTemp[0] = 0;
+
+	switch (m_CurrentOpcode.group()) {
+		case S_IBYTE:		// Immediate 8-bit data -- no label
+			std::sprintf(strTemp, "R%u,%s%02X", opDstReg16_31(m_OpMemory), GetHexDelim().c_str(), static_cast<unsigned int>(opIByte(m_OpMemory)));
+			break;
+
+		case S_IWORD:		// Immediate 6-bit data -- no label
+			std::sprintf(strTemp, "R%u,%s%02X", opDstRegEven24_30(m_OpMemory), GetHexDelim().c_str(), static_cast<unsigned int>(opIWord(m_OpMemory)));
+			break;
+
+		case S_SNGL:		// Single Register -- no label
+			std::sprintf(strTemp, "R%u", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SAME:		// Single Register (Same Double Register) -- no label
+			std::sprintf(strTemp, "R%u", opDstReg0_31(m_OpMemory));
+			assert(opDstReg0_31(m_OpMemory) == opSrcReg0_31(m_OpMemory));
+			break;
+
+		case S_DUBL:		// Double Register -- no label
+			std::sprintf(strTemp, "R%u,R%u", opDstReg0_31(m_OpMemory), opSrcReg0_31(m_OpMemory));
+			break;
+
+		case S_MOVW:		// Double Word Registers -- no label
+			std::sprintf(strTemp, "R%u,R%u", opDstRegEven0_30(m_OpMemory), opSrcRegEven0_30(m_OpMemory));
+			break;
+
+		case S_MULS:		// Double High Registers -- no label
+			std::sprintf(strTemp, "R%u,R%u", opDstReg16_31(m_OpMemory), opSrcReg16_31(m_OpMemory));
+			break;
+
+		case S_FMUL:		// Double Middle-High Registers -- no label
+			std::sprintf(strTemp, "R%u,R%u", opDstReg16_23(m_OpMemory), opSrcReg16_23(m_OpMemory));
+			break;
+
+		case S_SER:			// Single High Register -- no label
+			std::sprintf(strTemp, "R%u", opDstReg16_31(m_OpMemory));
+			break;
+
+		case S_TFLG:		// Single Register and bit -- no label
+			std::sprintf(strTemp, "R%u,%u", opDstReg0_31(m_OpMemory), opBit(m_OpMemory));
+			break;
+
+		case S_BRA:			// 7-bit Relative Code Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra);
+			strOpStr += CodeLabelDeref(m_PC + opCRel7bit(m_OpMemory));
+			break;
+
+		case S_JMP:			// 22-bit Absolute Code Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra);
+			strOpStr += CodeLabelDeref(opCAbs22bit(m_OpMemory));
+			break;
+
+		case S_RJMP:		// 12-bit Relative Code Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra);
+			strOpStr += CodeLabelDeref(m_PC + opCRel12bit(m_OpMemory));
+			break;
+
+		case S_IOR:			// 5-bit Absolute I/O Address and bit
+			std::sprintf(strTemp, "%s,%u", IOLabelDeref(opIO0_31(m_OpMemory) + 0x20).c_str(), opBit(m_OpMemory));
+			break;
+
+		case S_IN:			// 6-bit Absolute I/O Address and Register
+			std::sprintf(strTemp, "R%u,%s", opDstReg0_31(m_OpMemory), IOLabelDeref(opIO0_63(m_OpMemory) + 0x20).c_str());
+			break;
+
+		case S_OUT:			// 6-bit Absolute I/O Address and Register
+			std::sprintf(strTemp, "%s,R%u", IOLabelDeref(opIO0_63(m_OpMemory) + 0x20).c_str(), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_SNGL_X:		// Single Register and X Register -- no label
+			std::sprintf(strTemp, "R%u,X", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_Xp:		// Single Register and X Register -- no label
+			std::sprintf(strTemp, "R%u,X+", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_nX:		// Single Register and X Register -- no label
+			std::sprintf(strTemp, "R%u,-X", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_Y:		// Single Register and Y Register -- no label
+			std::sprintf(strTemp, "R%u,Y", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_Yp:		// Single Register and Y Register -- no label
+			std::sprintf(strTemp, "R%u,Y+", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_nY:		// Single Register and Y Register -- no label
+			std::sprintf(strTemp, "R%u,-Y", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_Z:		// Single Register and Z Register -- no label
+			std::sprintf(strTemp, "R%u,Z", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_Zp:		// Single Register and Z Register -- no label
+			std::sprintf(strTemp, "R%u,Z+", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_SNGL_nZ:		// Single Register and Z Register -- no label
+			std::sprintf(strTemp, "R%u,-Z", opDstReg0_31(m_OpMemory));
+			break;
+
+		case S_X_SNGL:		// Single Register and X Register -- no label
+			std::sprintf(strTemp, "X,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Xp_SNGL:		// Single Register and X Register -- no label
+			std::sprintf(strTemp, "X+,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_nX_SNGL:		// Single Register and X Register -- no label
+			std::sprintf(strTemp, "-X,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Y_SNGL:		// Single Register and Y Register -- no label
+			std::sprintf(strTemp, "Y,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Yp_SNGL:		// Single Register and Y Register -- no label
+			std::sprintf(strTemp, "Y+,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_nY_SNGL:		// Single Register and Y Register -- no label
+			std::sprintf(strTemp, "-Y,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Z_SNGL:		// Single Register and Z Register -- no label
+			std::sprintf(strTemp, "Z,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Zp_SNGL:		// Single Register and Z Register -- no label
+			std::sprintf(strTemp, "Z+,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_nZ_SNGL:		// Single Register and Z Register -- no label
+			std::sprintf(strTemp, "-Z,R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_SNGL_Yq:		// Single Register and Y Register with Offset -- no label
+			std::sprintf(strTemp, "R%u,Y+%u", opDstReg0_31(m_OpMemory), opRegYZqval(m_OpMemory));
+			break;
+
+		case S_SNGL_Zq:		// Single Register and Z Register with Offset -- no label
+			std::sprintf(strTemp, "R%u,Z+%u", opDstReg0_31(m_OpMemory), opRegYZqval(m_OpMemory));
+			break;
+
+		case S_Yq_SNGL:		// Single Register and Y Register with Offset -- no label
+			std::sprintf(strTemp, "Y+%u,R%u", opRegYZqval(m_OpMemory), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_Zq_SNGL:		// Single Register and Z Register with Offset -- no label
+			std::sprintf(strTemp, "Z+%u,R%u", opRegYZqval(m_OpMemory), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_LDS:			// 16-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
+			std::sprintf(strTemp, "R%u,%s", opDstReg0_31(m_OpMemory), DataLabelDeref(opDAbs16bit(m_OpMemory)).c_str());
+			break;
+
+		case S_LDSrc:		// 7-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			std::sprintf(strTemp, "R%u,%s", opDstReg16_31(m_OpMemory), DataLabelDeref(opLDSrc7bit(m_OpMemory)).c_str());
+			break;
+
+		case S_STS:			// 16-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
+			std::sprintf(strTemp, "%s,R%u", DataLabelDeref(opDAbs16bit(m_OpMemory)).c_str(), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_STSrc:		// 7-bit Absolute Data Address
+			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
+			std::sprintf(strTemp, "%s,R%u", DataLabelDeref(opLDSrc7bit(m_OpMemory)).c_str(), opDstReg16_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			break;
+
+		case S_DES:			// Immediate "K" value -- no label
+			std::sprintf(strTemp, "%u", opDESK(m_OpMemory));
+			break;
+
+		case S_INH_Zp:		// Inherent with Z+ Register -- no label
+			strOpStr += "Z+";
+			break;
+
+		case S_INH:			// Inherent -- no label
+			break;
+	}
+
+	strOpStr += strTemp;
+
+	return strOpStr;
+}
+
+TAddress CAVRDisassembler::CreateOperandAddress()
+{
+	using namespace TAVRDisassembler_ENUMS;
+
+	// Return address for things like deterministic branches.
+	//	Will also return operand address for data, such as LDS, etc.
+	//	Note: It would be ideal to also return deterministic
+	//	branches like CTL_Skip and CTL_SkipIOLabel. However,
+	//	we can't return those because we don't know the size of
+	//	the next opcode (the one being skipped).
+
+	TAddress nAddress = 0;
+	switch (m_CurrentOpcode.group()) {
+		case S_BRA:			// 7-bit Relative Code Address
+			nAddress = (m_PC + opCRel7bit(m_OpMemory));
+			break;
+
+		case S_JMP:			// 22-bit Absolute Code Address
+			nAddress = opCAbs22bit(m_OpMemory);
+			break;
+
+		case S_RJMP:		// 12-bit Relative Code Address
+			nAddress = (m_PC + opCRel12bit(m_OpMemory));
+			break;
+
+		case S_IOR:			// 5-bit Absolute I/O Address and bit
+			nAddress = opIO0_31(m_OpMemory) + 0x20;
+			break;
+
+		case S_IN:			// 6-bit Absolute I/O Address and Register
+		case S_OUT:			// 6-bit Absolute I/O Address and Register
+			nAddress = opIO0_63(m_OpMemory) + 0x20;
+			break;
+
+		case S_LDS:			// 16-bit Absolute Data Address
+		case S_STS:			// 16-bit Absolute Data Address
+			nAddress = opDAbs16bit(m_OpMemory);
+			break;
+
+		case S_LDSrc:		// 7-bit Absolute Data Address
+		case S_STSrc:		// 7-bit Absolute Data Address
+			nAddress = opLDSrc7bit(m_OpMemory);
+			break;
+
+		default:
+			break;
+	}
+
+	return nAddress;
+}
+
+std::string CAVRDisassembler::FormatOperandRefComments()
+{
+	using namespace TAVRDisassembler_ENUMS;
+
+	if ((m_CurrentOpcode.group() == S_BRA) ||
+		(m_CurrentOpcode.group() == S_JMP) ||
+		(m_CurrentOpcode.group() == S_RJMP) ||
+//		(m_CurrentOpcode.group() == S_IOR) ||			// TODO : Built-in Comments for I/O ??
+//		(m_CurrentOpcode.group() == S_IN) ||
+//		(m_CurrentOpcode.group() == S_OUT) ||
+		(m_CurrentOpcode.group() == S_LDS) ||
+		(m_CurrentOpcode.group() == S_LDSrc) ||
+		(m_CurrentOpcode.group() == S_STS) ||
+		(m_CurrentOpcode.group() == S_STSrc)) {
+		return FormatUserComments(MC_INDIRECT, CreateOperandAddress());		// TODO : Figure out how to distinguish Code vs Data indirect(ref) comments
+	}
+
+	return std::string();
+}
+
+bool CAVRDisassembler::CheckBranchAddressLoaded(TAddress nAddress)
+{
+	return IsAddressLoaded(nAddress, opcodeSymbolSize());
+}
+
+TLabel CAVRDisassembler::CodeLabelDeref(TAddress nAddress)
+{
+	std::string strTemp;
+	char strCharTemp[30];
+
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(nAddress);
+	if (itrLabel != m_LabelTable.cend()) {
+		if (itrLabel->second.size()) {
+			strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
+		} else {
+			strTemp = FormatLabel(LC_REF, TLabel(), nAddress);
+		}
+	} else {
+		std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nAddress);
+		strTemp = strCharTemp;
+	}
+	return strTemp;
+}
+
+TLabel CAVRDisassembler::DataLabelDeref(TAddress nAddress)
+{
+	// TODO : Fix this once we split Code/Data:
+	return CodeLabelDeref(nAddress);
+}
+
+TLabel CAVRDisassembler::IOLabelDeref(TAddress nAddress)
+{
+	// TODO : Fix this once we split Code/Data:
+
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(nAddress);
+	if (itrLabel != m_LabelTable.cend()) {
+		TLabel lblValue = itrLabel->second.at(0);
+		if (!lblValue.empty()) {
+			return FormatLabel(LC_REF, lblValue, nAddress);
+		}
+	}
+	char strTemp[30];
+	std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), nAddress - 0x20);	// I/O Addresses are offset by 0x20
+	return strTemp;
+}
+
+
+// TODO : We are going to have to split m_LabelTable into Code and Data!

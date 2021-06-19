@@ -17,6 +17,7 @@
 #include <dfc/intel/inteldfc.h>
 
 #include <cpu/m6811/m6811gdc.h>
+#include <cpu/avr/avrgdc.h>
 
 // ============================================================================
 
@@ -50,6 +51,8 @@ int main(int argc, char *argv[])
 	CDisassemblers disassemblers;
 	CM6811Disassembler m6811dis;
 	disassemblers.registerDisassembler(&m6811dis);
+	CAVRDisassembler avrdis;
+	disassemblers.registerDisassembler(&avrdis);
 
 	CDisassembler *pDisassembler = nullptr;
 	bool bDeterministic = false;

@@ -501,13 +501,13 @@ bool CM6811Disassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std
 	m_OpMemory.push_back(nFirstByte);
 	if (IsAddressLoaded(m_PC-1, 1) == false) return false;
 
-	COpcodeTable<TM6811Disassembler>::const_iterator itrOpcode = m_Opcodes.find(nFirstByte);
+	TOpcodeTable_type::const_iterator itrOpcode = m_Opcodes.find(nFirstByte);
 	bFlag = false;
 	if (itrOpcode != m_Opcodes.cend()) {
 		for (COpcodeEntryArray<TM6811Disassembler>::size_type ndx = 0; ((ndx < itrOpcode->second.size()) && !bFlag); ++ndx) {
 			m_CurrentOpcode = itrOpcode->second.at(ndx);
 			bFlag = true;
-			for (TM6811Disassembler::COpcodeSymbolArray::size_type i=1; ((i<m_CurrentOpcode.opcode().size()) && (bFlag)); ++i) {
+			for (COpcodeSymbolArray_type::size_type i=1; ((i<m_CurrentOpcode.opcode().size()) && (bFlag)); ++i) {
 				if (m_CurrentOpcode.opcode().at(i) != m_Memory.element(m_PC+i-1)) bFlag = false;
 			}
 		}
@@ -573,6 +573,7 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 	bB = MoveOpcodeArgs(OGRP_SRC());
 	if (!bA || !bB) return false;
 
+	// Add reference labels to this opcode to the function:
 	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(m_nStartPC);
 	if (itrLabel != m_LabelTable.cend()) {
 		for (CLabelArray::size_type i=0; i<itrLabel->second.size(); ++i) {
@@ -583,6 +584,7 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 
 	m_sFunctionalOpcode += "|";
 
+	// All bytes of OpMemory:
 	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
 		std::sprintf(strTemp, "%02X", m_OpMemory.at(i));
 		m_sFunctionalOpcode += strTemp;
@@ -590,6 +592,7 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 
 	m_sFunctionalOpcode += "|";
 
+	// All bytes of opcode part of OpMemory;
 	for (decltype(m_OpMemory)::size_type i=0; i<m_nOpPointer; ++i) {
 		std::sprintf(strTemp, "%02X", m_OpMemory.at(i));
 		m_sFunctionalOpcode += strTemp;
@@ -597,6 +600,7 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 
 	m_sFunctionalOpcode += "|";
 
+	// All bytes of operand part of OpMemory;
 	for (decltype(m_OpMemory)::size_type i=m_nOpPointer; i<m_OpMemory.size(); ++i) {
 		std::sprintf(strTemp, "%02X", m_OpMemory.at(i));
 		m_sFunctionalOpcode += strTemp;
@@ -613,9 +617,9 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 	if (!bA || !bB) return false;
 
 	m_sFunctionalOpcode += "|";
-	m_sFunctionalOpcode += FormatMnemonic(MC_OPCODE);
+	m_sFunctionalOpcode += FormatMnemonic(MC_OPCODE, m_nStartPC);
 	m_sFunctionalOpcode += "|";
-	m_sFunctionalOpcode += FormatOperands(MC_OPCODE);
+	m_sFunctionalOpcode += FormatOperands(MC_OPCODE, m_nStartPC);
 
 	// See if this is the end of a function.  Note: These preempt all previously
 	//		decoded function tags -- such as call, etc:
@@ -668,8 +672,25 @@ bool CM6811Disassembler::RetrieveIndirect(std::ostream *msgFile, std::ostream *e
 
 // ----------------------------------------------------------------------------
 
-std::string CM6811Disassembler::FormatMnemonic(MNEMONIC_CODE nMCCode)
+std::string CM6811Disassembler::FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
+	UNUSED(nMCCode);			// Note: On M6811, opcode elements are bytes and so are data elements. No need to decode nMCCode
+	UNUSED(nStartAddress);
+
+	std::ostringstream sstrTemp;
+
+	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+		if (i) sstrTemp << " ";
+		sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i))
+					<< std::nouppercase << std::setbase(0);
+	}
+	return sstrTemp.str();
+}
+
+std::string CM6811Disassembler::FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
+{
+	UNUSED(nStartAddress);
+
 	switch (nMCCode) {
 		case MC_OPCODE:
 			return m_CurrentOpcode.mnemonic();
@@ -690,7 +711,7 @@ std::string CM6811Disassembler::FormatMnemonic(MNEMONIC_CODE nMCCode)
 	return "???";
 }
 
-std::string CM6811Disassembler::FormatOperands(MNEMONIC_CODE nMCCode)
+std::string CM6811Disassembler::FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
 	std::string strOpStr;
 	char strTemp[30];
@@ -714,7 +735,7 @@ std::string CM6811Disassembler::FormatOperands(MNEMONIC_CODE nMCCode)
 			strOpStr += DataDelim;
 			break;
 		case MC_EQUATE:
-			std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), m_PC);
+			std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), nStartAddress);
 			strOpStr = strTemp;
 			break;
 		case MC_INDIRECT:
@@ -726,9 +747,9 @@ std::string CM6811Disassembler::FormatOperands(MNEMONIC_CODE nMCCode)
 			nAddress = m_OpMemory.at(0)*256+m_OpMemory.at(1);
 			std::string strLabel;
 			CAddressLabelMap::const_iterator itrLabel;
-			if ((itrLabel = m_CodeIndirectTable.find(m_PC-2)) != m_CodeIndirectTable.cend()) {
+			if ((itrLabel = m_CodeIndirectTable.find(nStartAddress)) != m_CodeIndirectTable.cend()) {
 				strLabel = itrLabel->second;
-			} else if ((itrLabel = m_DataIndirectTable.find(m_PC-2)) != m_DataIndirectTable.cend()) {
+			} else if ((itrLabel = m_DataIndirectTable.find(nStartAddress)) != m_DataIndirectTable.cend()) {
 				strLabel = itrLabel->second;
 			}
 			strOpStr = FormatLabel(LC_REF, strLabel, nAddress);
@@ -736,7 +757,7 @@ std::string CM6811Disassembler::FormatOperands(MNEMONIC_CODE nMCCode)
 		}
 		case MC_OPCODE:
 			m_nOpPointer = m_CurrentOpcode.opcode().size();	// Get position of start of operands following opcode
-			m_nStartPC = m_PC - m_OpMemory.size();			// Get PC of first byte of this instruction for branch references
+			m_nStartPC = nStartAddress;			// Get PC of first byte of this instruction for branch references
 
 			CreateOperand(OGRP_DST(), strOpStr);			// Handle Destination operand first
 			if (OGRP_DST() != 0x0) strOpStr += ",";
@@ -750,14 +771,14 @@ std::string CM6811Disassembler::FormatOperands(MNEMONIC_CODE nMCCode)
 	return strOpStr;
 }
 
-std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
+std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
 	std::string strRetVal;
 	bool bBranchOutside;
 	TAddress nAddress;
 
 	// Add user comments:
-	strRetVal = FormatUserComments(nMCCode, m_PC - m_OpMemory.size());
+	strRetVal = FormatUserComments(nMCCode, nStartAddress);
 	if (nMCCode == MC_OPCODE) {
 		m_nOpPointer = m_CurrentOpcode.opcode().size();	// Get position of start of operands following opcode
 
@@ -791,7 +812,7 @@ std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
 	switch (nMCCode) {
 		case MC_OPCODE:
 			m_nOpPointer = m_CurrentOpcode.opcode().size();	// Get position of start of operands following opcode
-			m_nStartPC = m_PC - m_OpMemory.size();		// Get PC of first byte of this instruction for branch references
+			m_nStartPC = nStartAddress;		// Get PC of first byte of this instruction for branch references
 			switch (OCTL_DST()) {
 				case 0x2:
 				case 0x3:
@@ -809,7 +830,7 @@ std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
 			break;
 		case MC_INDIRECT:
 			nAddress = m_OpMemory.at(0)*256+m_OpMemory.at(1);
-			if (m_CodeIndirectTable.contains(m_PC-2)) {
+			if (m_CodeIndirectTable.contains(nStartAddress)) {
 				if (!IsAddressLoaded(nAddress, 1)) bBranchOutside = true;
 			}
 			break;
@@ -824,24 +845,12 @@ std::string CM6811Disassembler::FormatComments(MNEMONIC_CODE nMCCode)
 
 	// Add general reference stuff:
 	if (!strRetVal.empty()) strRetVal += "\n";
-	strRetVal += FormatReferences(nMCCode, m_PC - m_OpMemory.size());		// Add references
+	strRetVal += FormatReferences(nMCCode, nStartAddress);		// Add references
 
 	return strRetVal;
 }
 
 // ----------------------------------------------------------------------------
-
-std::string CM6811Disassembler::FormatOpBytes()
-{
-	std::ostringstream sstrTemp;
-
-	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
-		if (i) sstrTemp << " ";
-		sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i))
-					<< std::nouppercase << std::setbase(0);
-	}
-	return sstrTemp.str();
-}
 
 std::string CM6811Disassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress)
 {
@@ -894,7 +903,7 @@ bool CM6811Disassembler::WritePreSection(std::ostream& outFile, std::ostream *ms
 bool CM6811Disassembler::ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
 {
 	// In the HC11, we can assume that all indirect addresses are 2-bytes in length
-	//	and stored in little endian format.
+	//	and stored in big endian format.
 	if (!IsAddressLoaded(nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
 		(m_Memory.descriptor(nAddress) != DMEM_LOADED) ||
 		(m_Memory.descriptor(nAddress+1) != DMEM_LOADED)) {
@@ -935,6 +944,11 @@ std::string CM6811Disassembler::GetCommentEndDelim() const
 void CM6811Disassembler::clearOpMemory()
 {
 	m_OpMemory.clear();
+}
+
+size_t CM6811Disassembler::opcodeSymbolSize() const
+{
+	return sizeof(TM6811Disassembler::TOpcodeSymbol);
 }
 
 void CM6811Disassembler::pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue)
@@ -1338,7 +1352,7 @@ std::string CM6811Disassembler::FormatOperandRefComments(TM6811Disassembler::TGr
 		case 0xB:								// 8-bit offset (y)
 			m_nOpPointer++;
 			return std::string();
-}
+	}
 
 	return FormatUserComments(MC_INDIRECT, nAddress);
 }
