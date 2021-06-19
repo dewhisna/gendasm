@@ -2059,7 +2059,7 @@ TLabel CAVRDisassembler::IOLabelDeref(TAddress nAddress)
 		}
 	}
 	char strTemp[30];
-	std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), nAddress - 0x20);	// I/O Addresses are offset by 0x20
+	std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), nAddress - 0x20);	// I/O Addresses are offset by 0x20
 	return strTemp;
 }
 
