@@ -40,16 +40,18 @@ protected:
 
 	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 
-	virtual std::string FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
 
-	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
+	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
 
 	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 
 	virtual bool ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType);
+
+	using CDisassembler::GenDataLabel;
 
 	virtual std::string GetExcludedPrintChars() const;
 	virtual std::string GetHexDelim() const;
@@ -108,6 +110,7 @@ private:
 	bool CheckBranchOutside(TM6811Disassembler::TGroupFlags nGroup);
 	TLabel LabelDeref2(TAddress nAddress);
 	TLabel LabelDeref4(TAddress nAddress);
+	void GenDataLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel, std::ostream *msgFile, std::ostream *errFile);
 
 	decltype(m_OpMemory)::size_type m_nOpPointer;	// Index into m_OpMemory for start of operands and gets incremented during DecodeOpcode()
 	TAddress m_nStartPC;		// Address for first instruction byte for m_CurrentOpcode during DecodeOpcode(), CreateOperand(), etc.

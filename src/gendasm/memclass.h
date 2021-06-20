@@ -186,6 +186,8 @@ public:
 	void initFromRanges(const CMemRanges &ranges, TAddressOffset nPhysicalAddrOffset,		// Note: ranges will be the logical addresses
 						bool bUseDescriptors, TMemoryElement nFillValue, TDescElement nDescValue = 0);
 
+	CMemRanges ranges() const;
+
 	TMemoryElement element(TAddress nLogicalAddr) const;
 	bool setElement(TAddress nLogicalAddr, TMemoryElement nValue);
 	// ----

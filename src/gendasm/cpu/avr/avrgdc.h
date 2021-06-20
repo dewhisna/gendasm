@@ -108,12 +108,12 @@ public:
 
 	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 
-	virtual std::string FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
 
-	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
+	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
 
 	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
 
@@ -167,6 +167,8 @@ private:
 	TLabel CodeLabelDeref(TAddress nAddress);
 	TLabel DataLabelDeref(TAddress nAddress);
 	TLabel IOLabelDeref(TAddress nAddress);
+
+	MEMORY_TYPE MemTypeIORAM(TAddress nAddress);	// RAM and I/O share memory space (not true Harvard), so do mapping here
 
 	// --------------------------------
 

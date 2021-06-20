@@ -412,13 +412,6 @@ public:
 	//	added to in overrides, but the existing entries should not be changed:
 	enum LABEL_CODE { LC_EQUATE, LC_DATA, LC_CODE, LC_REF, NUM_LABEL_CODES };
 
-	// The following defines the label types for label generation and tracking.  They
-	//	determine what memory section the label resides in.  Non-Harvard processors with
-	//	a flat memory space will fold them into the same list.  Harvard and modified
-	//	Harvard processors where they are separate address spaces, they will be kept
-	//	and processed separately based on the section being processed:
-	enum LABEL_TYPE { LT_CODE, LT_DATA, NUM_LABEL_TYPES };
-
 	// The following defines the reference types:
 	enum REFERENCE_TYPE { RT_CODE, RT_DATA, NUM_REFERENCE_TYPES };
 
@@ -525,15 +518,15 @@ protected:
 
 	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) = 0;	// Pure Virtual. Retrieves the indirect address specified by m_PC and places it m_OpMemory for later formatting.  It is a pure virtual because of length and indian notation differences
 
-	virtual std::string FormatOpBytes(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
-	virtual std::string FormatMnemonic(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should provide the specified mnemonic.  For normal opcodes, MC_OPCODE is used -- for which the override should return the mnemonic in the opcode table.  This is done to provide the assembler/processor dependent module opportunity to change/set the case of the mnemonic and to provide special opcodes.
-	virtual std::string FormatOperands(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
-	virtual std::string FormatComments(MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
+	virtual std::string FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function creates a opcode byte string from the bytes in m_OpMemory.
+	virtual std::string FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should provide the specified mnemonic.  For normal opcodes, MC_OPCODE is used -- for which the override should return the mnemonic in the opcode table.  This is done to provide the assembler/processor dependent module opportunity to change/set the case of the mnemonic and to provide special opcodes.
+	virtual std::string FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
+	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
 
 	virtual std::string FormatAddress(TAddress nAddress);					// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
-	virtual std::string FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
-	virtual std::string FormatReferences(MNEMONIC_CODE nMCCode, TAddress nAddress);			// Makes a string to place in the comment field that contains all references for the specified address
-	virtual std::string FormatUserComments(MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
+	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
+	virtual std::string FormatReferences(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all references for the specified address
+	virtual std::string FormatUserComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
 
 	virtual int GetFieldWidth(FIELD_CODE nFC) const;						// Defines the widths of each output field.  Can be overridden to alter output formatting.  To eliminate space/tab mixing, these should typically be a multiple of the tab width
 	virtual std::string MakeOutputLine(CStringArray& saOutputData) const;	// Formats the data in saOutputData, which should have indicies corresponding to FIELD_CODE enum, to a string that can be sent to the output file
@@ -583,16 +576,19 @@ protected:
 	//				calling this function for previously tagged addresses should reset the
 	//				vector bytes to DMEM_LOADED.
 
-	virtual bool IsAddressLoaded(TAddress nAddress, TSize nSize);	// Checks to see if the nSize bytes starting at address nAddress are loaded.  True only if all the bytes are loaded!
+	virtual bool IsAddressLoaded(MEMORY_TYPE nMemoryType, TAddress nAddress, TSize nSize);	// Checks to see if the nSize bytes starting at address nAddress are loaded.  True only if all the bytes are loaded!
+	virtual bool IsAddressInRange(MEMORY_TYPE nRange, TAddress nAddress);	// Checks to see if the specified address resides in the specified range
 
-	virtual bool AddLabel(LABEL_TYPE nLabelType, TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0, const TLabel & strLabel = TLabel());		// Sets strLabel string as the label for nAddress.  If nAddress is already set with that string, returns FALSE else returns TRUE or all OK.  If address has a label and strLabel = empty or zero length, nothing is added!  If strLabel is empty or zero length, an empty string is added to later get resolved to Lxxxx form.  If bAddRef, then nRefAddress is added to the reference list
-	virtual bool AddBranch(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0);	// Adds nAddress to the branch table with nRefAddress as the referring address.  Returns T if all ok, F if branch address is outside of loaded space.  If nAddRef is false, a branch is added without a reference
-	virtual bool AddComment(TAddress nAddress, const CComment &strComment);
+	virtual bool AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0, const TLabel & strLabel = TLabel());		// Sets strLabel string as the label for nAddress.  If nAddress is already set with that string, returns FALSE else returns TRUE or all OK.  If address has a label and strLabel = empty or zero length, nothing is added!  If strLabel is empty or zero length, an empty string is added to later get resolved to Lxxxx form.  If bAddRef, then nRefAddress is added to the reference list
+	virtual bool AddBranch(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0);	// (Always MT_ROM) Adds nAddress to the branch table with nRefAddress as the referring address.  Returns T if all ok, F if branch address is outside of loaded space.  If nAddRef is false, a branch is added without a reference
+	virtual bool AddComment(MEMORY_TYPE nMemoryType, TAddress nAddress, const CComment &strComment);
 
-	virtual void GenDataLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress -- unlike calling direct, this function outputs the new label to msgFile if specified...
-	virtual void GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress, then calls AddBranch to add a branch address -- unlike calling direct, this function outputs the new label to msgFile if specified and displays "out of source" errors for the branches to errFile...
-	virtual void OutputGenLabel(TAddress nAddress, std::ostream *msgFile);		// Outputs a generated label to the msgFile -- called by GenAddrLabel and GenDataLabel
-	virtual TLabel GenLabel(TAddress nAddress);		// Creates a default generated label.  Base form is Lxxxx, but can be overridden in derived classes for other formats
+	virtual void GenDataLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress -- unlike calling direct, this function outputs the new label to msgFile if specified...
+	virtual void GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// (Always MT_ROM) Calls AddLabel to create a label for nAddress, then calls AddBranch to add a branch address -- unlike calling direct, this function outputs the new label to msgFile if specified and displays "out of source" errors for the branches to errFile...
+	virtual void OutputGenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, std::ostream *msgFile);		// Outputs a generated label to the msgFile -- called by GenAddrLabel and GenDataLabel
+	virtual TLabel GenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress);		// Creates a default generated label.  Base form is Lxxxx, but can be overridden in derived classes for other formats
+
+	virtual MEMORY_TYPE MemoryTypeFromAddress(TAddress nAddress);	// Searches the ranges to find the first match for the specified address -- useful for flat memory models of the non-Harvard architectures (i.e. when m_bAllowMemRangeOverlap is false)
 
 	virtual std::string GetExcludedPrintChars() const = 0;		// Pure Virtual. Returns a list of characters excluded during datascan for printable scan
 	virtual std::string GetHexDelim() const = 0;				// Pure Virtual. Returns hexadecimal delimiter for specific assembler.  Typically "0x" or "$"
@@ -653,23 +649,23 @@ protected:
 	int				m_nFilesLoaded;	// Count of number of files successfully loaded by the control file
 	std::string		m_ParseError;	// Set during the control file parsing to indicate error messages
 
-	CAddressSet m_EntryTable;		// Table of Entry values (start addresses) from control file
+	CAddressSet m_EntryTable;		// (Always MT_ROM) Table of Entry values (start addresses) from control file
 
-	CFuncMap	m_FunctionsTable;	// Table of start-of and end-of functions
+	CFuncMap	m_FunctionsTable;	// (Always MT_ROM) Table of start-of and end-of functions
 
-	CAddressSet m_FuncExitAddresses;	// Table of address that are equivalent to function exit like RTS or RTI.  Any JMP or BRA or execution into one of these addresses will equate to a function exit
-	CAddressTableMap m_BranchTable;		// Table mapping branch addresses encountered with the address that referenced it in disassembly.
-	CLabelTableMap m_LabelTable[NUM_LABEL_TYPES];	// Table of labels both specified by the user and from disassembly.  Entry is pointer to array of labels.  An empty entry equates back to Lxxxx.  First entry is default for "Get" function.
-	CCommentTableMap m_CommentTable;	// Table of comments by address
+	CAddressSet m_FuncExitAddresses;	// (Always MT_ROM) Table of address that are equivalent to function exit like RTS or RTI.  Any JMP or BRA or execution into one of these addresses will equate to a function exit
+	CAddressTableMap m_BranchTable;		// (Always MT_ROM) Table mapping branch addresses encountered with the address that referenced it in disassembly.
+	CLabelTableMap m_LabelTable[NUM_MEMORY_TYPES];		// Table of labels both specified by the user and from disassembly.  Entry is pointer to array of labels.  An empty entry equates back to Lxxxx.  First entry is default for "Get" function.
+	CCommentTableMap m_CommentTable[NUM_MEMORY_TYPES];	// Table of comments by address
 
-	CAddressTableMap m_LabelRefTable;	// Table of reference addresses for labels.  User specified labels have no reference added.
-	CAddressLabelMap m_CodeIndirectTable;	// Table of indirect code vectors with labels specified by the user and from disassembly
-	CAddressLabelMap m_DataIndirectTable;	// Table of indirect data vectors with labels specified by the user and from disassembly
+	CAddressTableMap m_LabelRefTable[NUM_MEMORY_TYPES];	// Table of reference addresses for labels.  User specified labels have no reference added.
+	CAddressLabelMap m_CodeIndirectTable;	// (Always MT_ROM) Table of indirect code vectors with labels specified by the user and from disassembly
+	CAddressLabelMap m_DataIndirectTable;	// (Always MT_ROM) Table of indirect data vectors with labels specified by the user and from disassembly
 
 	TAddress		m_PC;				// Program counter
 
-	CMemBlocks		m_Memory;			// Memory object for the processor.
-	CMemRanges		m_MemoryRanges[NUM_MEMORY_TYPES];		// ROM, RAM, I/O Ranges/Mapping
+	CMemBlocks		m_Memory[NUM_MEMORY_TYPES];			// Memory object for the processor.
+	CMemRanges		m_MemoryRanges[NUM_MEMORY_TYPES];	// ROM, RAM, I/O Ranges/Mapping
 
 private:
 

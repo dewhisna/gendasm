@@ -235,6 +235,17 @@ void CMemBlocks::initFromRanges(const CMemRanges &ranges, TAddressOffset nPhysic
 	}
 }
 
+CMemRanges CMemBlocks::ranges() const
+{
+	CMemRanges tempRanges;
+	for (auto const & itr : * this) {
+		tempRanges.push_back(CMemRange(itr.logicalAddr(), itr.size()));
+	}
+	tempRanges.removeOverlaps(true);
+	tempRanges.sort();
+	return tempRanges;
+}
+
 TMemoryElement CMemBlocks::element(TAddress nLogicalAddr) const
 {
 	for (auto const & itr : *this) {
