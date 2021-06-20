@@ -58,8 +58,13 @@
 //			   |    |_________  Absolute Address of Mapped area (hex)
 //			   |______________  Type of Mapped area (One of following: ROM, RAM, IO)
 //
-//		Label Definitions:
+//		Code Label Definitions:
 //			!addr|label
+//			   |    |____ Label(s) for this address(comma separated)
+//			   |_________ Absolute Address (hex)
+//
+//		Data Label Definitions:
+//			=addr|label
 //			   |    |____ Label(s) for this address(comma separated)
 //			   |_________ Absolute Address (hex)
 //
@@ -574,8 +579,8 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 	if (!bA || !bB) return false;
 
 	// Add reference labels to this opcode to the function:
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(m_nStartPC);
-	if (itrLabel != m_LabelTable.cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_CODE].find(m_nStartPC);
+	if (itrLabel != m_LabelTable[LT_CODE].cend()) {
 		for (CLabelArray::size_type i=0; i<itrLabel->second.size(); ++i) {
 			if (i != 0) m_sFunctionalOpcode += ",";
 			m_sFunctionalOpcode += FormatLabel(LC_REF, itrLabel->second.at(i), m_nStartPC);
@@ -1392,16 +1397,25 @@ TLabel CM6811Disassembler::LabelDeref2(TAddress nAddress)
 	std::string strTemp;
 	char strCharTemp[30];
 
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(nAddress);
-	if (itrLabel != m_LabelTable.cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_CODE].find(nAddress);
+	if (itrLabel != m_LabelTable[LT_CODE].cend()) {
 		if (itrLabel->second.size()) {
 			strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
 		} else {
 			strTemp = FormatLabel(LC_REF, TLabel(), nAddress);
 		}
 	} else {
-		std::sprintf(strCharTemp, "%s%02X", GetHexDelim().c_str(), nAddress);
-		strTemp = strCharTemp;
+		itrLabel = m_LabelTable[LT_DATA].find(nAddress);
+		if (itrLabel != m_LabelTable[LT_DATA].cend()) {
+			if (itrLabel->second.size()) {
+				strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
+			} else {
+				strTemp = FormatLabel(LC_REF, TLabel(), nAddress);
+			}
+		} else {
+			std::sprintf(strCharTemp, "%s%02X", GetHexDelim().c_str(), nAddress);
+			strTemp = strCharTemp;
+		}
 	}
 	return strTemp;
 }
@@ -1411,16 +1425,25 @@ TLabel CM6811Disassembler::LabelDeref4(TAddress nAddress)
 	std::string strTemp;
 	char strCharTemp[30];
 
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(nAddress);
-	if (itrLabel != m_LabelTable.cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_CODE].find(nAddress);
+	if (itrLabel != m_LabelTable[LT_CODE].cend()) {
 		if (itrLabel->second.size()) {
 			strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
 		} else {
 			strTemp = FormatLabel(LC_REF, TLabel(), nAddress);
 		}
 	} else {
-		std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nAddress);
-		strTemp = strCharTemp;
+		itrLabel = m_LabelTable[LT_DATA].find(nAddress);
+		if (itrLabel != m_LabelTable[LT_DATA].cend()) {
+			if (itrLabel->second.size()) {
+				strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
+			} else {
+				strTemp = FormatLabel(LC_REF, TLabel(), nAddress);
+			}
+		} else {
+			std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nAddress);
+			strTemp = strCharTemp;
+		}
 	}
 	return strTemp;
 }

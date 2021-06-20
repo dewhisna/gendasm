@@ -406,11 +406,18 @@ public:
 	//	compatibility at all times:
 	enum MNEMONIC_CODE { MC_OPCODE, MC_ILLOP, MC_EQUATE, MC_DATABYTE, MC_ASCII, MC_INDIRECT, NUM_MNEMONIC_CODES };
 
-	// The following defines the label types when formating output.  The are flags that
+	// The following defines the label codes when formating output.  They are flags that
 	//	determine where the label is being referenced.  It is used by the FormatLabel
 	//	function to determine what type of delimiter to add, if any.  This enum can be
 	//	added to in overrides, but the existing entries should not be changed:
 	enum LABEL_CODE { LC_EQUATE, LC_DATA, LC_CODE, LC_REF, NUM_LABEL_CODES };
+
+	// The following defines the label types for label generation and tracking.  They
+	//	determine what memory section the label resides in.  Non-Harvard processors with
+	//	a flat memory space will fold them into the same list.  Harvard and modified
+	//	Harvard processors where they are separate address spaces, they will be kept
+	//	and processed separately based on the section being processed:
+	enum LABEL_TYPE { LT_CODE, LT_DATA, NUM_LABEL_TYPES };
 
 	// The following defines the reference types:
 	enum REFERENCE_TYPE { RT_CODE, RT_DATA, NUM_REFERENCE_TYPES };
@@ -578,7 +585,7 @@ protected:
 
 	virtual bool IsAddressLoaded(TAddress nAddress, TSize nSize);	// Checks to see if the nSize bytes starting at address nAddress are loaded.  True only if all the bytes are loaded!
 
-	virtual bool AddLabel(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0, const TLabel & strLabel = TLabel());		// Sets strLabel string as the label for nAddress.  If nAddress is already set with that string, returns FALSE else returns TRUE or all OK.  If address has a label and strLabel = empty or zero length, nothing is added!  If strLabel is empty or zero length, an empty string is added to later get resolved to Lxxxx form.  If bAddRef, then nRefAddress is added to the reference list
+	virtual bool AddLabel(LABEL_TYPE nLabelType, TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0, const TLabel & strLabel = TLabel());		// Sets strLabel string as the label for nAddress.  If nAddress is already set with that string, returns FALSE else returns TRUE or all OK.  If address has a label and strLabel = empty or zero length, nothing is added!  If strLabel is empty or zero length, an empty string is added to later get resolved to Lxxxx form.  If bAddRef, then nRefAddress is added to the reference list
 	virtual bool AddBranch(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0);	// Adds nAddress to the branch table with nRefAddress as the referring address.  Returns T if all ok, F if branch address is outside of loaded space.  If nAddRef is false, a branch is added without a reference
 	virtual bool AddComment(TAddress nAddress, const CComment &strComment);
 
@@ -652,7 +659,7 @@ protected:
 
 	CAddressSet m_FuncExitAddresses;	// Table of address that are equivalent to function exit like RTS or RTI.  Any JMP or BRA or execution into one of these addresses will equate to a function exit
 	CAddressTableMap m_BranchTable;		// Table mapping branch addresses encountered with the address that referenced it in disassembly.
-	CLabelTableMap m_LabelTable;		// Table of labels both specified by the user and from disassembly.  Entry is pointer to array of labels.  An empty entry equates back to Lxxxx.  First entry is default for "Get" function.
+	CLabelTableMap m_LabelTable[NUM_LABEL_TYPES];	// Table of labels both specified by the user and from disassembly.  Entry is pointer to array of labels.  An empty entry equates back to Lxxxx.  First entry is default for "Get" function.
 	CCommentTableMap m_CommentTable;	// Table of comments by address
 
 	CAddressTableMap m_LabelRefTable;	// Table of reference addresses for labels.  User specified labels have no reference added.

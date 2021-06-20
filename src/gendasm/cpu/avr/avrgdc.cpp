@@ -117,8 +117,13 @@
 //			   |    |_________  Absolute Address of Mapped area (hex)
 //			   |______________  Type of Mapped area (One of following: ROM, RAM, IO)
 //
-//		Label Definitions:
+//		Code Label Definitions:
 //			!addr|label
+//			   |    |____ Label(s) for this address(comma separated)
+//			   |_________ Absolute Address (hex)
+//
+//		Data Label Definitions:
+//			=addr|label
 //			   |    |____ Label(s) for this address(comma separated)
 //			   |_________ Absolute Address (hex)
 //
@@ -617,7 +622,7 @@ CAVRDisassembler::CAVRDisassembler()
 	for (unsigned int nReg = 0; nReg < 32; ++nReg) {
 		char buf[10];
 		std::sprintf(buf, "R%u", nReg);
-		AddLabel(nReg, false, 0, buf);
+		AddLabel(LT_DATA, nReg, false, 0, buf);
 	}
 
 	// TODO : Add I/O register names in memmap space (are they per CPU type?)
@@ -779,8 +784,8 @@ bool CAVRDisassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile, s
 	m_sFunctionalOpcode = strTemp;
 
 	// Add reference labels to this opcode to the function:
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(m_nStartPC);
-	if (itrLabel != m_LabelTable.cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_CODE].find(m_nStartPC);
+	if (itrLabel != m_LabelTable[LT_CODE].cend()) {
 		for (CLabelArray::size_type i=0; i<itrLabel->second.size(); ++i) {
 			if (i != 0) m_sFunctionalOpcode += ",";
 			m_sFunctionalOpcode += FormatLabel(LC_REF, itrLabel->second.at(i), m_nStartPC);
@@ -2027,8 +2032,8 @@ TLabel CAVRDisassembler::CodeLabelDeref(TAddress nAddress)
 	std::string strTemp;
 	char strCharTemp[30];
 
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(nAddress);
-	if (itrLabel != m_LabelTable.cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_CODE].find(nAddress);
+	if (itrLabel != m_LabelTable[LT_CODE].cend()) {
 		if (itrLabel->second.size()) {
 			strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
 		} else {
@@ -2043,16 +2048,27 @@ TLabel CAVRDisassembler::CodeLabelDeref(TAddress nAddress)
 
 TLabel CAVRDisassembler::DataLabelDeref(TAddress nAddress)
 {
-	// TODO : Fix this once we split Code/Data:
-	return CodeLabelDeref(nAddress);
+	std::string strTemp;
+	char strCharTemp[30];
+
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_DATA].find(nAddress);
+	if (itrLabel != m_LabelTable[LT_DATA].cend()) {
+		if (itrLabel->second.size()) {
+			strTemp = FormatLabel(LC_REF, itrLabel->second.at(0), nAddress);
+		} else {
+			strTemp = FormatLabel(LC_REF, TLabel(), nAddress);
+		}
+	} else {
+		std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nAddress);
+		strTemp = strCharTemp;
+	}
+	return strTemp;
 }
 
 TLabel CAVRDisassembler::IOLabelDeref(TAddress nAddress)
 {
-	// TODO : Fix this once we split Code/Data:
-
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable.find(nAddress);
-	if (itrLabel != m_LabelTable.cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[LT_DATA].find(nAddress);
+	if (itrLabel != m_LabelTable[LT_DATA].cend()) {
 		TLabel lblValue = itrLabel->second.at(0);
 		if (!lblValue.empty()) {
 			return FormatLabel(LC_REF, lblValue, nAddress);
@@ -2063,5 +2079,3 @@ TLabel CAVRDisassembler::IOLabelDeref(TAddress nAddress)
 	return strTemp;
 }
 
-
-// TODO : We are going to have to split m_LabelTable into Code and Data!

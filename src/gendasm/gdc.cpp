@@ -44,7 +44,8 @@ namespace {
 		CCE_LOAD,
 		CCE_INPUT,
 		CCE_OUTPUT,
-		CCE_LABEL,
+		CCE_LABELCODE,
+		CCE_LABELDATA,
 		CCE_ADDRESSES,
 		CCE_INDIRECT,
 		CCE_OPBYTES,
@@ -74,7 +75,8 @@ namespace {
 		{ "^LOAD$", CCE_LOAD },
 		{ "^INPUT$", CCE_INPUT },
 		{ "^OUTPUT$", CCE_OUTPUT },
-		{ "^LABEL$", CCE_LABEL },
+		{ "^LABEL|LABELCODE$", CCE_LABELCODE },
+		{ "^LABELDATA$", CCE_LABELDATA },
 		{ "^ADDRESSES$", CCE_ADDRESSES },
 		{ "^INDIRECT$", CCE_INDIRECT },
 		{ "^OPCODES|OPBYTES$", CCE_OPBYTES },
@@ -417,13 +419,13 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 
 			if (msgFile) {
 				(*msgFile) << "\n";
-				(*msgFile) << "        " << m_LabelTable.size()
-							<< " Unique Label"
-							<< ((m_LabelTable.size() != 1) ? "s" : "")
+				(*msgFile) << "        " << m_LabelTable[LT_CODE].size()
+							<< " Unique Code Label"
+							<< ((m_LabelTable[LT_CODE].size() != 1) ? "s" : "")
 							<< " Defined"
-							<< ((m_LabelTable.size() != 0) ? ":" : "")
+							<< ((m_LabelTable[LT_CODE].size() != 0) ? ":" : "")
 							<< "\n";
-				for (auto const & itrLabels : m_LabelTable) {
+				for (auto const & itrLabels : m_LabelTable[LT_CODE]) {
 					(*msgFile) << "                "
 								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabels.first
 								<< std::nouppercase << std::setbase(0) << "=";
@@ -435,6 +437,27 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 					}
 					(*msgFile) << "\n";
 				}
+
+				(*msgFile) << "\n";
+				(*msgFile) << "        " << m_LabelTable[LT_DATA].size()
+							<< " Unique Data Label"
+							<< ((m_LabelTable[LT_DATA].size() != 1) ? "s" : "")
+							<< " Defined"
+							<< ((m_LabelTable[LT_DATA].size() != 0) ? ":" : "")
+							<< "\n";
+				for (auto const & itrLabels : m_LabelTable[LT_DATA]) {
+					(*msgFile) << "                "
+								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabels.first
+								<< std::nouppercase << std::setbase(0) << "=";
+					bool bFirst = true;
+					for (auto const & itrNames : itrLabels.second) {
+						if (!bFirst) (*msgFile) << ",";
+						bFirst = false;
+						(*msgFile) << itrNames;
+					}
+					(*msgFile) << "\n";
+				}
+
 				(*msgFile) << "\n";
 
 				if (m_bAddrFlag) (*msgFile) << "Writing program counter addresses to disassembly file.\n";
@@ -481,7 +504,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 						(*msgFile) << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
 									<< std::nouppercase << std::setbase(0);
 					}
-					AddLabel(nResolvedAddress, false, 0, itrIndirects.second);	// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
+					AddLabel(LT_CODE, nResolvedAddress, false, 0, itrIndirects.second);	// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
 					m_FunctionsTable[nResolvedAddress] = FUNCF_INDIRECT;		// Resolved code indirects are also considered start-of functions
 					if (!AddBranch(nResolvedAddress, true, itrIndirects.first)) {
 						if (errFile) {
@@ -531,7 +554,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 						(*msgFile) << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
 									<< std::nouppercase << std::setbase(0) << "\n";
 					}
-					AddLabel(nResolvedAddress, true, itrIndirects.first, itrIndirects.second);		// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
+					AddLabel(LT_DATA, nResolvedAddress, true, itrIndirects.first, itrIndirects.second);		// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
 				}
 			}
 			if (msgFile) (*msgFile) << "\n";
@@ -599,7 +622,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			m_EntryTable.insert(nAddress);				// Add an entry to the entry table
 			m_FunctionsTable[nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
 			if (argv.size() == 3) {
-				if (!AddLabel(nAddress, false, 0, argv.at(2))) {
+				if (!AddLabel(LT_CODE, nAddress, false, 0, argv.at(2))) {
 					bRetVal = false;
 					m_ParseError = "*** Warning: Duplicate label";
 				}
@@ -666,7 +689,8 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 					break;
 			}
 			break;
-		case CCE_LABEL:			// LABEL <addr> <name> [<comment>]    (note: use double quotes for whitespace in <comment>)
+		case CCE_LABELCODE:		// LABEL <addr> <name> [<comment>]      (note: use double quotes for whitespace in <comment>)
+								// LABELCODE <addr> <name> [<comment>]  (note: use double quotes for whitespace in <comment>)
 			if ((argv.size() != 3) && (argv.size() != 4)) {
 				nArgError = (argv.size() < 3) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
 				break;
@@ -675,11 +699,29 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				break;
 			}
 			nAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
-			if (!AddLabel(nAddress, false, 0, argv.at(2))) {
+			if (!AddLabel(LT_CODE, nAddress, false, 0, argv.at(2))) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate label";
 			}
-			if ((argv.size() > 3) && !AddComment(nAddress, CComment(CTF_ALL, argv.at(3)))) {
+			if ((argv.size() > 3) && !AddComment(nAddress, CComment(CTF_CODE, argv.at(3)))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Failed to add <comment> field";
+			}
+			break;
+		case CCE_LABELDATA:		// LABELDATA <addr> <name> [<comment>]  (note: use double quotes for whitespace in <comment>)
+			if ((argv.size() != 3) && (argv.size() != 4)) {
+				nArgError = (argv.size() < 3) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
+				break;
+			} else if (!ValidateLabelName(argv.at(2))) {
+				nArgError = ARGERR_Illegal_Arg;
+				break;
+			}
+			nAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
+			if (!AddLabel(LT_DATA, nAddress, false, 0, argv.at(2))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Duplicate label";
+			}
+			if ((argv.size() > 3) && !AddComment(nAddress, CComment(CTF_DATA, argv.at(3)))) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Failed to add <comment> field";
 			}
@@ -881,7 +923,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			m_FunctionsTable[nAddress] = FUNCF_ENTRY;	// Exit Function Entry points are also considered start-of functions
 			m_FuncExitAddresses.insert(nAddress);		// Add function exit entry
 			if (argv.size() == 3) {
-				if (!AddLabel(nAddress, false, 0, argv.at(2))) {
+				if (!AddLabel(LT_CODE, nAddress, false, 0, argv.at(2))) {
 					bRetVal = false;
 					m_ParseError = "*** Warning: Duplicate label";
 				}
@@ -1279,6 +1321,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 	}
 	aFunctionsFile << ";\n\n";
 
+	// Output Memory Mapping:
 	bTempFlag = false;
 	for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
 		if (m_MemoryRanges[nMemType].isNullRange()) continue;
@@ -1298,12 +1341,13 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 	}
 	if (bTempFlag) aFunctionsFile << "\n";
 
+	// Output Code Labels:
 	bTempFlag = false;
 	for (auto const & itrMemory : m_Memory) {
 		m_PC = itrMemory.logicalAddr();
 		for (TSize nSize = 0; nSize < itrMemory.size(); ++nSize, ++m_PC) {
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable.find(m_PC);
-			if (itrLabels != m_LabelTable.cend()) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_CODE].find(m_PC);
+			if (itrLabels != m_LabelTable[LT_CODE].cend()) {
 				std::ostringstream sstrTemp;
 				bTempFlag2 = false;
 				sstrTemp << "!" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC;
@@ -1317,13 +1361,45 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 				}
 				sstrTemp << "\n";
 				m_sFunctionalOpcode = sstrTemp.str();
-				if (bTempFlag2) aFunctionsFile << m_sFunctionalOpcode;
-				bTempFlag = true;
+				if (bTempFlag2) {
+					aFunctionsFile << m_sFunctionalOpcode;
+					bTempFlag = true;
+				}
 			}
 		}
 	}
 	if (bTempFlag) aFunctionsFile << "\n";
 
+	// Output Data Labels:
+	bTempFlag = false;
+	for (auto const & itrMemory : m_Memory) {
+		m_PC = itrMemory.logicalAddr();
+		for (TSize nSize = 0; nSize < itrMemory.size(); ++nSize, ++m_PC) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_DATA].find(m_PC);
+			if (itrLabels != m_LabelTable[LT_DATA].cend()) {
+				std::ostringstream sstrTemp;
+				bTempFlag2 = false;
+				sstrTemp << "=" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC;
+				sstrTemp << std::nouppercase << std::setbase(0) << "|";
+				for (CLabelArray::size_type i = 0; i < itrLabels->second.size(); ++i) {
+					if (bTempFlag2) sstrTemp << ",";
+					if (!itrLabels->second.at(i).empty()) {
+						sstrTemp << itrLabels->second.at(i);
+						bTempFlag2 = true;
+					}
+				}
+				sstrTemp << "\n";
+				m_sFunctionalOpcode = sstrTemp.str();
+				if (bTempFlag2) {
+					aFunctionsFile << m_sFunctionalOpcode;
+					bTempFlag = true;
+				}
+			}
+		}
+	}
+	if (bTempFlag) aFunctionsFile << "\n";
+
+	// Output Functions:
 	TAddress nFuncAddr = 0;			// Start PC of current function
 	TAddress nSavedPC = 0;			// nSavedPC will be the last PC for the last memory evaluated below
 	bool bInFunc = false;
@@ -1361,8 +1437,8 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 						sstrTemp << "@" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 						m_sFunctionalOpcode = sstrTemp.str();
 
-						CLabelTableMap::const_iterator itrLabels = m_LabelTable.find(m_PC);
-						if (itrLabels != m_LabelTable.cend()) {
+						CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_CODE].find(m_PC);
+						if (itrLabels != m_LabelTable[LT_CODE].cend()) {
 							for (CLabelArray::size_type i = 0; i < itrLabels->second.size(); ++i) {
 								if (i != 0) m_sFunctionalOpcode += ",";
 								m_sFunctionalOpcode += FormatLabel(LC_REF, itrLabels->second.at(i), m_PC);
@@ -1411,8 +1487,8 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 					m_sFunctionalOpcode = sstrTemp.str();
 
-					CLabelTableMap::const_iterator itrLabels = m_LabelTable.find(m_PC);
-					if (itrLabels != m_LabelTable.cend()) {
+					CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_DATA].find(m_PC);
+					if (itrLabels != m_LabelTable[LT_DATA].cend()) {
 						for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
 							if (i != 0) m_sFunctionalOpcode += ",";
 							m_sFunctionalOpcode += FormatLabel(LC_REF, itrLabels->second.at(i), m_PC);
@@ -1545,41 +1621,45 @@ std::string CDisassembler::FormatLabel(LABEL_CODE nLC, const TLabel & strLabel, 
 
 std::string CDisassembler::FormatReferences(MNEMONIC_CODE nMCCode, TAddress nAddress)
 {
-	UNUSED(nMCCode);
-
 	std::string strRetVal;
 	bool bFlag = false;
 
-	CAddressTableMap::const_iterator itrBranches = m_BranchTable.find(nAddress);
-	if (itrBranches != m_BranchTable.cend()) {
-		if (itrBranches->second.size() != 0) {
-			strRetVal += "CRef: ";
-			bFlag = true;
-			for (CAddressArray::size_type i=0; i<itrBranches->second.size(); ++i) {
-				if (i != 0) strRetVal += ",";
-				std::ostringstream sstrTemp;
-				sstrTemp << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrBranches->second.at(i);
-				strRetVal += sstrTemp.str();
+	if ((nMCCode == MC_OPCODE) || (nMCCode == MC_ILLOP) || (nMCCode == MC_EQUATE)) {
+		CAddressTableMap::const_iterator itrBranches = m_BranchTable.find(nAddress);
+		if (itrBranches != m_BranchTable.cend()) {
+			if (itrBranches->second.size() != 0) {
+				strRetVal += "CRef: ";
+				bFlag = true;
+				for (CAddressArray::size_type i=0; i<itrBranches->second.size(); ++i) {
+					if (i != 0) strRetVal += ",";
+					std::ostringstream sstrTemp;
+					sstrTemp << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrBranches->second.at(i);
+					strRetVal += sstrTemp.str();
+				}
 			}
 		}
 	}
 
-	if (m_LabelTable.contains(nAddress)) {
-		CAddressTableMap::const_iterator itrLabelRef = m_LabelRefTable.find(nAddress);
-		if (itrLabelRef == m_LabelRefTable.cend()) {
-			assert(false);		// Should also have a ref entry!
-			return strRetVal;
-		}
+	if ((nMCCode != MC_OPCODE) && (nMCCode != MC_ILLOP)) {
+		bool bGenDref = m_LabelTable[LT_DATA].contains(nAddress);
+		if (nMCCode == MC_EQUATE) bGenDref = bGenDref || m_LabelTable[LT_CODE].contains(nAddress);
+		if (bGenDref) {
+			CAddressTableMap::const_iterator itrLabelRef = m_LabelRefTable.find(nAddress);
+			if (itrLabelRef == m_LabelRefTable.cend()) {
+				assert(false);		// Should also have a ref entry!
+				return strRetVal;
+			}
 
-		if (itrLabelRef->second.size() != 0) {
-			if (bFlag) strRetVal += "; ";
-			strRetVal += "DRef: ";
-			bFlag = true;
-			for (CAddressArray::size_type i=0; i<itrLabelRef->second.size(); ++i) {
-				if (i != 0) strRetVal += ",";
-				std::ostringstream sstrTemp;
-				sstrTemp << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabelRef->second.at(i);
-				strRetVal += sstrTemp.str();
+			if (itrLabelRef->second.size() != 0) {
+				if (bFlag) strRetVal += "; ";
+				strRetVal += "DRef: ";
+				bFlag = true;
+				for (CAddressArray::size_type i=0; i<itrLabelRef->second.size(); ++i) {
+					if (i != 0) strRetVal += ",";
+					std::ostringstream sstrTemp;
+					sstrTemp << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabelRef->second.at(i);
+					strRetVal += sstrTemp.str();
+				}
 			}
 		}
 	}
@@ -1949,16 +2029,31 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 				assert(m_Memory.descriptor(m_PC) != DMEM_LOADED);		// Find Routines didn't find and analyze all memory!!  Fix it!
 				if (m_Memory.descriptor(m_PC) != DMEM_NOTLOADED) continue;		// Loaded addresses will get outputted during main part
 
-				CLabelTableMap::const_iterator itrLabels = m_LabelTable.find(m_PC);
-				if (itrLabels != m_LabelTable.cend()) {
-					saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-					for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
-						saOutLine[FC_LABEL] = FormatLabel(LC_EQUATE, itrLabels->second.at(i), m_PC);
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_EQUATE, m_PC);
-						saOutLine[FC_OPERANDS] = FormatOperands(MC_EQUATE, m_PC);
-						saOutLine[FC_COMMENT] = FormatComments(MC_EQUATE, m_PC);
-						outFile << MakeOutputLine(saOutLine) << "\n";
-					}
+				CLabelArray arrLabels;
+
+				// Combine the Code and Data equates, as equates are things not
+				//	in our images and can be either:
+				CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_CODE].find(m_PC);
+				if (itrLabels != m_LabelTable[LT_CODE].cend()) {
+					arrLabels.insert(arrLabels.end(), itrLabels->second.cbegin(), itrLabels->second.cend());
+				}
+
+				itrLabels = m_LabelTable[LT_DATA].find(m_PC);
+				if (itrLabels != m_LabelTable[LT_DATA].cend()) {
+					arrLabels.insert(arrLabels.end(), itrLabels->second.cbegin(), itrLabels->second.cend());
+				}
+
+				// Remove duplicates:
+				std::sort(arrLabels.begin(), arrLabels.end());
+				arrLabels.erase(std::unique(arrLabels.begin(), arrLabels.end()), arrLabels.end());
+
+				saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
+				for (CLabelArray::size_type i=0; i<arrLabels.size(); ++i) {
+					saOutLine[FC_LABEL] = FormatLabel(LC_EQUATE, arrLabels.at(i), m_PC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(MC_EQUATE, m_PC);
+					saOutLine[FC_OPERANDS] = FormatOperands(MC_EQUATE, m_PC);
+					saOutLine[FC_COMMENT] = FormatComments(MC_EQUATE, m_PC);
+					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
 			}
 		}
@@ -2126,8 +2221,8 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 		while ((m_PC < m_Memory.highestLogicalAddress()) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable.find(m_PC);
-			if (itrLabels != m_LabelTable.cend()) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_DATA].find(m_PC);
+			if (itrLabels != m_LabelTable[LT_DATA].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(LC_DATA, itrLabels->second.at(i), m_PC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2149,7 +2244,7 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
 						if (nCount >= m_nMaxNonPrint) bFlag = true;
-						if (m_LabelTable.contains(m_PC)) bFlag = true;
+						if (m_LabelTable[LT_DATA].contains(m_PC)) bFlag = true;
 						nDesc = static_cast<MEM_DESC>(m_Memory.descriptor(m_PC));
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						if (nDesc != DMEM_DATA) bFlag = true;
@@ -2170,7 +2265,7 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
 						if (nCount >= m_nMaxPrint) bFlag = true;
-						if (m_LabelTable.contains(m_PC)) bFlag = true;
+						if (m_LabelTable[LT_DATA].contains(m_PC)) bFlag = true;
 						if (m_Memory.descriptor(m_PC) != DMEM_PRINTDATA) bFlag = true;
 					}
 					// First, print a line of the output bytes for reference:
@@ -2319,8 +2414,8 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable.find(m_PC);
-			if (itrLabels != m_LabelTable.cend()) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[LT_CODE].find(m_PC);
+			if (itrLabels != m_LabelTable[LT_CODE].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(LC_CODE, itrLabels->second.at(i), m_PC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2520,11 +2615,11 @@ bool CDisassembler::IsAddressLoaded(TAddress nAddress, TSize nSize)
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::AddLabel(TAddress nAddress, bool bAddRef, TAddress nRefAddress, const TLabel & strLabel)
+bool CDisassembler::AddLabel(LABEL_TYPE nLabelType, TAddress nAddress, bool bAddRef, TAddress nRefAddress, const TLabel & strLabel)
 {
-	CLabelTableMap::iterator itrLabelTable = m_LabelTable.find(nAddress);
+	CLabelTableMap::iterator itrLabelTable = m_LabelTable[nLabelType].find(nAddress);
 	CAddressTableMap::iterator itrRefTable = m_LabelRefTable.find(nAddress);
-	if (itrLabelTable != m_LabelTable.end()) {
+	if (itrLabelTable != m_LabelTable[nLabelType].end()) {
 		if (itrRefTable == m_LabelRefTable.end()) {
 			assert(false);			// We should have an array for both label strings and addresses -- check adding!
 			return false;
@@ -2543,9 +2638,8 @@ bool CDisassembler::AddLabel(TAddress nAddress, bool bAddRef, TAddress nRefAddre
 			if (compareNoCase(strLabel, itrLabelTable->second.at(i)) == 0) return false;
 		}
 	} else {
-		assert(itrRefTable == m_LabelRefTable.end());		// If we don't have an entry in the label tabel, we shouldn't have any reference label table
-		m_LabelTable[nAddress] = CLabelArray();
-		itrLabelTable = m_LabelTable.find(nAddress);
+		m_LabelTable[nLabelType][nAddress] = CLabelArray();
+		itrLabelTable = m_LabelTable[nLabelType].find(nAddress);
 		m_LabelRefTable[nAddress] = CAddressArray();
 		itrRefTable = m_LabelRefTable.find(nAddress);
 		if (bAddRef) {				// If we are just now adding the label, we can add the ref without searching because it doesn't exist either
@@ -2607,14 +2701,14 @@ void CDisassembler::GenDataLabel(TAddress nAddress, TAddress nRefAddress, const 
 {
 	UNUSED(strLabel);
 	UNUSED(errFile);
-	if (AddLabel(nAddress, true, nRefAddress)) OutputGenLabel(nAddress, msgFile);
+	if (AddLabel(LT_DATA, nAddress, true, nRefAddress)) OutputGenLabel(nAddress, msgFile);
 }
 
 void CDisassembler::GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(strLabel);
-	if (AddLabel(nAddress, false, nRefAddress)) OutputGenLabel(nAddress, msgFile);
-	if (AddBranch(nAddress, true, nRefAddress) == false) {
+	if (AddLabel(LT_CODE, nAddress, false, nRefAddress)) OutputGenLabel(nAddress, msgFile);
+	if (!AddBranch(nAddress, true, nRefAddress)) {
 		if (errFile) {
 			if ((errFile == msgFile) || (m_LAdrDplyCnt != 0)) {
 				(*errFile) << "\n";
