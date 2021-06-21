@@ -666,6 +666,15 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 
 	TAddress nSavedPC;
 
+	if (m_PC % 2) {
+		if (errFile) {
+			(*errFile) << "\n     *** PC alignment error reading code @"
+						<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC
+						<< std::nouppercase << std::setbase(0) << ". Realigning.\n";
+		}
+		++m_PC;
+	}
+
 	m_sFunctionalOpcode.clear();
 
 	// Skip Opcode Examples:

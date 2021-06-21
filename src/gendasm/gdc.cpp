@@ -633,7 +633,10 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				break;
 			}
 			nAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
-			if (m_EntryTable.contains(nAddress)) {
+			if (!m_MemoryRanges[MT_ROM].empty() && !m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Entry address outside of ROM memory range";
+			} else if (m_EntryTable.contains(nAddress)) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate entry address";
 			}
@@ -1236,6 +1239,7 @@ bool CDisassembler::Disassemble(std::ostream *msgFile, std::ostream *errFile, st
 		if (msgFile) {
 			(*msgFile) << ((m_LAdrDplyCnt != 0) ? '\n' : ' ') << "\nPass 2 - Disassembling to Output File...\n";
 		}
+		m_LAdrDplyCnt = 0;
 		bRetVal = Pass2(*theOutput, msgFile, errFile);
 		if (!bRetVal) break;
 
@@ -1243,7 +1247,7 @@ bool CDisassembler::Disassemble(std::ostream *msgFile, std::ostream *errFile, st
 			if (*msgFile) {
 				(*msgFile) << ((m_LAdrDplyCnt != 0) ? '\n' : ' ') << "\nPass 3 - Creating Functions Output File...\n";
 			}
-
+			m_LAdrDplyCnt = 0;
 			bRetVal = Pass3(*theOutput, msgFile, errFile);
 			if (!bRetVal) break;
 		}
