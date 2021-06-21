@@ -17,11 +17,12 @@
 
 class CIntelDataFileConverter : virtual public CDataFileConverter {
 public:
-	virtual std::string GetLibraryName(void) const { return "intel"; }
-	virtual std::string GetShortDescription(void) const { return "Intel Hex Data File Converter"; }
-	virtual std::string GetDescription(void) const { return "Intel Hex Data File Converter"; }
+	virtual std::string GetLibraryName() const { return "intel"; }
+	virtual std::string GetShortDescription() const { return "Intel Hex Data File Converter"; }
+	virtual std::string GetDescription() const { return "Intel Hex Data File Converter"; }
+	virtual std::vector<std::string> GetLibraryNameAliases() const { return { "hex", "ihex" }; }
 
-	const char *DefaultExtension(void) const { return "hex"; }
+	const char *DefaultExtension() const { return "hex"; }
 
 	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const;
 

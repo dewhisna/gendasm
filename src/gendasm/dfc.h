@@ -35,19 +35,20 @@ class CDataFileConverter
 {
 public:
 	// GetLibraryName: Returns the basic name of the DFC Library, like "Intel", "Binary", etc.
-	virtual std::string GetLibraryName(void) const = 0;
+	virtual std::string GetLibraryName() const = 0;
+	virtual std::vector<std::string> GetLibraryNameAliases() const { return std::vector<std::string>(); }
 
 	// GetShortDescription: Returns the short description of the DFC Library, like "Intel Hex Data File Converter":
-	virtual std::string GetShortDescription(void) const = 0;
+	virtual std::string GetShortDescription() const = 0;
 
 	// GetDescription: Returns a long description of the DFC Library, with more details than short description:
-	virtual std::string GetDescription(void) const = 0;
+	virtual std::string GetDescription() const = 0;
 
 	// DefaultExtension:
 	//    This function returns a constant character string that represents
 	//    the default filename extension for the defined data file type.  This
 	//    is used by calling programs in open-file dialogs.
-	virtual const char * DefaultExtension(void) const
+	virtual const char * DefaultExtension() const
 	{
 		static const char * strDefaultExtension = "*";
 		return strDefaultExtension;

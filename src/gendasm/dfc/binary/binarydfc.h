@@ -18,11 +18,12 @@
 class CBinaryDataFileConverter : public CDataFileConverter
 {
 public:
-	virtual std::string GetLibraryName(void) const { return "binary"; }
-	virtual std::string GetShortDescription(void) const { return "Binary Data File Converter"; }
-	virtual std::string GetDescription(void) const { return "Binary Data File Converter"; }
+	virtual std::string GetLibraryName() const { return "binary"; }
+	virtual std::string GetShortDescription() const { return "Binary Data File Converter"; }
+	virtual std::string GetDescription() const { return "Binary Data File Converter"; }
+	virtual std::vector<std::string> GetLibraryNameAliases() const { return { "bin" }; }
 
-	virtual const char *DefaultExtension(void) const { return "bin"; }
+	virtual const char *DefaultExtension() const { return "bin"; }
 
 	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const;
 

@@ -33,6 +33,9 @@ const CDataFileConverter *CDataFileConverters::locateDFC(const std::string &strL
 {
 	for (unsigned int ndx = 0; ndx < size(); ++ndx) {
 		if (compareNoCase(strLibraryName, at(ndx)->GetLibraryName()) == 0) return at(ndx);
+		for (auto const & strAlias : at(ndx)->GetLibraryNameAliases()) {
+			if (compareNoCase(strLibraryName, strAlias) == 0) return at(ndx);
+		}
 	}
 	return nullptr;
 }

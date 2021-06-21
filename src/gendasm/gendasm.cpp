@@ -96,7 +96,12 @@ int main(int argc, char *argv[])
 		std::cout << std::endl;
 		std::cout << "Supported Data File Converters:" << std::endl;
 		for (auto const & itrDFCs : *CDataFileConverters::instance()) {
-			std::cout << "    " << itrDFCs->GetLibraryName() << " - " << itrDFCs->GetShortDescription() << std::endl;
+			CStringArray arrAliases = itrDFCs->GetLibraryNameAliases();
+			std::cout << "    " << itrDFCs->GetLibraryName() << " - " << itrDFCs->GetShortDescription();
+			if (!arrAliases.empty()) std::cout << " (" << itrDFCs->GetLibraryName();
+			for (auto const & strAlias : arrAliases) std::cout << ", " << strAlias;
+			if (!arrAliases.empty()) std::cout << ")";
+			std::cout << std::endl;
 		}
 		std::cout << std::endl;
 		return -1;
