@@ -18,21 +18,21 @@
 class CBinaryDataFileConverter : public CDataFileConverter
 {
 public:
-	virtual std::string GetLibraryName() const { return "binary"; }
-	virtual std::string GetShortDescription() const { return "Binary Data File Converter"; }
-	virtual std::string GetDescription() const { return "Binary Data File Converter"; }
-	virtual std::vector<std::string> GetLibraryNameAliases() const { return { "bin" }; }
+	virtual std::string GetLibraryName() const override { return "binary"; }
+	virtual std::string GetShortDescription() const override { return "Binary Data File Converter"; }
+	virtual std::string GetDescription() const override { return "Binary Data File Converter"; }
+	virtual std::vector<std::string> GetLibraryNameAliases() const override { return { "bin" }; }
 
-	virtual const char *DefaultExtension() const { return "bin"; }
+	virtual const char *DefaultExtension() const override { return "bin"; }
 
-	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const;
+	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const override;
 
 	virtual bool ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
-													TDescElement nDesc) const;
+													TDescElement nDesc) const override;
 
 	virtual bool WriteDataFile(std::ostream &aFile, const CMemRanges &aRange, TAddress nNewBase,
 													const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
-													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const;
+													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const override;
 };
 
 #endif   // BINDFC_H

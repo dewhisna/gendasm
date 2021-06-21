@@ -29,39 +29,39 @@ class CM6811Disassembler : public CDisassembler,
 public:
 	CM6811Disassembler();
 
-	virtual unsigned int GetVersionNumber() const;
-	virtual std::string GetGDCLongName() const;
-	virtual std::string GetGDCShortName() const;
+	virtual unsigned int GetVersionNumber() const override;
+	virtual std::string GetGDCLongName() const override;
+	virtual std::string GetGDCShortName() const override;
 
 protected:
-	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
-	virtual bool CompleteObjRead(bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
-	virtual bool CurrentOpcodeIsStop() const;
+	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool CompleteObjRead(bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool CurrentOpcodeIsStop() const override;
 
-	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
+	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual std::string FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
-	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);
+	virtual std::string FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
+	virtual std::string FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
+	virtual std::string FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
+	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
 
-	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);
+	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress) override;
 
-	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);
+	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual bool ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType);
+	virtual bool ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;
 
 	using CDisassembler::GenDataLabel;
 
-	virtual std::string GetExcludedPrintChars() const;
-	virtual std::string GetHexDelim() const;
-	virtual std::string GetCommentStartDelim() const;
-	virtual std::string	GetCommentEndDelim() const;
+	virtual std::string GetExcludedPrintChars() const override;
+	virtual std::string GetHexDelim() const override;
+	virtual std::string GetCommentStartDelim() const override;
+	virtual std::string	GetCommentEndDelim() const override;
 
-	virtual void clearOpMemory();
-	virtual size_t opcodeSymbolSize() const;
-	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue);
-	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues);
+	virtual void clearOpMemory() override;
+	virtual size_t opcodeSymbolSize() const override;
+	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue) override;
+	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues) override;
 
 	// --------------------------------
 
