@@ -90,8 +90,13 @@ int main(int argc, char *argv[])
 		std::cout << std::endl;
 		std::cout << "Valid <disassembler> types:" << std::endl;
 		for (auto const & itrDisassemblers : disassemblers) {
+			CStringArray arrMCUs = itrDisassemblers->GetMCUList();
 			std::cout << "    " << itrDisassemblers->GetGDCShortName() << " - " << itrDisassemblers->GetGDCLongName() <<
-						" (v" << formatDisassemblerVersion(itrDisassemblers->GetVersionNumber()) << ")" << std::endl;
+						" (v" << formatDisassemblerVersion(itrDisassemblers->GetVersionNumber()) << ")";
+			if (!arrMCUs.empty()) std::cout << " [MCUs:";
+			for (auto const & strMCU : arrMCUs) std::cout << " " << strMCU;
+			if (!arrMCUs.empty()) std::cout <<  "]";
+			std::cout << std::endl;
 		}
 		std::cout << std::endl;
 		std::cout << "Supported Data File Converters:" << std::endl;

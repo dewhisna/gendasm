@@ -399,6 +399,251 @@
 //	CAVRDisassembler
 // ----------------------------------------------------------------------------
 
+namespace {
+	struct TEntry
+	{
+		TAddress m_nAddress;
+		const std::string m_strLabel = std::string();
+		CAVRDisassembler::COMMENT_TYPE_FLAGS m_ctf = CAVRDisassembler::CTF_ALL;
+		const std::string m_strComment = std::string();
+	};
+
+	// ------------------------------------------------------------------------
+
+	// Code Entry Points (Interrupt Vectors):
+
+	const TEntry g_arrCodeEntryPoints_m328p[] = {
+		{ 0x0000, "RESET_vect" },
+		{ 0x0004, "INT0_vect" },
+		{ 0x0008, "INT1_vect" },
+		{ 0x000C, "PCINT0_vect" },
+		{ 0x0010, "PCINT1_vect" },
+		{ 0x0014, "PCINT2_vect" },
+		{ 0x0018, "WDT_vect" },
+		{ 0x001C, "TIMER2_COMPA_vect" },
+		{ 0x0020, "TIMER2_COMPB_vect" },
+		{ 0x0024, "TIMER2_OVF_vect" },
+		{ 0x0028, "TIMER1_CAPT_vect" },
+		{ 0x002C, "TIMER1_COMPA_vect" },
+		{ 0x0030, "TIMER1_COMPB_vect" },
+		{ 0x0034, "TIMER1_OVF_vect" },
+		{ 0x0038, "TIMER0_COMPA_vect" },
+		{ 0x003C, "TIMER0_COMPB_vect" },
+		{ 0x0040, "TIMER0_OVF_vect" },
+		{ 0x0044, "SPI0_STC_vect" },
+		{ 0x0048, "USART0_RX_vect" },
+		{ 0x004C, "USART0_UDRE_vect" },
+		{ 0x0050, "USART0_TX_vect" },
+		{ 0x0054, "ADC_vect" },
+		{ 0x0058, "EE_READY_vect" },
+		{ 0x005C, "ANALOG_COMP_vect" },
+		{ 0x0060, "TWI0_vect" },
+		{ 0x0064, "SPM_Ready_vect" },
+	};
+
+	const TEntry g_arrCodeEntryPoints_m328pb[] = {
+		{ 0x0068, "USART0_START_vect" },
+		{ 0x006C, "PCINT3_vect" },
+		{ 0x0070, "USART1_RX_vect" },
+		{ 0x0074, "USART1_UDRE_vect" },
+		{ 0x0078, "USART1_TX_vect" },
+		{ 0x007C, "USART1_START_vect" },
+		{ 0x0080, "TIMER3_CAPT_vect" },
+		{ 0x0084, "TIMER3_COMPA_vect" },
+		{ 0x0088, "TIMER3_COMPB_vect" },
+		{ 0x008C, "TIMER3_OVF_vect" },
+		{ 0x0090, "CFD_vect" },
+		{ 0x0094, "PTC_EOC_vect" },
+		{ 0x0098, "PTC_WCOMP_vect" },
+		{ 0x009C, "SPI1_STC_vect" },
+		{ 0x00A0, "TWI1_vect" },
+		{ 0x00A4, "TIMER4_CAPT_vect" },
+		{ 0x00A8, "TIMER4_COMPA_vect" },
+		{ 0x00AC, "TIMER4_COMPB_vect" },
+		{ 0x00B0, "TIMER4_OVF_vect" },
+	};
+
+	// ------------------------------------------------------------------------
+
+	// I/O Ports:
+
+	const TEntry g_arrIOPorts_m328p[] = {
+		// ----
+		{ 0x23, "PINB" },
+		{ 0x24, "DDRB" },
+		{ 0x25, "PORTB" },
+		{ 0x26, "PINC" },
+		{ 0x27, "DDRC" },
+		{ 0x28, "PORTC" },
+		{ 0x29, "PIND" },
+		{ 0x2A, "DDRD" },
+		{ 0x2B, "PORTD" },
+		// ----
+		{ 0x35, "TIFR0" },
+		{ 0x36, "TIFR1" },
+		{ 0x37, "TIFR2" },
+		// ----
+		{ 0x3B, "PCIFR" },
+		{ 0x3C, "EIFR" },
+		{ 0x3D, "EIMSK" },
+		{ 0x3E, "GPIOR0" },
+		{ 0x3F, "EECR" },
+		{ 0x40, "EEDR" },
+		{ 0x41, "EEADL" },
+		{ 0x42, "EEADH" },
+		{ 0x43, "GTCCR" },
+		{ 0x44, "TCCR0A" },
+		{ 0x45, "TCCR0B" },
+		{ 0x46, "TCNT0" },
+		{ 0x47, "OCRA0" },
+		{ 0x47, "OCRB0" },
+		// ----
+		{ 0x4A, "GPIOR1" },
+		{ 0x4B, "GPIOR2" },
+		{ 0x4C, "SPCR0" },
+		{ 0x4D, "SPSR0" },
+		{ 0x4E, "SPDR0" },
+		// ----
+		{ 0x50, "ACSR" },
+		// ----
+		{ 0x53, "SMCR" },
+		{ 0x54, "MCUSR" },
+		{ 0x55, "MCUCR" },
+		// ----
+		{ 0x57, "SPMCSR" },
+		// ----
+		{ 0x5D, "SPL" },
+		{ 0x5E, "SPH" },
+		{ 0x5F, "SREG" },
+		// xxxx -- start extended space
+		{ 0x60, "WDTCSR" },
+		{ 0x61, "CLKPR" },
+		// ----
+		{ 0x64, "PRR0" },
+		// ----
+		{ 0x66, "OSCCAL" },
+		// ----
+		{ 0x68, "PCICR" },
+		{ 0x69, "EICRA" },
+		// ----
+		{ 0x6B, "PCMSK0" },
+		{ 0x6C, "PCMSK1" },
+		{ 0x6D, "PCMSK2" },
+		{ 0x6E, "TIMSK0" },
+		{ 0x6F, "TIMSK1" },
+		{ 0x70, "TIMSK2" },
+		// ----
+		{ 0x78, "ADCL" },
+		{ 0x79, "ADCH" },
+		{ 0x7A, "ADCSRA" },
+		{ 0x7B, "ADCSRB" },
+		{ 0x7C, "ADMUX" },
+		// ----
+		{ 0x7E, "DIDR0" },
+		{ 0x7F, "DIDR1" },
+		{ 0x80, "TCCR1A" },
+		{ 0x81, "TCCR1B" },
+		{ 0x82, "TCCR1C" },
+		// ----
+		{ 0x84, "TCNT1L" },
+		{ 0x85, "TCNT1H" },
+		{ 0x86, "ICR1L" },
+		{ 0x87, "ICR1H" },
+		{ 0x88, "OCR1AL" },
+		{ 0x89, "OCR1AH" },
+		{ 0x8A, "OCR1BL" },
+		{ 0x8B, "OCR1BH" },
+		// ----
+		{ 0xB0, "TCCR2A" },
+		{ 0xB1, "TCCR2B" },
+		{ 0xB2, "TCNT2" },
+		{ 0xB3, "OCR2A" },
+		{ 0xB4, "OCR2B" },
+		// ----
+		{ 0xB6, "ASSR" },
+		// ----
+		{ 0xB8, "TWBR0" },
+		{ 0xB9, "TWSR0" },
+		{ 0xBA, "TWAR0" },
+		{ 0xBB, "TWDR0" },
+		{ 0xBC, "TWCR0" },
+		{ 0xBD, "TWAMR0" },
+		// ----
+		{ 0xC0, "UCSR0A" },
+		{ 0xC1, "UCSR0B" },
+		{ 0xC2, "UCSR0C" },
+		// ----
+		{ 0xC4, "UBRR0L" },
+		{ 0xC5, "UBRR0H" },
+		{ 0xC6, "UDR0" },
+	};
+
+	const TEntry g_arrIOPorts_m328pb[] = {
+		// ----
+		{ 0x2C, "PINE" },
+		{ 0x2D, "DDRE" },
+		{ 0x2E, "PORTE" },
+		// ----
+		{ 0x38, "TIFR3" },
+		{ 0x39, "TIFR4" },
+		// ----
+		{ 0x51, "DWDR" },
+		// xxxx -- start extended space
+		{ 0x62, "XFDCSR" },
+		// ----
+		{ 0x65, "PRR1" },
+		// ----
+		{ 0x71, "TIMSK3" },
+		{ 0x72, "TIMSK4" },
+		{ 0x73, "PCMSK3" },
+		// ----
+		{ 0x90, "TCCR3A" },
+		{ 0x91, "TCCR3B" },
+		{ 0x92, "TCCR3C" },
+		// ----
+		{ 0x94, "TCNT3L" },
+		{ 0x95, "TCNT3H" },
+		{ 0x96, "ICR3L" },
+		{ 0x97, "ICR3H" },
+		{ 0x98, "OCR3AL" },
+		{ 0x99, "OCR3AH" },
+		{ 0x9A, "OCR3BL" },
+		{ 0x9B, "OCR3BH" },
+		// ----
+		{ 0xA0, "TCCR4A" },
+		{ 0xA1, "TCCR4B" },
+		{ 0xA2, "TCCR4C" },
+		// ----
+		{ 0xA4, "TCNT4L" },
+		{ 0xA5, "TCNT4H" },
+		{ 0xA6, "ICR4L" },
+		{ 0xA7, "ICR4H" },
+		{ 0xA8, "OCR4AL" },
+		{ 0xA9, "OCR4AH" },
+		{ 0xAA, "OCR4BL" },
+		{ 0xAB, "OCR4BH" },
+		{ 0xAC, "SPCR1" },
+		{ 0xAD, "SPSR1" },
+		{ 0xAE, "SPDR1" },
+		// ----
+		{ 0xC7, "UDR1" },
+		{ 0xC8, "UCSR1A" },
+		{ 0xC9, "UCSR1B" },
+		{ 0xCA, "UCSR1C" },
+		// ----
+		{ 0xCC, "UBRR1L" },
+		{ 0xCD, "UBRR1H" },
+		// ----
+		{ 0xD8, "TWBR1" },
+		{ 0xD9, "TWSR1" },
+		{ 0xDA, "TWAR1" },
+		{ 0xDB, "TWDR1" },
+		{ 0xDC, "TWCR1" },
+		{ 0xDD, "TWAMR1" },
+	};
+};
+
+
 bool CAVRDisassembler::isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
 										 const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory)
 {
@@ -610,18 +855,12 @@ CAVRDisassembler::CAVRDisassembler()
 
 	m_bAllowMemRangeOverlap = true;
 
-	// TODO : Allow for various CPU types and associated memory layouts.
-	//		For now just use ATmega328PB
-	m_Memory[MT_ROM].push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x8000ul, 0, DMEM_NOTLOADED });	// 32K of code memory available to processor as one block
-
 	// Add Data Labels for memmap of registers:
 	for (unsigned int nReg = 0; nReg < 32; ++nReg) {
 		char buf[10];
 		std::sprintf(buf, "R%u", nReg);
 		AddLabel(MT_IO, nReg, false, 0, buf);
 	}
-
-	// TODO : Add I/O register names in memmap space (are they per CPU type?)
 }
 
 // ----------------------------------------------------------------------------
@@ -639,6 +878,74 @@ std::string CAVRDisassembler::GetGDCLongName() const
 std::string CAVRDisassembler::GetGDCShortName() const
 {
 	return "AVR";
+}
+
+// ----------------------------------------------------------------------------
+
+CStringArray CAVRDisassembler::GetMCUList() const
+{
+	return { "m328p", "m328pb" };
+}
+
+bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
+{
+	if (!contains(GetMCUList(), strMCUName)) return false;
+
+	// Common details:
+	if ((compareNoCase(strMCUName, "m328p") == 0) ||
+		(compareNoCase(strMCUName, "m328pb") == 0)) {
+		// TODO : Switch to per-load memory blocks
+		if (m_Memory[MT_ROM].empty()) {
+			m_Memory[MT_ROM].push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x8000ul, 0, DMEM_NOTLOADED });	// 32K of code memory available to processor as one block
+		}
+
+		// Entry Points:
+		for (auto const & entry : g_arrCodeEntryPoints_m328p) {
+			assert(ValidateLabelName(entry.m_strLabel));
+			if (!m_EntryTable.contains(entry.m_nAddress)) {
+				m_EntryTable.insert(entry.m_nAddress);
+				AddLabel(MT_ROM, entry.m_nAddress, false, 0, entry.m_strLabel);
+				if (!entry.m_strComment.empty()) {
+					AddComment(MT_ROM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
+				}
+			}
+		}
+
+		// I/O Ports:
+		for (auto const & entry : g_arrIOPorts_m328p) {
+			assert(ValidateLabelName(entry.m_strLabel));
+			AddLabel(MT_IO, entry.m_nAddress, false, 0, entry.m_strLabel);
+			if (!entry.m_strComment.empty()) {
+				AddComment(MT_IO, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
+			}
+		}
+	}
+
+	// m328pb specific:
+	if (compareNoCase(strMCUName, "m328pb") == 0) {
+		// Entry Points:
+		for (auto const & entry : g_arrCodeEntryPoints_m328pb) {
+			assert(ValidateLabelName(entry.m_strLabel));
+			if (!m_EntryTable.contains(entry.m_nAddress)) {
+				m_EntryTable.insert(entry.m_nAddress);
+				AddLabel(MT_ROM, entry.m_nAddress, false, 0, entry.m_strLabel);
+				if (!entry.m_strComment.empty()) {
+					AddComment(MT_ROM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
+				}
+			}
+		}
+
+		// I/O Ports:
+		for (auto const & entry : g_arrIOPorts_m328pb) {
+			assert(ValidateLabelName(entry.m_strLabel));
+			AddLabel(MT_IO, entry.m_nAddress, false, 0, entry.m_strLabel);
+			if (!entry.m_strComment.empty()) {
+				AddComment(MT_IO, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
+			}
+		}
+	}
+
+	return true;
 }
 
 // ----------------------------------------------------------------------------

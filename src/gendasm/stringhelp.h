@@ -15,8 +15,14 @@
 #include <cctype>
 #include <locale>
 #include <string_view>
+#include <vector>
 
 // ============================================================================
+
+static inline bool contains(const std::vector<std::string> &arr, const std::string &s)
+{
+	return (std::find(arr.cbegin(), arr.cend(), s) != arr.cend());
+}
 
 // trim from start
 static inline std::string &ltrim(std::string &s)

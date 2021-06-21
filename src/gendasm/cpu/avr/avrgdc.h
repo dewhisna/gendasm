@@ -100,6 +100,9 @@ public:
 	virtual std::string GetGDCLongName() const override;
 	virtual std::string GetGDCShortName() const override;
 
+	virtual CStringArray GetMCUList() const override;
+	virtual bool SetMCU(const std::string &strMCUName) override;
+
 	// --------------------------------
 
 	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;

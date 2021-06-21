@@ -61,6 +61,7 @@ namespace {
 		CCE_EXITFUNCTION,
 		CCE_MEMMAP,
 		CCE_COMMENT,
+		CCE_MCU,
 	};
 
 	enum OUTPUT_TYPE_ENUM {
@@ -91,6 +92,7 @@ namespace {
 		{ "^EXITFUNCTION$", CCE_EXITFUNCTION },
 		{ "^MEMMAP$", CCE_MEMMAP },
 		{ "^COMMENT$", CCE_COMMENT },
+		{ "^MCU|CPU$", CCE_MCU },
 	};
 
 	static const TKeywordMap g_mapParseTrueFalse = {
@@ -175,6 +177,19 @@ CDisassembler::~CDisassembler()
 unsigned int CDisassembler::GetVersionNumber() const
 {
 	return (VERSION << 16);
+}
+
+// ----------------------------------------------------------------------------
+
+CStringArray CDisassembler::GetMCUList() const
+{
+	return CStringArray();
+}
+
+bool CDisassembler::SetMCU(const std::string &strMCUName)
+{
+	UNUSED(strMCUName);
+	return false;
 }
 
 // ----------------------------------------------------------------------------
@@ -1050,6 +1065,26 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			break;
 		}
+		case CCE_MCU:			// MCU <mcu>
+								// CPU <mcu>
+								//	Where <mcu> is GDC specific MPU subtype, like "m328pb", for example
+			if (argv.size() != 2) {
+				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
+				break;
+			}
+			if (!contains(GetMCUList(), argv.at(1))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Invalid MCU type \"" + argv.at(1) + "\" specified";
+			} else if (!SetMCU(argv.at(1))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Failed to set MCU type \"" + argv.at(1) + "\" specified";
+			} else {
+				if (msgFile) {
+					(*msgFile) << "Selected MCU and predefined labels and entry points for: " << argv.at(1) << "\n";
+				}
+			}
+			break;
+
 		default:
 			m_ParseError = "*** Error: Unknown command";
 			return false;
