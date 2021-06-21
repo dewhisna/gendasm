@@ -451,8 +451,6 @@ CM6811Disassembler::CM6811Disassembler()
 	m_Opcodes.AddOpcode({ { 0xFD }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "std" });
 	m_Opcodes.AddOpcode({ { 0xFE }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "ldx" });
 	m_Opcodes.AddOpcode({ { 0xFF }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "stx" });
-
-	m_Memory[MT_ROM].push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x10000ul, 0x00 });	// 64K of memory available to processor as one block
 }
 
 // ----------------------------------------------------------------------------

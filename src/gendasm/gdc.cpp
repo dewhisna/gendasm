@@ -1142,7 +1142,17 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 			++m_nFilesLoaded;
 			m_sInputFileList.push_back(strFilename);
 			try {
+				CMemRanges ranges;
+				if (!pDFC->RetrieveFileMapping(theFile, nLoadAddress, ranges)) {
+					if (errFile) {
+						(*errFile) << "*** Unable to completely retrieve the file mapping for \"" << strFilename << "\"\n";
+					}
+				}
+
 				// TODO : Allow reading of other memory types?
+				// TODO : Allow different physical/logical range offsets and different fill values:
+				m_Memory[MT_ROM].initFromRanges(ranges, 0, true, 0, DMEM_NOTLOADED);
+
 				bStatus = pDFC->ReadDataFile(theFile, nLoadAddress, m_Memory[MT_ROM], DMEM_LOADED);
 			}
 			catch (const EXCEPTION_ERROR &aErr) {
@@ -1272,7 +1282,7 @@ bool CDisassembler::Disassemble(std::ostream *msgFile, std::ostream *errFile, st
 		if (!bRetVal) break;
 
 		if (msgFile) {
-			(*msgFile) << ((m_LAdrDplyCnt != 0) ? '\n' : ' ') << "\nPass 2 - Disassembling to Output File...\n";
+			(*msgFile) << "\n\nPass 2 - Disassembling to Output File...\n";
 		}
 		m_LAdrDplyCnt = 0;
 		bRetVal = Pass2(*theOutput, msgFile, errFile);
@@ -1280,7 +1290,7 @@ bool CDisassembler::Disassemble(std::ostream *msgFile, std::ostream *errFile, st
 
 		if (!m_sFunctionsFilename.empty()) {
 			if (*msgFile) {
-				(*msgFile) << ((m_LAdrDplyCnt != 0) ? '\n' : ' ') << "\nPass 3 - Creating Functions Output File...\n";
+				(*msgFile) << "\n\nPass 3 - Creating Functions Output File...\n";
 			}
 			m_LAdrDplyCnt = 0;
 			bRetVal = Pass3(*theOutput, msgFile, errFile);
@@ -1662,8 +1672,16 @@ bool CDisassembler::FindCode(std::ostream *msgFile, std::ostream *errFile)
 	TAddress nHighestAddress = m_Memory[MT_ROM].highestLogicalAddress();
 
 	while (!bDoneFlag) {
-		// If m_PC is in an area of memory that doesn't exist, find next address inside memory:
-		while (!m_Memory[MT_ROM].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;
+		// See if m_PC is in an area of memory that doesn't exist:
+		if (!m_Memory[MT_ROM].containsAddress(m_PC)) {
+			if (m_bSpitFlag) {
+				// In spit mode, find next address inside memory:
+				while (!m_Memory[MT_ROM].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;
+			} else {
+				bDoneFlag = true;			// We are done with this find if there's nothing here in memory
+				continue;
+			}
+		}
 		if (m_PC > nHighestAddress) {
 			bDoneFlag = true;				// If we run out of memory, we are done
 			continue;

@@ -894,11 +894,6 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 	// Common details:
 	if ((compareNoCase(strMCUName, "m328p") == 0) ||
 		(compareNoCase(strMCUName, "m328pb") == 0)) {
-		// TODO : Switch to per-load memory blocks
-		if (m_Memory[MT_ROM].empty()) {
-			m_Memory[MT_ROM].push_back(CMemBlock{ 0x0ul, 0x0ul, true, 0x8000ul, 0, DMEM_NOTLOADED });	// 32K of code memory available to processor as one block
-		}
-
 		// Entry Points:
 		for (auto const & entry : g_arrCodeEntryPoints_m328p) {
 			assert(ValidateLabelName(entry.m_strLabel));
