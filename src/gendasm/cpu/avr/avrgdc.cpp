@@ -923,6 +923,9 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 		}
 
 		m_strDevice = "ATmega328P";
+
+		// Memory Mapping:
+		m_Memory[MT_RAM].push_back(CMemBlock{ 0x100ul, 0x100ul, true, 0x800ul, 0, DMEM_DATA });
 	}
 
 	// m328pb specific:
@@ -963,7 +966,7 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std::ostream *msgFile, std::ostream *errFile)
 {
 	// Here, we'll read the next object code from memory and flag the memory as being
 	//	code, unless an illegal opcode is encountered whereby it will be flagged as
@@ -979,8 +982,6 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 	// If bTagMemory is false, then memory descriptors aren't changed!  This is useful
 	//	if on-the-fly disassembly is desired without modifying the descriptors, such
 	//	as in pass 2 of the disassembly process.
-
-	const MEMORY_TYPE nMemType = MT_ROM;
 
 	TAVRDisassembler::TOpcodeSymbol nFirstWord;
 
@@ -1013,10 +1014,10 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 	assert(sizeof(nFirstWord) == 2);
 	assert(sizeof(decltype(m_OpMemory)::value_type) == 2);
 	assert(opcodeSymbolSize() == 2);
-	nFirstWord = m_Memory[nMemType].element(m_PC) | (m_Memory[nMemType].element(m_PC+1) << 8);		// Opcodes are words and are little endian
+	nFirstWord = m_Memory[nMemoryType].element(m_PC) | (m_Memory[nMemoryType].element(m_PC+1) << 8);		// Opcodes are words and are little endian
 	m_PC += opcodeSymbolSize();
 	m_OpMemory.clear();
-	if (!IsAddressLoaded(nMemType, m_PC-opcodeSymbolSize(), opcodeSymbolSize())) return false;
+	if (!IsAddressLoaded(nMemoryType, m_PC-opcodeSymbolSize(), opcodeSymbolSize())) return false;
 
 	bool bOpcodeFound = false;
 	for (TOpcodeTable_type::const_iterator itrOpcode = m_Opcodes.cbegin(); (!bOpcodeFound && (itrOpcode != m_Opcodes.cend())); ++itrOpcode) {
@@ -1027,9 +1028,9 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 
 		bool bMatch = true;
 		for (COpcodeSymbolArray_type::size_type ndx = 1; (bMatch && (ndx < itrOpcode->opcode().size())); ++ndx) {
-			TAVRDisassembler::TOpcodeSymbol nNextWord = m_Memory[nMemType].element(m_PC + (ndx-1)*opcodeSymbolSize()) |
-														(m_Memory[nMemType].element(m_PC + (ndx-1)*opcodeSymbolSize() + 1) << 8);
-			if (!IsAddressLoaded(nMemType, m_PC + (ndx-1)*opcodeSymbolSize(), opcodeSymbolSize())) {
+			TAVRDisassembler::TOpcodeSymbol nNextWord = m_Memory[nMemoryType].element(m_PC + (ndx-1)*opcodeSymbolSize()) |
+														(m_Memory[nMemoryType].element(m_PC + (ndx-1)*opcodeSymbolSize() + 1) << 8);
+			if (!IsAddressLoaded(nMemoryType, m_PC + (ndx-1)*opcodeSymbolSize(), opcodeSymbolSize())) {
 				bMatch = false;
 				continue;
 			}
@@ -1052,7 +1053,7 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 	if (!bOpcodeFound) {
 		if (bTagMemory) {
 			for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
-				m_Memory[nMemType].setDescriptor(m_PC-opcodeSymbolSize()+ndx, DMEM_ILLEGALCODE);
+				m_Memory[nMemoryType].setDescriptor(m_PC-opcodeSymbolSize()+ndx, DMEM_ILLEGALCODE);
 			}
 		}
 		return false;
@@ -1064,14 +1065,14 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 	nSavedPC = m_PC;	// Remember m_PC in case we have to undo things (remember, m_PC has already been incremented by 2)!!
 	m_PC += (m_OpMemory.size()-1)*opcodeSymbolSize();		// minus 1 because we already did the first symbol above
 
-	if (!CompleteObjRead(true, msgFile, errFile))  {
+	if (!CompleteObjRead(nMemoryType, true, msgFile, errFile))  {
 		// Undo things here:
 		m_OpMemory.clear();
 		m_OpMemory.push_back(nFirstWord);		// Keep only the first word in OpMemory for illegal opcode id
 		m_PC = nSavedPC;
 		if (bTagMemory) {
 			for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
-				m_Memory[nMemType].setDescriptor(m_PC-opcodeSymbolSize()+ndx, DMEM_ILLEGALCODE);
+				m_Memory[nMemoryType].setDescriptor(m_PC-opcodeSymbolSize()+ndx, DMEM_ILLEGALCODE);
 			}
 		}
 		return false;
@@ -1085,7 +1086,7 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {		// CompleteObjRead may add words to OpMemory, so we simply have to flag memory for that many bytes.  m_PC is already incremented by CompleteObjRead
 		if (bTagMemory) {
 			for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
-				m_Memory[nMemType].setDescriptor(nSavedPC+ndx, DMEM_CODE);
+				m_Memory[nMemoryType].setDescriptor(nSavedPC+ndx, DMEM_CODE);
 			}
 		}
 		nSavedPC += opcodeSymbolSize();
@@ -1094,12 +1095,10 @@ bool CAVRDisassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::
 	return true;
 }
 
-bool CAVRDisassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels, std::ostream *msgFile, std::ostream *errFile)
 {
 	// Procedure to finish reading any additional operand data from memory into m_OpMemory.
 	//	Plus branch/labels and data/labels are generated (according to function).
-
-	const MEMORY_TYPE nMemType = MT_ROM;
 
 	char strTemp[10];
 
@@ -1113,11 +1112,11 @@ bool CAVRDisassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile, s
 	m_sFunctionalOpcode = strTemp;
 
 	// Add reference labels to this opcode to the function:
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemType].find(m_nStartPC);
-	if (itrLabel != m_LabelTable[nMemType].cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(m_nStartPC);
+	if (itrLabel != m_LabelTable[nMemoryType].cend()) {
 		for (CLabelArray::size_type i=0; i<itrLabel->second.size(); ++i) {
 			if (i != 0) m_sFunctionalOpcode += ",";
-			m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabel->second.at(i), m_nStartPC);
+			m_sFunctionalOpcode += FormatLabel(nMemoryType, LC_REF, itrLabel->second.at(i), m_nStartPC);
 		}
 	}
 
@@ -1147,9 +1146,9 @@ bool CAVRDisassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile, s
 	if (!DecodeOpcode(bAddLabels, msgFile, errFile)) return false;
 
 	m_sFunctionalOpcode += "|";
-	m_sFunctionalOpcode += FormatMnemonic(nMemType, MC_OPCODE, m_nStartPC);
+	m_sFunctionalOpcode += FormatMnemonic(nMemoryType, MC_OPCODE, m_nStartPC);
 	m_sFunctionalOpcode += "|";
-	m_sFunctionalOpcode += FormatOperands(nMemType, MC_OPCODE, m_nStartPC);
+	m_sFunctionalOpcode += FormatOperands(nMemoryType, MC_OPCODE, m_nStartPC);
 
 //
 // This case is now covered in DecodeOpcode??
@@ -1171,22 +1170,20 @@ bool CAVRDisassembler::CurrentOpcodeIsStop() const
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::RetrieveIndirect(std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::RetrieveIndirect(MEMORY_TYPE nMemoryType, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	MEM_DESC b1d, b2d;
 
 	m_OpMemory.clear();
-	m_OpMemory.push_back(m_Memory[nMemType].element(m_PC));
-	m_OpMemory.push_back(m_Memory[nMemType].element(m_PC+1));
+	m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
+	m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC+1));
 	// We'll assume all indirects are little endian and are 2-bytes in length,
 	//	though someday we may need support for 22-bit addresses.
-	b1d = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
-	b2d = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC+1));
+	b1d = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
+	b2d = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC+1));
 	if (((b1d != DMEM_CODEINDIRECT) && (b1d != DMEM_DATAINDIRECT)) ||
 		((b2d != DMEM_CODEINDIRECT) && (b2d != DMEM_DATAINDIRECT))) {
 		m_PC += 2;
@@ -1215,19 +1212,21 @@ std::string CAVRDisassembler::FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CO
 
 	std::ostringstream sstrTemp;
 
-	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
-		if (i) sstrTemp << " ";
-		if (nMCCode != MC_OPCODE) {		// MC_OPCODE will be words on AVR, everything else will be bytes here:
-			sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i))
-						<< std::nouppercase << std::setbase(0);
-		} else {
-			sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i) & 0xFF)
-						<< std::nouppercase << std::setbase(0);
+	if (nMemoryType == MT_ROM) {
+		for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+			if (i) sstrTemp << " ";
+			if (nMCCode != MC_OPCODE) {		// MC_OPCODE will be words on AVR, everything else will be bytes here:
+				sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i))
+							<< std::nouppercase << std::setbase(0);
+			} else {
+				sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_OpMemory.at(i) & 0xFF)
+							<< std::nouppercase << std::setbase(0);
 
-			sstrTemp << " ";
+				sstrTemp << " ";
 
-			sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>((m_OpMemory.at(i) >> 8) & 0xFF)
-						<< std::nouppercase << std::setbase(0);
+				sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>((m_OpMemory.at(i) >> 8) & 0xFF)
+							<< std::nouppercase << std::setbase(0);
+			}
 		}
 	}
 	return sstrTemp.str();
@@ -1235,7 +1234,6 @@ std::string CAVRDisassembler::FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CO
 
 std::string CAVRDisassembler::FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
-	UNUSED(nMemoryType);
 	UNUSED(nStartAddress);
 
 	switch (nMCCode) {
@@ -1246,9 +1244,13 @@ std::string CAVRDisassembler::FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_C
 		case MC_EQUATE:
 			return "=";
 		case MC_DATABYTE:
-			return ".db";
 		case MC_ASCII:
-			return ".db";
+			if (nMemoryType == MT_ROM) {
+				return ".db";
+			} else if (nMemoryType == MT_RAM) {
+				return ".byte";
+			}
+			break;
 		case MC_INDIRECT:
 			return ".dw";
 		default:
@@ -1276,30 +1278,38 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			break;
 		case MC_DATABYTE:
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
-				if (i != 0) strOpStr += ",";
-				std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), m_OpMemory.at(i));
+			if (nMemoryType == MT_ROM) {
+				for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+					if (i != 0) strOpStr += ",";
+					std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), m_OpMemory.at(i));
+					strOpStr += strTemp;
+				}
+			} else if (nMemoryType == MT_RAM) {
+				std::sprintf(strTemp, "%lu", m_OpMemory.size());
 				strOpStr += strTemp;
 			}
 			break;
 		case MC_ASCII:
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			if (m_OpMemory.empty()) {
-				assert(false);
-				break;
-			}
-			if (m_OpMemory.size() > 1) {		// Do multiple characters as string instead of characters:
-				strOpStr += "\"";
-				for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
-					std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(i)));
-					strOpStr += strTemp;
+			if (nMemoryType == MT_ROM) {
+				if (!m_OpMemory.empty()) {
+					if (m_OpMemory.size() > 1) {		// Do multiple characters as string instead of characters:
+						strOpStr += "\"";
+						for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+							std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(i)));
+							strOpStr += strTemp;
+						}
+						strOpStr += "\"";
+					} else {							// Single character output
+						strOpStr += DataDelim;
+						std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(0)));
+						strOpStr += strTemp;
+						strOpStr += DataDelim;
+					}
 				}
-				strOpStr += "\"";
-			} else {							// Single character output
-				strOpStr += DataDelim;
-				std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(0)));
+			} else if (nMemoryType == MT_RAM) {
+				std::sprintf(strTemp, "%lu", m_OpMemory.size());
 				strOpStr += strTemp;
-				strOpStr += DataDelim;
 			}
 			break;
 		case MC_EQUATE:
@@ -1469,17 +1479,28 @@ bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile,
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::WritePreSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(msgFile);
 	UNUSED(errFile);
+
+	if (nMemoryType == MT_IO) return true;
 
 	CStringArray saOutLine;
 	char strTemp[30];
 
 	ClearOutputLine(saOutLine);
 	saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-	saOutLine[FC_MNEMONIC] = ".cseg";
+	switch (nMemoryType) {
+		case MT_ROM:
+			saOutLine[FC_MNEMONIC] = ".cseg";
+			break;
+		case MT_RAM:
+			saOutLine[FC_MNEMONIC] = ".dseg";
+			break;
+		default:
+			break;
+	}
 	std::sprintf(strTemp, "CODE%d\t(ABS)", ++m_nSectionCount);
 	saOutLine[FC_OPERANDS] = strTemp;
 	outFile << MakeOutputLine(saOutLine) << "\n";
@@ -1497,7 +1518,7 @@ bool CAVRDisassembler::WritePreSection(std::ostream& outFile, std::ostream *msgF
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	// Override needed because the lines in the data sections for AVR must
 	//	keep processor alignment for code -- i.e. they must be a multiple
@@ -1525,27 +1546,28 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 	CMemoryArray maTempOpMemoryData;	// Data-only bytes
 	CMemoryArray maTempOpMemoryAscii;	// ASCII-only bytes
 
-	const MEMORY_TYPE nMemType = MT_ROM;
+	size_t nSymbolSize = ((nMemoryType == MT_ROM) ? opcodeSymbolSize() : 1);
+	int nMaxNonPrint = ((nMemoryType == MT_ROM) ? m_nMaxNonPrint : m_Memory[nMemoryType].totalMemorySize());
 
 	ClearOutputLine(saOutLine);
 
-	bRetVal = WritePreDataSection(outFile, msgFile, errFile);
+	bRetVal = WritePreDataSection(nMemoryType, outFile, msgFile, errFile);
 	if (bRetVal) {
 		bDone = false;
-		while ((m_PC < m_Memory[nMemType].highestLogicalAddress()) && !bDone && bRetVal) {
+		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
-			if (itrLabels != m_LabelTable[nMemType].cend()) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
+			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_DATA, itrLabels->second.at(i), m_PC);
+					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_DATA, itrLabels->second.at(0), m_PC);
+				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
 			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
-			nDesc = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
+			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 			nLastDesc = nDesc;
 			switch (nDesc) {
 				case DMEM_DATA:
@@ -1561,13 +1583,13 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 					nIntermediatePC = m_PC;
 					while (!bFlag) {
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
-						nDesc = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
+						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 
-						maTempOpMemory.push_back(m_Memory[nMemType].element(m_PC));
+						maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
 						if (nDesc == DMEM_DATA) {
-							maTempOpMemoryData.push_back(m_Memory[nMemType].element(m_PC));
+							maTempOpMemoryData.push_back(m_Memory[nMemoryType].element(m_PC));
 						} else {
-							maTempOpMemoryAscii.push_back(m_Memory[nMemType].element(m_PC));
+							maTempOpMemoryAscii.push_back(m_Memory[nMemoryType].element(m_PC));
 							bHadAscii = true;
 						}
 
@@ -1577,10 +1599,10 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 							pushBackOpMemory(nIntermediatePC, arrData);
 							if (m_bDataOpBytesFlag) {
 								if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
-								saOutLine[FC_OPBYTES] += FormatOpBytes(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+								saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
 							}
 							if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
-							saOutLine[FC_OPERANDS] += FormatOperands(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+							saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
 							bFirstOutput = false;
 							nIntermediatePC += arrData.size();
 							arrData.clear();
@@ -1591,15 +1613,16 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 						++m_PC;
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
-						if (!bHadAscii && (nCount >= m_nMaxNonPrint) && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
-						if (bHadAscii && (nCount >= m_nMaxPrint) && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
-						if (m_LabelTable[nMemType].contains(m_PC) && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
+						if (!bHadAscii && (nCount >= nMaxNonPrint) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
+						if (bHadAscii && (nCount >= m_nMaxPrint) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
+						if (m_LabelTable[nMemoryType].contains(m_PC) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
 						// First transition from data->ascii on the correct boundary will trigger a break:
-						if ((nDesc == DMEM_DATA) && bTransitionBreak && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
+						if ((nDesc == DMEM_DATA) && bTransitionBreak && ((m_PC % nSymbolSize) == 0)) bFlag = true;
+						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;
 					}
 
 					// First, print a line of the output bytes for reference:
-					if (m_bAsciiBytesFlag && bHadAscii) {
+					if (m_bAsciiBytesFlag && bHadAscii && (nMemoryType == MT_ROM)) {
 						CStringArray saAsciiLine;
 						ClearOutputLine(saAsciiLine);
 
@@ -1607,7 +1630,7 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 						pushBackOpMemory(nSavedPC, maTempOpMemory);
 						saAsciiLine[FC_LABEL] = GetCommentStartDelim() + " " + saOutLine[FC_LABEL] +
 												((!saOutLine[FC_LABEL].empty()) ? " " : "") +
-												FormatOperands(nMemType, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
+												FormatOperands(nMemoryType, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
 						saAsciiLine[FC_ADDRESS] = FormatAddress(nSavedPC);
 						outFile << MakeOutputLine(saAsciiLine) << "\n";
 					}
@@ -1620,10 +1643,10 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 						pushBackOpMemory(nIntermediatePC, arrData);
 						if (m_bDataOpBytesFlag) {
 							if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
-							saOutLine[FC_OPBYTES] += FormatOpBytes(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+							saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
 						}
 						if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
-						saOutLine[FC_OPERANDS] += FormatOperands(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+						saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
 						bFirstOutput = false;
 						nIntermediatePC += arrData.size();
 						arrData.clear();
@@ -1632,9 +1655,9 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 					assert(m_PC == nIntermediatePC);		// We should be synced up
 
 					// Already done FC_OPBYTES
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
 					// Already done FC_OPERANDS
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 
@@ -1644,28 +1667,30 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 					//	special indirect detection logic) erroneously specified (or detected)
 					//	the indirect.  So instead of throwing an error or causing problems,
 					//	we will treat it as a data byte instead:
-					if (RetrieveIndirect(msgFile, errFile) == false) {		// Bumps PC and fills in m_OpMemory
-						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_DATABYTE, nSavedPC);
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_DATABYTE, nSavedPC);
-						saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_DATABYTE, nSavedPC);
-						saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_DATABYTE, nSavedPC) + " -- Erroneous Indirect Stub";
+					if (RetrieveIndirect(nMemoryType, msgFile, errFile) == false) {		// Bumps PC and fills in m_OpMemory
+						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC) + " -- Erroneous Indirect Stub";
 						outFile << MakeOutputLine(saOutLine) << "\n";
 						break;
 					}
 
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_INDIRECT, nSavedPC);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_INDIRECT, nSavedPC);
-					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_INDIRECT, nSavedPC);
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_INDIRECT, nSavedPC);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_INDIRECT, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 
 				default:
 					bDone = true;
 			}
+
+			if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bDone = true;
 		}
 
-		bRetVal = bRetVal && WritePostDataSection(outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostDataSection(nMemoryType, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
@@ -1673,23 +1698,21 @@ bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msg
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
+bool CAVRDisassembler::ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
 {
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	// We will assume that all indirect addresses are 2-bytes in length
 	//	and stored in little endian format.  But note that the address
 	//	is in words, not bytes, so we must multiply by 2.
-	if (!IsAddressLoaded(nMemType, nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
-		(m_Memory[nMemType].descriptor(nAddress) != DMEM_LOADED) ||
-		(m_Memory[nMemType].descriptor(nAddress+1) != DMEM_LOADED)) {
+	if (!IsAddressLoaded(nMemoryType, nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
+		(m_Memory[nMemoryType].descriptor(nAddress) != DMEM_LOADED) ||
+		(m_Memory[nMemoryType].descriptor(nAddress+1) != DMEM_LOADED)) {
 		nResAddress = 0;
 		return false;
 	}
-	TAddress nVector = (m_Memory[nMemType].element(nAddress) + m_Memory[nMemType].element(nAddress + 1) * 256ul) * 2;
+	TAddress nVector = (m_Memory[nMemoryType].element(nAddress) + m_Memory[nMemoryType].element(nAddress + 1) * 256ul) * 2;
 	nResAddress = nVector;
-	m_Memory[nMemType].setDescriptor(nAddress, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);		// Flag the addresses as being the proper vector type
-	m_Memory[nMemType].setDescriptor(nAddress+1, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);
+	m_Memory[nMemoryType].setDescriptor(nAddress, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);		// Flag the addresses as being the proper vector type
+	m_Memory[nMemoryType].setDescriptor(nAddress+1, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);
 	return true;
 }
 

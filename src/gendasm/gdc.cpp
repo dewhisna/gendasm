@@ -431,64 +431,26 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 			}
 
 			if (msgFile) {
-				(*msgFile) << "\n";
-				(*msgFile) << "        " << m_LabelTable[MT_ROM].size()
-							<< " Unique ROM Label"
-							<< ((m_LabelTable[MT_ROM].size() != 1) ? "s" : "")
-							<< " Defined"
-							<< ((m_LabelTable[MT_ROM].size() != 0) ? ":" : "")
-							<< "\n";
-				for (auto const & itrLabels : m_LabelTable[MT_ROM]) {
-					(*msgFile) << "                "
-								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabels.first
-								<< std::nouppercase << std::setbase(0) << "=";
-					bool bFirst = true;
-					for (auto const & itrNames : itrLabels.second) {
-						if (!bFirst) (*msgFile) << ",";
-						bFirst = false;
-						(*msgFile) << itrNames;
-					}
+				for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
 					(*msgFile) << "\n";
-				}
-
-				(*msgFile) << "\n";
-				(*msgFile) << "        " << m_LabelTable[MT_RAM].size()
-							<< " Unique RAM Label"
-							<< ((m_LabelTable[MT_RAM].size() != 1) ? "s" : "")
-							<< " Defined"
-							<< ((m_LabelTable[MT_RAM].size() != 0) ? ":" : "")
-							<< "\n";
-				for (auto const & itrLabels : m_LabelTable[MT_RAM]) {
-					(*msgFile) << "                "
-								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabels.first
-								<< std::nouppercase << std::setbase(0) << "=";
-					bool bFirst = true;
-					for (auto const & itrNames : itrLabels.second) {
-						if (!bFirst) (*msgFile) << ",";
-						bFirst = false;
-						(*msgFile) << itrNames;
+					(*msgFile) << "        " << m_LabelTable[nMemType].size()
+								<< " Unique " << g_arrstrMemRanges[nMemType] << " Label"
+								<< ((m_LabelTable[nMemType].size() != 1) ? "s" : "")
+								<< " Defined"
+								<< ((m_LabelTable[nMemType].size() != 0) ? ":" : "")
+								<< "\n";
+					for (auto const & itrLabels : m_LabelTable[nMemType]) {
+						(*msgFile) << "                "
+									<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabels.first
+									<< std::nouppercase << std::setbase(0) << "=";
+						bool bFirst = true;
+						for (auto const & itrNames : itrLabels.second) {
+							if (!bFirst) (*msgFile) << ",";
+							bFirst = false;
+							(*msgFile) << itrNames;
+						}
+						(*msgFile) << "\n";
 					}
-					(*msgFile) << "\n";
-				}
-
-				(*msgFile) << "\n";
-				(*msgFile) << "        " << m_LabelTable[MT_IO].size()
-							<< " Unique IO Label"
-							<< ((m_LabelTable[MT_IO].size() != 1) ? "s" : "")
-							<< " Defined"
-							<< ((m_LabelTable[MT_IO].size() != 0) ? ":" : "")
-							<< "\n";
-				for (auto const & itrLabels : m_LabelTable[MT_IO]) {
-					(*msgFile) << "                "
-								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrLabels.first
-								<< std::nouppercase << std::setbase(0) << "=";
-					bool bFirst = true;
-					for (auto const & itrNames : itrLabels.second) {
-						if (!bFirst) (*msgFile) << ",";
-						bFirst = false;
-						(*msgFile) << itrNames;
-					}
-					(*msgFile) << "\n";
 				}
 
 				(*msgFile) << "\n";
@@ -524,7 +486,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
 								<< std::nouppercase << std::setbase(0) << "] -> ";
 				}
-				if (!ResolveIndirect(itrIndirects.first, nResolvedAddress, RT_CODE)) {
+				if (!ResolveIndirect(MT_ROM, itrIndirects.first, nResolvedAddress, RT_CODE)) {
 					if (msgFile) (*msgFile) << "ERROR\n";
 					if (errFile) {
 						(*errFile) << "    *** Warning: Vector Address "
@@ -574,7 +536,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
 								<< std::nouppercase << std::setbase(0) << "] -> ";
 				}
-				if (!ResolveIndirect(itrIndirects.first, nResolvedAddress, RT_DATA)) {
+				if (!ResolveIndirect(MT_ROM, itrIndirects.first, nResolvedAddress, RT_DATA)) {
 					if (msgFile) (*msgFile) << "ERROR\n";
 					if (errFile) {
 						(*errFile) << "    *** Warning: Vector Address "
@@ -1242,15 +1204,19 @@ bool CDisassembler::ScanData(const std::string & strExcludeChars, std::ostream *
 	// Note that we use an argument passed in so that the caller has a chance to change the
 	//	list passed in by the GetExcludedPrintChars function!
 
-	for (auto & itrMemory : m_Memory[MT_ROM]) {
-		m_PC = itrMemory.logicalAddr();
-		for (TSize nSize = 0; nSize < itrMemory.size(); ++nSize, ++m_PC) {
-			if (itrMemory.descriptor(m_PC) != DMEM_LOADED) continue;	// Only modify memory locations that have been loaded but not processed!
-			c = itrMemory.element(m_PC);
-			if (isprint(c) && (strExcludeChars.find(c) == std::string::npos)) {
-				itrMemory.setDescriptor(m_PC, DMEM_PRINTDATA);
-			} else {
-				itrMemory.setDescriptor(m_PC, DMEM_DATA);
+	for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
+		if (m_Memory[nMemType].empty()) continue;
+
+		for (auto & itrMemory : m_Memory[nMemType]) {
+			m_PC = itrMemory.logicalAddr();
+			for (TSize nSize = 0; nSize < itrMemory.size(); ++nSize, ++m_PC) {
+				if (itrMemory.descriptor(m_PC) != DMEM_LOADED) continue;	// Only modify memory locations that have been loaded but not processed!
+				c = itrMemory.element(m_PC);
+				if (isprint(c) && (strExcludeChars.find(c) == std::string::npos)) {
+					itrMemory.setDescriptor(m_PC, DMEM_PRINTDATA);
+				} else {
+					itrMemory.setDescriptor(m_PC, DMEM_DATA);
+				}
 			}
 		}
 	}
@@ -1338,7 +1304,12 @@ bool CDisassembler::Pass2(std::ostream& outFile, std::ostream *msgFile, std::ost
 	// Note that Short-Circuiting will keep following process stages from being called in the event of an error!
 	bRetVal = bRetVal && WriteHeader(outFile, msgFile, errFile);
 	bRetVal = bRetVal && WriteEquates(outFile, msgFile, errFile);
-	bRetVal = bRetVal && WriteDisassembly(outFile, msgFile, errFile);
+
+	MEMORY_TYPE arrMemTypes[NUM_MEMORY_TYPES] = { MT_IO, MT_RAM, MT_ROM };
+	for (int ndxType = 0; ndxType < NUM_MEMORY_TYPES; ++ndxType) {
+		MEMORY_TYPE nMemoryType = arrMemTypes[ndxType];
+		bRetVal = bRetVal && WriteDisassembly(static_cast<MEMORY_TYPE>(nMemoryType), outFile, msgFile, errFile);
+	}
 
 	return bRetVal;
 }
@@ -1346,6 +1317,8 @@ bool CDisassembler::Pass2(std::ostream& outFile, std::ostream *msgFile, std::ost
 bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(outFile);
+
+	const MEMORY_TYPE nMemType = MT_ROM;
 
 	bool bRetVal = true;
 	std::fstream aFunctionsFile;
@@ -1500,7 +1473,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 	TAddress nSavedPC = 0;			// nSavedPC will be the last PC for the last memory evaluated below
 	bool bInFunc = false;
 	m_PC = 0;						// init to zero for test below that clears bInFunc (as we can't be "in a function" across discontiguous memory)
-	for (auto const & itrMemory : m_Memory[MT_ROM]) {
+	for (auto const & itrMemory : m_Memory[nMemType]) {
 		if (m_PC != itrMemory.logicalAddr()) bInFunc = false;		// Can't be "in a function" across discontiguous memory
 		m_PC = itrMemory.logicalAddr();
 		for (TSize nSize = 0; ((nSize < itrMemory.size()) && bRetVal);  ) {
@@ -1533,11 +1506,11 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 						sstrTemp << "@" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 						m_sFunctionalOpcode = sstrTemp.str();
 
-						CLabelTableMap::const_iterator itrLabels = m_LabelTable[MT_ROM].find(m_PC);
-						if (itrLabels != m_LabelTable[MT_ROM].cend()) {
+						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
+						if (itrLabels != m_LabelTable[nMemType].cend()) {
 							for (CLabelArray::size_type i = 0; i < itrLabels->second.size(); ++i) {
 								if (i != 0) m_sFunctionalOpcode += ",";
-								m_sFunctionalOpcode += FormatLabel(MT_ROM, LC_REF, itrLabels->second.at(i), m_PC);
+								m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
 							}
 						} else {
 							m_sFunctionalOpcode += "???";
@@ -1583,16 +1556,16 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 					m_sFunctionalOpcode = sstrTemp.str();
 
-					CLabelTableMap::const_iterator itrLabels = m_LabelTable[MT_ROM].find(m_PC);
-					if (itrLabels != m_LabelTable[MT_ROM].cend()) {
+					CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
+					if (itrLabels != m_LabelTable[nMemType].cend()) {
 						for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
 							if (i != 0) m_sFunctionalOpcode += ",";
-							m_sFunctionalOpcode += FormatLabel(MT_ROM, LC_REF, itrLabels->second.at(i), m_PC);
+							m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
 						}
 					}
 
 					sstrTemp.str(std::string());
-					sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << m_Memory[MT_ROM].element(m_PC) << "|";
+					sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << m_Memory[nMemType].element(m_PC) << "|";
 					m_sFunctionalOpcode += sstrTemp.str();
 
 					++m_PC;
@@ -1600,7 +1573,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					break;
 				}
 				case DMEM_CODE:
-					bRetVal = ReadNextObj(false, msgFile, errFile);
+					bRetVal = ReadNextObj(nMemType, false, msgFile, errFile);
 					nSize += (m_PC - nSavedPC);		// NOTE: ReadNextObj automatically advanced m_PC while reading object!
 					break;
 				default:
@@ -1667,16 +1640,18 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 
 bool CDisassembler::FindCode(std::ostream *msgFile, std::ostream *errFile)
 {
+	const MEMORY_TYPE nMemType = MT_ROM;
+
 	bool bDoneFlag = false;
 
-	TAddress nHighestAddress = m_Memory[MT_ROM].highestLogicalAddress();
+	TAddress nHighestAddress = m_Memory[nMemType].highestLogicalAddress();
 
 	while (!bDoneFlag) {
 		// See if m_PC is in an area of memory that doesn't exist:
-		if (!m_Memory[MT_ROM].containsAddress(m_PC)) {
+		if (!m_Memory[nMemType].containsAddress(m_PC)) {
 			if (m_bSpitFlag) {
 				// In spit mode, find next address inside memory:
-				while (!m_Memory[MT_ROM].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;
+				while (!m_Memory[nMemType].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;
 			} else {
 				bDoneFlag = true;			// We are done with this find if there's nothing here in memory
 				continue;
@@ -1686,11 +1661,11 @@ bool CDisassembler::FindCode(std::ostream *msgFile, std::ostream *errFile)
 			bDoneFlag = true;				// If we run out of memory, we are done
 			continue;
 		}
-		if ((m_Memory[MT_ROM].descriptor(m_PC) != DMEM_LOADED) && !m_bSpitFlag) {
+		if ((m_Memory[nMemType].descriptor(m_PC) != DMEM_LOADED) && !m_bSpitFlag) {
 			bDoneFlag = true;				// Exit when we hit an area we've already looked at
 			continue;
 		}
-		if (ReadNextObj(true, msgFile, errFile)) {		// Read next opcode and tag memory since we are finding code here, NOTE: This increments m_PC!
+		if (ReadNextObj(nMemType, true, msgFile, errFile)) {		// Read next opcode and tag memory since we are finding code here, NOTE: This increments m_PC!
 			if (CurrentOpcodeIsStop() && !m_bSpitFlag) bDoneFlag = true;		// Done when we hit a code exit point, unless we're just spitting code out
 		}	// If the ReadNextObj returns false, that means we hit an illegal opcode byte.  The ReadNextObj will have incremented the m_PC past that byte, so we'll keep processing
 	}
@@ -2186,7 +2161,6 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 				// Output missed labels for this memory type:
 				bTypeHeader = false;
 				for (auto const & itrMissing : mapMissing) {
-
 					if (!bTypeHeader) {
 						saOutLine[FC_LABEL] = GetCommentStartDelim() + " Out-of-Range Equates for " + g_arrstrMemRanges[nMemoryType] + ": " + GetCommentEndDelim() + "\n";
 						outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2236,32 +2210,43 @@ bool CDisassembler::WritePostEquates(std::ostream& outFile, std::ostream *msgFil
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreDisassembly(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreDisassembly(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
-	CStringArray saOutLine;
+	if (!m_Memory[nMemoryType].empty()) {
+		CStringArray saOutLine;
 
-	ClearOutputLine(saOutLine);
-	saOutLine[FC_ADDRESS] = FormatAddress(0);		// TODO : Consider using m_Memory.lowestLogicalAddress()
+		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
+		outFile << MakeOutputLine(saOutLine) << "\n";
 
-	outFile << MakeOutputLine(saOutLine) << "\n";
-	outFile << MakeOutputLine(saOutLine) << "\n";
+		saOutLine[FC_LABEL] = GetCommentStartDelim();
+		saOutLine[FC_LABEL] += " ";
+		for (int i=(GetFieldWidth(FC_LABEL)+
+				GetFieldWidth(FC_MNEMONIC)+
+				GetFieldWidth(FC_OPERANDS)); i; --i) saOutLine[FC_LABEL] += "=";
+		saOutLine[FC_LABEL] += " ";
+		saOutLine[FC_LABEL] += GetCommentEndDelim();
+		outFile << MakeOutputLine(saOutLine) << "\n";
+
+		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
+		outFile << MakeOutputLine(saOutLine) << "\n";
+	}
 	return true;
 }
 
-bool CDisassembler::WriteDisassembly(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteDisassembly(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
-	bool bRetVal = WritePreDisassembly(outFile, msgFile, errFile);
-
-	const MEMORY_TYPE nMemType = MT_ROM;
+	bool bRetVal = WritePreDisassembly(nMemoryType, outFile, msgFile, errFile);
 
 	if (bRetVal) {
-		for (auto const & itrMemory : m_Memory[nMemType]) {
+		for (auto const & itrMemory : m_Memory[nMemoryType]) {
 			m_PC = itrMemory.logicalAddr();
 			for (TSize nSize = 0; ((nSize < itrMemory.size()) && bRetVal);  ) {		// WARNING!! WriteSection MUST increment m_PC (and we increment nSize from it)
-				switch (m_Memory[nMemType].descriptor(m_PC)) {
+				switch (m_Memory[nMemoryType].descriptor(m_PC)) {
 					case DMEM_NOTLOADED:
 						++m_PC;
 						++nSize;
@@ -2280,7 +2265,7 @@ bool CDisassembler::WriteDisassembly(std::ostream& outFile, std::ostream *msgFil
 					case DMEM_ILLEGALCODE:
 					{
 						TAddress nSavedPC = m_PC;
-						bRetVal = bRetVal && WriteSection(outFile, msgFile, errFile);			// WARNING!! WriteSection MUST properly increment m_PC!!
+						bRetVal = bRetVal && WriteSection(nMemoryType, outFile, msgFile, errFile);			// WARNING!! WriteSection MUST properly increment m_PC!!
 						nSize += (m_PC - nSavedPC);
 						break;
 					}
@@ -2288,14 +2273,15 @@ bool CDisassembler::WriteDisassembly(std::ostream& outFile, std::ostream *msgFil
 			}
 		}
 
-		bRetVal = bRetVal && WritePostDisassembly(outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostDisassembly(nMemoryType, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostDisassembly(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostDisassembly(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
@@ -2304,34 +2290,33 @@ bool CDisassembler::WritePostDisassembly(std::ostream& outFile, std::ostream *ms
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 	return true;		// Don't do anything by default
 }
 
-bool CDisassembler::WriteSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
-	bool bRetVal = WritePreSection(outFile, msgFile, errFile);
-
-	const MEMORY_TYPE nMemType = MT_ROM;
+	bool bRetVal = WritePreSection(nMemoryType, outFile, msgFile, errFile);
 
 	if (bRetVal) {
 		bool bDone = false;
-		while ((m_PC < m_Memory[nMemType].highestLogicalAddress()) && !bDone && bRetVal) {
+		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
 			// WARNING!! Write Data and Code section functions MUST properly increment m_PC!!
-			switch (m_Memory[nMemType].descriptor(m_PC)) {
+			switch (m_Memory[nMemoryType].descriptor(m_PC)) {
 				case DMEM_DATA:
 				case DMEM_PRINTDATA:
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
-					bRetVal = bRetVal && WriteDataSection(outFile, msgFile, errFile);
+					bRetVal = bRetVal && WriteDataSection(nMemoryType, outFile, msgFile, errFile);
 					break;
 				case DMEM_CODE:
 				case DMEM_ILLEGALCODE:
-					bRetVal = bRetVal && WriteCodeSection(outFile, msgFile, errFile);
+					bRetVal = bRetVal && WriteCodeSection(nMemoryType, outFile, msgFile, errFile);
 					break;
 				default:
 					bDone = true;
@@ -2339,14 +2324,15 @@ bool CDisassembler::WriteSection(std::ostream& outFile, std::ostream *msgFile, s
 			}
 		}
 
-		bRetVal = bRetVal && WritePostSection(outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostSection(nMemoryType, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
@@ -2355,15 +2341,16 @@ bool CDisassembler::WritePostSection(std::ostream& outFile, std::ostream *msgFil
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreDataSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 	return true;		// Don't do anything by default
 }
 
-bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	bool bRetVal;
 	CStringArray saOutLine;
@@ -2380,27 +2367,25 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 	//	TOpcodeSymbol type that doesn't match TMemoryElement.  Not a major problem since this
 	//	is the 'data' section and specifically working on bytes.
 
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	ClearOutputLine(saOutLine);
 
-	bRetVal = WritePreDataSection(outFile, msgFile, errFile);
+	bRetVal = WritePreDataSection(nMemoryType, outFile, msgFile, errFile);
 	if (bRetVal) {
 		bDone = false;
-		while ((m_PC < m_Memory[nMemType].highestLogicalAddress()) && !bDone && bRetVal) {
+		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
-			if (itrLabels != m_LabelTable[nMemType].cend()) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
+			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_DATA, itrLabels->second.at(i), m_PC);
+					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_DATA, itrLabels->second.at(0), m_PC);
+				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
 			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
-			nDesc = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
+			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 			if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 			switch (nDesc) {
 				case DMEM_DATA:
@@ -2408,20 +2393,21 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 					clearOpMemory();
 					bFlag = false;
 					while (!bFlag) {
-						pushBackOpMemory(m_PC, m_Memory[nMemType].element(m_PC));
+						pushBackOpMemory(m_PC, m_Memory[nMemoryType].element(m_PC));
 						++m_PC;
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
 						if (nCount >= m_nMaxNonPrint) bFlag = true;
-						if (m_LabelTable[nMemType].contains(m_PC)) bFlag = true;
-						nDesc = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
+						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
+						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						if (nDesc != DMEM_DATA) bFlag = true;
+						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;
 					}
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_DATABYTE, nSavedPC);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_DATABYTE, nSavedPC);
-					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_DATABYTE, nSavedPC);
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_DATABYTE, nSavedPC);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_DATABYTE, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_DATABYTE, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_DATABYTE, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_PRINTDATA:
@@ -2429,13 +2415,13 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 					maTempOpMemory.clear();
 					bFlag = false;
 					while (!bFlag) {
-						maTempOpMemory.push_back(m_Memory[nMemType].element(m_PC));
+						maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
 						++m_PC;
 						++nCount;
 						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
 						if (nCount >= m_nMaxPrint) bFlag = true;
-						if (m_LabelTable[nMemType].contains(m_PC)) bFlag = true;
-						if (m_Memory[nMemType].descriptor(m_PC) != DMEM_PRINTDATA) bFlag = true;
+						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
+						if (m_Memory[nMemoryType].descriptor(m_PC) != DMEM_PRINTDATA) bFlag = true;
 					}
 					// First, print a line of the output bytes for reference:
 					if (m_bAsciiBytesFlag) {
@@ -2452,7 +2438,7 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 
 							saOutLine[FC_LABEL] = GetCommentStartDelim() + " " + strTempLabel +
 												((!strTempLabel.empty()) ? " " : "") +
-												FormatOperands(nMemType, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
+												FormatOperands(nMemoryType, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
 							saOutLine[FC_ADDRESS] = FormatAddress(nCurrentPC);
 							saOutLine[FC_MNEMONIC].clear();
 							saOutLine[FC_OPERANDS].clear();
@@ -2467,10 +2453,10 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 
 					// Then, print the line as it should be in the ASCII equivalent:
 					saOutLine[FC_ADDRESS] = FormatAddress(nSavedPC);
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_ASCII, nSavedPC);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_ASCII, nSavedPC);
-					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_ASCII, nSavedPC);
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_ASCII, nSavedPC);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_ASCII, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_ASCII, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_ASCII, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_ASCII, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_CODEINDIRECT:
@@ -2479,35 +2465,38 @@ bool CDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFil
 					//	special indirect detection logic) erroneously specified (or detected)
 					//	the indirect.  So instead of throwing an error or causing problems,
 					//	we will treat it as a data byte instead:
-					if (RetrieveIndirect(msgFile, errFile) == false) {		// Bumps PC and fills in m_OpMemory
-						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_DATABYTE, nSavedPC);
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_DATABYTE, nSavedPC);
-						saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_DATABYTE, nSavedPC);
-						saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_DATABYTE, nSavedPC) + " -- Erroneous Indirect Stub";
+					if (RetrieveIndirect(nMemoryType, msgFile, errFile) == false) {		// Bumps PC and fills in m_OpMemory
+						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC) + " -- Erroneous Indirect Stub";
 						outFile << MakeOutputLine(saOutLine) << "\n";
 						break;
 					}
 
-					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_INDIRECT, nSavedPC);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_INDIRECT, nSavedPC);
-					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_INDIRECT, nSavedPC);
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_INDIRECT, nSavedPC);
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_INDIRECT, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 
 				default:
 					bDone = true;
 			}
+
+			if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bDone = true;
 		}
 
-		bRetVal = bRetVal && WritePostDataSection(outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostDataSection(nMemoryType, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostDataSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
@@ -2516,15 +2505,16 @@ bool CDisassembler::WritePostDataSection(std::ostream& outFile, std::ostream *ms
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreCodeSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 	return true;		// Don't do anything by default
 }
 
-bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	bool bRetVal;
 	CStringArray saOutLine;
@@ -2534,16 +2524,14 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 	bool bLastFlag;
 	bool bBranchOutFlag;
 
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	ClearOutputLine(saOutLine);
 
-	bRetVal = WritePreCodeSection(outFile, msgFile, errFile);
+	bRetVal = WritePreCodeSection(nMemoryType, outFile, msgFile, errFile);
 	if (bRetVal) {
 		bInFunc = false;
 		bDone = false;
 
-		while ((m_PC < m_Memory[nMemType].highestLogicalAddress()) && !bDone && bRetVal) {
+		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
 			bLastFlag = false;
 			bBranchOutFlag = false;
 
@@ -2564,14 +2552,14 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 
 					case FUNCF_BRANCHIN:
 						if (bInFunc) {
-							bRetVal = bRetVal && WriteIntraFunctionSep(outFile, msgFile, errFile);
+							bRetVal = bRetVal && WriteIntraFunctionSep(nMemoryType, outFile, msgFile, errFile);
 							break;		// Continue if already inside a function (after printing a soft-break)
 						}
 						// Else, fall-through and setup for new function:
 					case FUNCF_ENTRY:
 					case FUNCF_INDIRECT:
 					case FUNCF_CALL:
-						bRetVal = bRetVal && WritePreFunction(outFile, msgFile, errFile);
+						bRetVal = bRetVal && WritePreFunction(nMemoryType, outFile, msgFile, errFile);
 						bInFunc = true;
 						break;
 
@@ -2585,49 +2573,49 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
-			if (itrLabels != m_LabelTable[nMemType].cend()) {
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
+			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_CODE, itrLabels->second.at(i), m_PC);
+					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(i), m_PC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_CODE, itrLabels->second.at(0), m_PC);
+				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(0), m_PC);
 			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
-			switch (m_Memory[nMemType].descriptor(m_PC)) {
+			switch (m_Memory[nMemoryType].descriptor(m_PC)) {
 				case DMEM_ILLEGALCODE:
 					clearOpMemory();
 					for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
-						pushBackOpMemory(m_PC, m_Memory[nMemType].element(m_PC));
+						pushBackOpMemory(m_PC, m_Memory[nMemoryType].element(m_PC));
 						++m_PC;
 					}
-					saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_ILLOP, nSavedPC);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_ILLOP, nSavedPC);
-					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_ILLOP, nSavedPC);
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_ILLOP, nSavedPC);
+					saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_ILLOP, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_ILLOP, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_ILLOP, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_ILLOP, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_CODE:
 					// If the following call returns false, that means that we erroneously
 					//	detected code in the first pass so instead of throwing an error or
 					//	causing problems, we will treat it as an illegal opcode:
-					if (ReadNextObj(false, msgFile, errFile) == false) {		// Bumps PC and update m_OpMemory
+					if (ReadNextObj(nMemoryType, false, msgFile, errFile) == false) {		// Bumps PC and update m_OpMemory
 						// Flag it as illegal and then process it as such:
 						for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
-							m_Memory[nMemType].setDescriptor(nSavedPC+ndx, DMEM_ILLEGALCODE);
+							m_Memory[nMemoryType].setDescriptor(nSavedPC+ndx, DMEM_ILLEGALCODE);
 						}
-						saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_ILLOP, nSavedPC);
-						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_ILLOP, nSavedPC);
-						saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_ILLOP, nSavedPC);
-						saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_ILLOP, nSavedPC);
+						saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_ILLOP, nSavedPC);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_ILLOP, nSavedPC);
+						saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_ILLOP, nSavedPC);
+						saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_ILLOP, nSavedPC);
 						outFile << MakeOutputLine(saOutLine) << "\n";
 						break;
 					}
-					saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_OPCODE, nSavedPC);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_OPCODE, nSavedPC);
-					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_OPCODE, nSavedPC);
-					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_OPCODE, nSavedPC);
+					saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_OPCODE, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_OPCODE, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_OPCODE, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_OPCODE, nSavedPC);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				default:
@@ -2668,18 +2656,19 @@ bool CDisassembler::WriteCodeSection(std::ostream& outFile, std::ostream *msgFil
 			}
 
 			if (/*(bInFunc) || */ (bLastFlag)) {
-				bRetVal = bRetVal & WritePostFunction(outFile, msgFile, errFile);
+				bRetVal = bRetVal & WritePostFunction(nMemoryType, outFile, msgFile, errFile);
 			}
 		}
 
-		bRetVal = bRetVal && WritePostCodeSection(outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostCodeSection(nMemoryType, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostCodeSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
@@ -2688,8 +2677,9 @@ bool CDisassembler::WritePostCodeSection(std::ostream& outFile, std::ostream *ms
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreFunction(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreFunction(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
@@ -2712,8 +2702,9 @@ bool CDisassembler::WritePreFunction(std::ostream& outFile, std::ostream *msgFil
 	return true;
 }
 
-bool CDisassembler::WriteIntraFunctionSep(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteIntraFunctionSep(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
@@ -2734,8 +2725,9 @@ bool CDisassembler::WriteIntraFunctionSep(std::ostream& outFile, std::ostream *m
 	return true;
 }
 
-bool CDisassembler::WritePostFunction(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostFunction(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
@@ -2841,6 +2833,8 @@ bool CDisassembler::AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, bool bA
 
 bool CDisassembler::AddBranch(TAddress nAddress, bool bAddRef, TAddress nRefAddress)
 {
+	const MEMORY_TYPE nMemType = MT_ROM;
+
 	CAddressTableMap::iterator itrRefList = m_BranchTable.find(nAddress);
 	if (itrRefList == m_BranchTable.end()) {
 		m_BranchTable[nAddress] = CAddressArray();
@@ -2857,7 +2851,7 @@ bool CDisassembler::AddBranch(TAddress nAddress, bool bAddRef, TAddress nRefAddr
 		}
 		if (!bFound) itrRefList->second.push_back(nRefAddress);
 	}
-	return IsAddressLoaded(MT_ROM, nAddress, 1);
+	return IsAddressLoaded(nMemType, nAddress, 1);
 }
 
 bool CDisassembler::AddComment(MEMORY_TYPE nMemoryType, TAddress nAddress, const CComment &strComment)
@@ -2883,8 +2877,10 @@ void CDisassembler::GenDataLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, TAd
 
 void CDisassembler::GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel, std::ostream *msgFile, std::ostream *errFile)
 {
+	const MEMORY_TYPE nMemType = MT_ROM;
+
 	UNUSED(strLabel);
-	if (AddLabel(MT_ROM, nAddress, false, nRefAddress)) OutputGenLabel(MT_ROM, nAddress, msgFile);
+	if (AddLabel(nMemType, nAddress, false, nRefAddress)) OutputGenLabel(nMemType, nAddress, msgFile);
 	if (!AddBranch(nAddress, true, nRefAddress)) {
 		if (errFile) {
 			if ((errFile == msgFile) || (m_LAdrDplyCnt != 0)) {

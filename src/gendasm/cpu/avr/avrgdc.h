@@ -105,11 +105,11 @@ public:
 
 	// --------------------------------
 
-	virtual bool ReadNextObj(bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
-	virtual bool CompleteObjRead(bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 	virtual bool CurrentOpcodeIsStop() const override;
 
-	virtual bool RetrieveIndirect(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool RetrieveIndirect(MEMORY_TYPE nMemoryType, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
 	virtual std::string FormatOpBytes(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
 	virtual std::string FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
@@ -120,11 +120,11 @@ public:
 
 	virtual bool WriteHeader(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual bool WriteDataSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual bool ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;
+	virtual bool ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;
 
 	virtual TLabel GenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) override;
 

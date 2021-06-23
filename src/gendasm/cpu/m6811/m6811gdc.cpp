@@ -472,7 +472,7 @@ std::string CM6811Disassembler::GetGDCShortName() const
 
 // ----------------------------------------------------------------------------
 
-bool CM6811Disassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std::ostream *errFile)
+bool CM6811Disassembler::ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std::ostream *msgFile, std::ostream *errFile)
 {
 	// Here, we'll read the next object code from memory and flag the memory as being
 	//	code, unless an illegal opcode is encountered whereby it will be flagged as
@@ -489,18 +489,16 @@ bool CM6811Disassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std
 	//	if on-the-fly disassembly is desired without modifying the descriptors, such
 	//	as in pass 2 of the disassembly process.
 
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	TM6811Disassembler::TOpcodeSymbol nFirstByte;
 	TAddress nSavedPC;
 	bool bFlag;
 
 	m_sFunctionalOpcode.clear();
 
-	nFirstByte = m_Memory[nMemType].element(m_PC++);
+	nFirstByte = m_Memory[nMemoryType].element(m_PC++);
 	m_OpMemory.clear();
 	m_OpMemory.push_back(nFirstByte);
-	if (IsAddressLoaded(nMemType, m_PC-1, 1) == false) return false;
+	if (IsAddressLoaded(nMemoryType, m_PC-1, 1) == false) return false;
 
 	TOpcodeTable_type::const_iterator itrOpcode = m_Opcodes.find(nFirstByte);
 	bFlag = false;
@@ -509,12 +507,12 @@ bool CM6811Disassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std
 			m_CurrentOpcode = itrOpcode->second.at(ndx);
 			bFlag = true;
 			for (COpcodeSymbolArray_type::size_type i=1; ((i<m_CurrentOpcode.opcode().size()) && (bFlag)); ++i) {
-				if (m_CurrentOpcode.opcode().at(i) != m_Memory[nMemType].element(m_PC+i-1)) bFlag = false;
+				if (m_CurrentOpcode.opcode().at(i) != m_Memory[nMemoryType].element(m_PC+i-1)) bFlag = false;
 			}
 		}
 	}
-	if (!bFlag || !IsAddressLoaded(nMemType, m_PC, m_CurrentOpcode.opcode().size()-1)) {
-		if (bTagMemory) m_Memory[nMemType].setDescriptor(m_PC-1, DMEM_ILLEGALCODE);
+	if (!bFlag || !IsAddressLoaded(nMemoryType, m_PC, m_CurrentOpcode.opcode().size()-1)) {
+		if (bTagMemory) m_Memory[nMemoryType].setDescriptor(m_PC-1, DMEM_ILLEGALCODE);
 		return false;
 	}
 
@@ -523,15 +521,15 @@ bool CM6811Disassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std
 	//	If CompleteObjRead returns FALSE, then we'll have to undo everything and return flagging an invalid opcode.
 	nSavedPC = m_PC;	// Remember m_PC in case we have to undo things (remember, m_PC has already been incremented by 1)!!
 	for (TM6811Disassembler::COpcodeSymbolArray::size_type i=1; i<m_CurrentOpcode.opcode().size(); ++i) {			// Finish copying opcode, but don't tag memory until dependent code is called successfully
-		m_OpMemory.push_back(m_Memory[nMemType].element(m_PC++));
+		m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC++));
 	}
 
-	if (!CompleteObjRead(true, msgFile, errFile) || !IsAddressLoaded(nMemType, nSavedPC-1, m_OpMemory.size()))  {
+	if (!CompleteObjRead(nMemoryType, true, msgFile, errFile) || !IsAddressLoaded(nMemoryType, nSavedPC-1, m_OpMemory.size()))  {
 		// Undo things here:
 		m_OpMemory.clear();
 		m_OpMemory.push_back(nFirstByte);		// Keep only the first byte in OpMemory for illegal opcode id
 		m_PC = nSavedPC;
-		if (bTagMemory) m_Memory[nMemType].setDescriptor(m_PC-1, DMEM_ILLEGALCODE);
+		if (bTagMemory) m_Memory[nMemoryType].setDescriptor(m_PC-1, DMEM_ILLEGALCODE);
 		return false;
 	}
 
@@ -541,19 +539,17 @@ bool CM6811Disassembler::ReadNextObj(bool bTagMemory, std::ostream *msgFile, std
 
 	--nSavedPC;
 	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {		// CompleteObjRead will add bytes to OpMemory, so we simply have to flag memory for that many bytes.  m_PC is already incremented by CompleteObjRead
-		if (bTagMemory) m_Memory[nMemType].setDescriptor(nSavedPC, DMEM_CODE);
+		if (bTagMemory) m_Memory[nMemoryType].setDescriptor(nSavedPC, DMEM_CODE);
 		++nSavedPC;
 	}
 	assert(nSavedPC == m_PC);		// If these aren't equal, something is wrong in the CompleteObjRead!  m_PC should be incremented for every byte added to m_OpMemory by the complete routine!
 	return true;
 }
 
-bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile, std::ostream *errFile)
+bool CM6811Disassembler::CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels, std::ostream *msgFile, std::ostream *errFile)
 {
 	// Procedure to finish reading opcode from memory.  This procedure reads operand bytes,
 	//	placing them in m_OpMemory.  Plus branch/labels and data/labels are generated (according to function).
-
-	const MEMORY_TYPE nMemType = MT_ROM;
 
 	bool bA;
 	bool bB;
@@ -572,16 +568,16 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 	m_sFunctionalOpcode = strTemp;
 
 	// Move Bytes to m_OpMemory:
-	bA = MoveOpcodeArgs(OGRP_DST());
-	bB = MoveOpcodeArgs(OGRP_SRC());
+	bA = MoveOpcodeArgs(nMemoryType, OGRP_DST());
+	bB = MoveOpcodeArgs(nMemoryType, OGRP_SRC());
 	if (!bA || !bB) return false;
 
 	// Add reference labels to this opcode to the function:
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemType].find(m_nStartPC);
-	if (itrLabel != m_LabelTable[nMemType].cend()) {
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(m_nStartPC);
+	if (itrLabel != m_LabelTable[nMemoryType].cend()) {
 		for (CLabelArray::size_type i=0; i<itrLabel->second.size(); ++i) {
 			if (i != 0) m_sFunctionalOpcode += ",";
-			m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabel->second.at(i), m_nStartPC);
+			m_sFunctionalOpcode += FormatLabel(nMemoryType, LC_REF, itrLabel->second.at(i), m_nStartPC);
 		}
 	}
 
@@ -620,9 +616,9 @@ bool CM6811Disassembler::CompleteObjRead(bool bAddLabels, std::ostream *msgFile,
 	if (!bA || !bB) return false;
 
 	m_sFunctionalOpcode += "|";
-	m_sFunctionalOpcode += FormatMnemonic(nMemType, MC_OPCODE, m_nStartPC);
+	m_sFunctionalOpcode += FormatMnemonic(nMemoryType, MC_OPCODE, m_nStartPC);
 	m_sFunctionalOpcode += "|";
-	m_sFunctionalOpcode += FormatOperands(nMemType, MC_OPCODE, m_nStartPC);
+	m_sFunctionalOpcode += FormatOperands(nMemoryType, MC_OPCODE, m_nStartPC);
 
 	// See if this is the end of a function.  Note: These preempt all previously
 	//		decoded function tags -- such as call, etc:
@@ -641,21 +637,19 @@ bool CM6811Disassembler::CurrentOpcodeIsStop() const
 
 // ----------------------------------------------------------------------------
 
-bool CM6811Disassembler::RetrieveIndirect(std::ostream *msgFile, std::ostream *errFile)
+bool CM6811Disassembler::RetrieveIndirect(MEMORY_TYPE nMemoryType, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	MEM_DESC b1d, b2d;
 
 	m_OpMemory.clear();
-	m_OpMemory.push_back(m_Memory[nMemType].element(m_PC));
-	m_OpMemory.push_back(m_Memory[nMemType].element(m_PC+1));
+	m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
+	m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC+1));
 	// All HC11 indirects are Motorola format and are 2-bytes in length, regardless:
-	b1d = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
-	b2d = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC+1));
+	b1d = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
+	b2d = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC+1));
 	if (((b1d != DMEM_CODEINDIRECT) && (b1d != DMEM_DATAINDIRECT)) ||
 		((b2d != DMEM_CODEINDIRECT) && (b2d != DMEM_DATAINDIRECT))) {
 		m_PC += 2;
@@ -824,14 +818,14 @@ std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC
 				case 0x2:
 				case 0x3:
 				case 0x4:
-					if (!CheckBranchOutside(OGRP_DST())) bBranchOutside = true;
+					if (!CheckBranchOutside(nMemoryType, OGRP_DST())) bBranchOutside = true;
 					break;
 			}
 			switch (OCTL_SRC()) {
 				case 0x2:
 				case 0x3:
 				case 0x4:
-					if (!CheckBranchOutside(OGRP_SRC())) bBranchOutside = true;
+					if (!CheckBranchOutside(nMemoryType, OGRP_SRC())) bBranchOutside = true;
 					break;
 			}
 			break;
@@ -879,8 +873,9 @@ std::string CM6811Disassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE 
 
 // ----------------------------------------------------------------------------
 
-bool CM6811Disassembler::WritePreSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CM6811Disassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 
@@ -907,22 +902,20 @@ bool CM6811Disassembler::WritePreSection(std::ostream& outFile, std::ostream *ms
 
 // ----------------------------------------------------------------------------
 
-bool CM6811Disassembler::ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
+bool CM6811Disassembler::ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
 {
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	// In the HC11, we can assume that all indirect addresses are 2-bytes in length
 	//	and stored in big endian format.
-	if (!IsAddressLoaded(nMemType, nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
-		(m_Memory[nMemType].descriptor(nAddress) != DMEM_LOADED) ||
-		(m_Memory[nMemType].descriptor(nAddress+1) != DMEM_LOADED)) {
+	if (!IsAddressLoaded(nMemoryType, nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
+		(m_Memory[nMemoryType].descriptor(nAddress) != DMEM_LOADED) ||
+		(m_Memory[nMemoryType].descriptor(nAddress+1) != DMEM_LOADED)) {
 		nResAddress = 0;
 		return false;
 	}
-	TAddress nVector = m_Memory[nMemType].element(nAddress) * 256ul + m_Memory[nMemType].element(nAddress + 1);
+	TAddress nVector = m_Memory[nMemoryType].element(nAddress) * 256ul + m_Memory[nMemoryType].element(nAddress + 1);
 	nResAddress = nVector;
-	m_Memory[nMemType].setDescriptor(nAddress, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);		// Flag the addresses as being the proper vector type
-	m_Memory[nMemType].setDescriptor(nAddress+1, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);
+	m_Memory[nMemoryType].setDescriptor(nAddress, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);		// Flag the addresses as being the proper vector type
+	m_Memory[nMemoryType].setDescriptor(nAddress+1, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);
 	return true;
 }
 
@@ -974,10 +967,8 @@ void CM6811Disassembler::pushBackOpMemory(TAddress nLogicalAddress, const CMemor
 
 // ----------------------------------------------------------------------------
 
-bool CM6811Disassembler::MoveOpcodeArgs(TM6811Disassembler::TGroupFlags nGroup)
+bool CM6811Disassembler::MoveOpcodeArgs(MEMORY_TYPE nMemoryType, TM6811Disassembler::TGroupFlags nGroup)
 {
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	switch (nGroup) {
 		case 0x2:
 		case 0x4:
@@ -985,14 +976,14 @@ bool CM6811Disassembler::MoveOpcodeArgs(TM6811Disassembler::TGroupFlags nGroup)
 		case 0x7:
 		case 0x8:
 		case 0x9:
-			m_OpMemory.push_back(m_Memory[nMemType].element(m_PC++));
+			m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC++));
 			// Fall through and do it again:
 		case 0x1:
 		case 0x3:
 		case 0x5:
 		case 0xA:
 		case 0xB:
-			m_OpMemory.push_back(m_Memory[nMemType].element(m_PC++));
+			m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC++));
 			break;
 		case 0x0:
 			break;
@@ -1368,32 +1359,30 @@ std::string CM6811Disassembler::FormatOperandRefComments(TM6811Disassembler::TGr
 	return FormatUserComments(MT_ROM, MC_INDIRECT, nAddress);
 }
 
-bool CM6811Disassembler::CheckBranchOutside(TM6811Disassembler::TGroupFlags nGroup)
+bool CM6811Disassembler::CheckBranchOutside(MEMORY_TYPE nMemoryType, TM6811Disassembler::TGroupFlags nGroup)
 {
-	const MEMORY_TYPE nMemType = MT_ROM;
-
 	bool bRetVal = true;
 	TAddress nAddress;
 
 	switch (nGroup) {
 		case 0x1:								// absolute 8-bit, assume msb=$00
 			nAddress = m_OpMemory.at(m_nOpPointer);
-			bRetVal = IsAddressLoaded(nMemType, nAddress, 1);
+			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer++;
 			break;
 		case 0x2:								// 16-bit Absolute
 			nAddress = m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1);
-			bRetVal = IsAddressLoaded(nMemType, nAddress, 1);
+			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer += 2;
 			break;
 		case 0x3:								// 8-bit Relative
 			nAddress = m_PC+(signed long)(signed char)(m_OpMemory.at(m_nOpPointer));
-			bRetVal = IsAddressLoaded(nMemType, nAddress, 1);
+			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer++;
 			break;
 		case 0x4:								// 16-bit Relative
 			nAddress = m_PC+(signed long)(signed short)(m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
-			bRetVal = IsAddressLoaded(nMemType, nAddress, 1);
+			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer += 2;
 			break;
 	}
