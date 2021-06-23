@@ -538,7 +538,9 @@ protected:
 	virtual bool WriteHeader(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Writes the disassembly header comments to the output file.  Override in subclasses for non-default header
 
 	virtual bool WritePreEquates(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Writes any info needed in the disassembly file prior to the equates section.  Default is do nothing.  Override as needed
+	virtual bool WritePreEquatesRange(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Writes any info needed in the disassembly file prior to the equates section range.  Default is do nothing.  Override as needed
 	virtual bool WriteEquates(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Writes the equates table to the disassembly file.
+	virtual bool WritePostEquatesRange(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Writes any info needed in the disassembly file after the equates section range.  Default is do nothing.  Override as needed
 	virtual bool WritePostEquates(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Writes any info needed in the disassembly file after the equates section.  Default is do nothing.  Override as needed
 
 	virtual bool WritePreDisassembly(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Writes any info needed in the disassembly file prior to the main disassembly section.  Default writes several blank lines.  Override as needed

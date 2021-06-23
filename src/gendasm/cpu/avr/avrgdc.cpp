@@ -859,7 +859,7 @@ CAVRDisassembler::CAVRDisassembler()
 	for (unsigned int nReg = 0; nReg < 32; ++nReg) {
 		char buf[10];
 		std::sprintf(buf, "R%u", nReg);
-		AddLabel(MT_IO, nReg, false, 0, buf);
+		AddLabel(MT_RAM, nReg, false, 0, buf);
 	}
 }
 
@@ -909,11 +909,20 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 		// I/O Ports:
 		for (auto const & entry : g_arrIOPorts_m328p) {
 			assert(ValidateLabelName(entry.m_strLabel));
-			AddLabel(MT_IO, entry.m_nAddress, false, 0, entry.m_strLabel);
+			// Even though they are I/O, the core label and address is the
+			//	RAM memory equivalent accessed via LDS/STS:
+			AddLabel(MT_RAM, entry.m_nAddress, false, 0, entry.m_strLabel);
+			if (entry.m_nAddress < 0x60) {
+				// Add special labels for shifted addresses of I/O opcodes (i.e. that bypass registers)
+				// I/O Addresses are offset by 0x20 for the registers
+				AddLabel(MT_IO, entry.m_nAddress-0x20, false, 0, entry.m_strLabel+"_");
+			}
 			if (!entry.m_strComment.empty()) {
-				AddComment(MT_IO, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
+				AddComment(MT_RAM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
 			}
 		}
+
+		m_strDevice = "ATmega328P";
 	}
 
 	// m328pb specific:
@@ -933,11 +942,20 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 		// I/O Ports:
 		for (auto const & entry : g_arrIOPorts_m328pb) {
 			assert(ValidateLabelName(entry.m_strLabel));
-			AddLabel(MT_IO, entry.m_nAddress, false, 0, entry.m_strLabel);
+			// Even though they are I/O, the core label and address is the
+			//	RAM memory equivalent accessed via LDS/STS:
+			AddLabel(MT_RAM, entry.m_nAddress, false, 0, entry.m_strLabel);
+			if (entry.m_nAddress < 0x60) {
+				// Add special labels for shifted addresses of I/O opcodes (i.e. that bypass registers)
+				// I/O Addresses are offset by 0x20 for the registers
+				AddLabel(MT_IO, entry.m_nAddress-0x20, false, 0, entry.m_strLabel+"_");
+			}
 			if (!entry.m_strComment.empty()) {
-				AddComment(MT_IO, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
+				AddComment(MT_RAM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
 			}
 		}
+
+		m_strDevice = "ATmega328PB";
 	}
 
 	return true;
@@ -1228,11 +1246,11 @@ std::string CAVRDisassembler::FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_C
 		case MC_EQUATE:
 			return "=";
 		case MC_DATABYTE:
-			return ".byte";
+			return ".db";
 		case MC_ASCII:
-			return ".ascii";
+			return ".db";
 		case MC_INDIRECT:
-			return ".word";
+			return ".dw";
 		default:
 			assert(false);
 			break;
@@ -1265,13 +1283,24 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			}
 			break;
 		case MC_ASCII:
-			strOpStr += DataDelim;
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
-				std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(i)));
-				strOpStr += strTemp;
+			if (m_OpMemory.empty()) {
+				assert(false);
+				break;
 			}
-			strOpStr += DataDelim;
+			if (m_OpMemory.size() > 1) {		// Do multiple characters as string instead of characters:
+				strOpStr += "\"";
+				for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+					std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(i)));
+					strOpStr += strTemp;
+				}
+				strOpStr += "\"";
+			} else {							// Single character output
+				strOpStr += DataDelim;
+				std::sprintf(strTemp, "%c", static_cast<char>(m_OpMemory.at(0)));
+				strOpStr += strTemp;
+				strOpStr += DataDelim;
+			}
 			break;
 		case MC_EQUATE:
 			std::sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), nStartAddress);
@@ -1289,7 +1318,7 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 				break;
 			}
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			nAddress = m_OpMemory.at(0)+m_OpMemory.at(1)*256;	// Little Endian, not big
+			nAddress = (m_OpMemory.at(0)+m_OpMemory.at(1)*256)*2;	// Little Endian, not big and words not bytes
 			std::string strLabel;
 			CAddressLabelMap::const_iterator itrLabel;
 			if ((itrLabel = m_CodeIndirectTable.find(nStartAddress)) != m_CodeIndirectTable.cend()) {
@@ -1315,6 +1344,7 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
 	std::string strRetVal;
+	char strTemp[30];
 	bool bBranchOutside;
 	TAddress nAddress;
 
@@ -1365,10 +1395,21 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 				break;
 			}
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			nAddress = m_OpMemory.at(0)+m_OpMemory.at(1)*256;	// Little Endian, not big
+			nAddress = (m_OpMemory.at(0)+m_OpMemory.at(1)*256)*2;	// Little Endian, not big and words not bytes
 			if (m_CodeIndirectTable.contains(nStartAddress)) {
 				if (!CheckBranchAddressLoaded(nAddress)) bBranchOutside = true;
 			}
+			// Since addresses are in words and not bytes, print the real address
+			//	as a comment to make it more readable:
+			if (!strRetVal.empty()) strRetVal += "\n";
+			if (m_CodeIndirectTable.contains(nStartAddress)) {
+				strRetVal += "Code";
+			} else {
+				strRetVal += "Data";
+			}
+			strRetVal += " Indirect->";
+			sprintf(strTemp, "%s%04X", GetHexDelim().c_str(), nAddress);
+			strRetVal += strTemp;
 			break;
 		default:
 			break;
@@ -1394,7 +1435,7 @@ std::string CAVRDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nL
 
 	switch (nLC) {
 		case LC_EQUATE:
-			strTemp += LbleDelim;
+			strTemp = ".equ " + strTemp + LbleDelim;
 			break;
 		case LC_DATA:
 		case LC_CODE:
@@ -1404,6 +1445,26 @@ std::string CAVRDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nL
 			break;
 	}
 	return strTemp;
+}
+
+// ----------------------------------------------------------------------------
+
+bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+{
+	bool bRetVal = CDisassembler::WriteHeader(outFile, msgFile, errFile);	// Call parent
+	if (!m_strDevice.empty()) {
+		CStringArray saOutLine;
+
+		ClearOutputLine(saOutLine);
+		saOutLine[FC_MNEMONIC] = ".device";
+		saOutLine[FC_OPERANDS] = m_strDevice;
+		outFile << MakeOutputLine(saOutLine) << "\n";
+
+		ClearOutputLine(saOutLine);
+		outFile << MakeOutputLine(saOutLine) << "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+	}
+	return bRetVal;
 }
 
 // ----------------------------------------------------------------------------
@@ -1418,7 +1479,7 @@ bool CAVRDisassembler::WritePreSection(std::ostream& outFile, std::ostream *msgF
 
 	ClearOutputLine(saOutLine);
 	saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-	saOutLine[FC_MNEMONIC] = ".area";
+	saOutLine[FC_MNEMONIC] = ".cseg";
 	std::sprintf(strTemp, "CODE%d\t(ABS)", ++m_nSectionCount);
 	saOutLine[FC_OPERANDS] = strTemp;
 	outFile << MakeOutputLine(saOutLine) << "\n";
@@ -1436,19 +1497,196 @@ bool CAVRDisassembler::WritePreSection(std::ostream& outFile, std::ostream *msgF
 
 // ----------------------------------------------------------------------------
 
+bool CAVRDisassembler::WriteDataSection(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+{
+	// Override needed because the lines in the data sections for AVR must
+	//	keep processor alignment for code -- i.e. they must be a multiple
+	//	of 2-byte entities (and always have to be or else code will get
+	//	misaligned).
+	// ASCII and binary data can be mixed per-line, but it has to be a
+	//	proper multiple.  The existing code structure didn't allow for
+	//	an easy way to do that without just duplicating and rewriting
+	//	this function.
+
+	bool bRetVal;
+	CStringArray saOutLine;
+	bool bDone;
+	TAddress nSavedPC;
+	TAddress nIntermediatePC;
+	int nCount;
+	bool bFlag;							// 'Done' flag for outputting data for a given line
+	bool bFirstOutput;					// 'True' if still doing first byte of a given line (used for printing separators)
+	bool bHadAscii;						// 'True' if any ASCII output was done on a line to decide if we need to do the ASCIIBYTES output for the line
+	bool bTransitionBreak;				// 'True' whenever we go from data->ascii or ascii->data
+	MEM_DESC nDesc;
+	MEM_DESC nLastDesc;
+	TLabel strTempLabel;
+	CMemoryArray maTempOpMemory;		// All bytes
+	CMemoryArray maTempOpMemoryData;	// Data-only bytes
+	CMemoryArray maTempOpMemoryAscii;	// ASCII-only bytes
+
+	const MEMORY_TYPE nMemType = MT_ROM;
+
+	ClearOutputLine(saOutLine);
+
+	bRetVal = WritePreDataSection(outFile, msgFile, errFile);
+	if (bRetVal) {
+		bDone = false;
+		while ((m_PC < m_Memory[nMemType].highestLogicalAddress()) && !bDone && bRetVal) {
+			ClearOutputLine(saOutLine);
+			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
+			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
+			if (itrLabels != m_LabelTable[nMemType].cend()) {
+				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
+					saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_DATA, itrLabels->second.at(i), m_PC);
+					outFile << MakeOutputLine(saOutLine) << "\n";
+				}
+				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemType, LC_DATA, itrLabels->second.at(0), m_PC);
+			}
+
+			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
+			nDesc = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
+			nLastDesc = nDesc;
+			switch (nDesc) {
+				case DMEM_DATA:
+				case DMEM_PRINTDATA:
+					nCount = 0;
+					maTempOpMemory.clear();
+					maTempOpMemoryAscii.clear();
+					maTempOpMemoryData.clear();
+					bFlag = false;
+					bFirstOutput = true;
+					bHadAscii = false;
+					bTransitionBreak = false;
+					nIntermediatePC = m_PC;
+					while (!bFlag) {
+						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
+						nDesc = static_cast<MEM_DESC>(m_Memory[nMemType].descriptor(m_PC));
+
+						maTempOpMemory.push_back(m_Memory[nMemType].element(m_PC));
+						if (nDesc == DMEM_DATA) {
+							maTempOpMemoryData.push_back(m_Memory[nMemType].element(m_PC));
+						} else {
+							maTempOpMemoryAscii.push_back(m_Memory[nMemType].element(m_PC));
+							bHadAscii = true;
+						}
+
+						if (nDesc != nLastDesc) {
+							CMemoryArray &arrData = (nLastDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
+							clearOpMemory();
+							pushBackOpMemory(nIntermediatePC, arrData);
+							if (m_bDataOpBytesFlag) {
+								if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
+								saOutLine[FC_OPBYTES] += FormatOpBytes(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+							}
+							if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
+							saOutLine[FC_OPERANDS] += FormatOperands(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+							bFirstOutput = false;
+							nIntermediatePC += arrData.size();
+							arrData.clear();
+							nLastDesc = nDesc;
+							bTransitionBreak = true;
+						}
+
+						++m_PC;
+						++nCount;
+						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
+						if (!bHadAscii && (nCount >= m_nMaxNonPrint) && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
+						if (bHadAscii && (nCount >= m_nMaxPrint) && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
+						if (m_LabelTable[nMemType].contains(m_PC) && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
+						// First transition from data->ascii on the correct boundary will trigger a break:
+						if ((nDesc == DMEM_DATA) && bTransitionBreak && ((m_PC % opcodeSymbolSize()) == 0)) bFlag = true;
+					}
+
+					// First, print a line of the output bytes for reference:
+					if (m_bAsciiBytesFlag && bHadAscii) {
+						CStringArray saAsciiLine;
+						ClearOutputLine(saAsciiLine);
+
+						clearOpMemory();
+						pushBackOpMemory(nSavedPC, maTempOpMemory);
+						saAsciiLine[FC_LABEL] = GetCommentStartDelim() + " " + saOutLine[FC_LABEL] +
+												((!saOutLine[FC_LABEL].empty()) ? " " : "") +
+												FormatOperands(nMemType, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
+						saAsciiLine[FC_ADDRESS] = FormatAddress(nSavedPC);
+						outFile << MakeOutputLine(saAsciiLine) << "\n";
+					}
+
+					// Finish remaining output:
+					if (!maTempOpMemoryAscii.empty() || !maTempOpMemoryData.empty()) {
+						CMemoryArray &arrData = (nDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
+						assert((nDesc != DMEM_DATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed
+						clearOpMemory();
+						pushBackOpMemory(nIntermediatePC, arrData);
+						if (m_bDataOpBytesFlag) {
+							if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
+							saOutLine[FC_OPBYTES] += FormatOpBytes(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+						}
+						if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
+						saOutLine[FC_OPERANDS] += FormatOperands(nMemType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+						bFirstOutput = false;
+						nIntermediatePC += arrData.size();
+						arrData.clear();
+						nLastDesc = nDesc;
+					}
+					assert(m_PC == nIntermediatePC);		// We should be synced up
+
+					// Already done FC_OPBYTES
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
+					// Already done FC_OPERANDS
+					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
+					outFile << MakeOutputLine(saOutLine) << "\n";
+					break;
+
+				case DMEM_CODEINDIRECT:
+				case DMEM_DATAINDIRECT:
+					// If the following call returns false, that means that the user (or
+					//	special indirect detection logic) erroneously specified (or detected)
+					//	the indirect.  So instead of throwing an error or causing problems,
+					//	we will treat it as a data byte instead:
+					if (RetrieveIndirect(msgFile, errFile) == false) {		// Bumps PC and fills in m_OpMemory
+						if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_DATABYTE, nSavedPC);
+						saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_DATABYTE, nSavedPC) + " -- Erroneous Indirect Stub";
+						outFile << MakeOutputLine(saOutLine) << "\n";
+						break;
+					}
+
+					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_OPERANDS] = FormatOperands(nMemType, MC_INDIRECT, nSavedPC);
+					saOutLine[FC_COMMENT] = FormatComments(nMemType, MC_INDIRECT, nSavedPC);
+					outFile << MakeOutputLine(saOutLine) << "\n";
+					break;
+
+				default:
+					bDone = true;
+			}
+		}
+
+		bRetVal = bRetVal && WritePostDataSection(outFile, msgFile, errFile);
+	}
+
+	return bRetVal;
+}
+
+// ----------------------------------------------------------------------------
+
 bool CAVRDisassembler::ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType)
 {
 	const MEMORY_TYPE nMemType = MT_ROM;
 
 	// We will assume that all indirect addresses are 2-bytes in length
-	//	and stored in little endian format.
+	//	and stored in little endian format.  But note that the address
+	//	is in words, not bytes, so we must multiply by 2.
 	if (!IsAddressLoaded(nMemType, nAddress, 2) ||				// Not only must it be loaded, but we must have never examined it before!
 		(m_Memory[nMemType].descriptor(nAddress) != DMEM_LOADED) ||
 		(m_Memory[nMemType].descriptor(nAddress+1) != DMEM_LOADED)) {
 		nResAddress = 0;
 		return false;
 	}
-	TAddress nVector = m_Memory[nMemType].element(nAddress) + m_Memory[nMemType].element(nAddress + 1) * 256ul;
+	TAddress nVector = (m_Memory[nMemType].element(nAddress) + m_Memory[nMemType].element(nAddress + 1) * 256ul) * 2;
 	nResAddress = nVector;
 	m_Memory[nMemType].setDescriptor(nAddress, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);		// Flag the addresses as being the proper vector type
 	m_Memory[nMemType].setDescriptor(nAddress+1, static_cast<TDescElement>(DMEM_CODEINDIRECT) + nType);
@@ -1457,9 +1695,34 @@ bool CAVRDisassembler::ResolveIndirect(TAddress nAddress, TAddress& nResAddress,
 
 // ----------------------------------------------------------------------------
 
+TLabel CAVRDisassembler::GenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress)
+{
+	std::ostringstream sstrTemp;
+
+	std::string strPrefix;
+	switch (nMemoryType) {
+		case MT_ROM:
+			strPrefix = "CL";		// Label Code
+			break;
+		case MT_RAM:
+			strPrefix = "DL";		// Label Data
+			break;
+		case MT_IO:
+			strPrefix = "IL";		// Label I/O
+			break;
+		default:
+			break;
+	}
+
+	sstrTemp << strPrefix << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nAddress;
+	return sstrTemp.str();
+}
+
+// ----------------------------------------------------------------------------
+
 std::string CAVRDisassembler::GetExcludedPrintChars() const
 {
-	return "\\" DataDelim;
+	return "\\" DataDelim "\"";
 }
 
 std::string CAVRDisassembler::GetHexDelim() const
@@ -1785,22 +2048,19 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 			break;
 
 		case S_IOR:			// 5-bit Absolute I/O Address and bit
-			// Note: Memmap Offset for I/O addresses is +0x20 to skip past registers:
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opIO0_31(m_OpMemory) + 0x20), opIO0_31(m_OpMemory) + 0x20, m_nStartPC, TLabel(), msgFile, errFile);
-			std::sprintf(strDstTemp, "D@%04X,%u", opIO0_31(m_OpMemory) + 0x20, opBit(m_OpMemory));
+			if (bAddLabels) GenDataLabel(MT_IO, opIO0_31(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "D@%04X,%u", opIO0_31(m_OpMemory), opBit(m_OpMemory));
 			break;
 
 		case S_IN:			// 6-bit Absolute I/O Address and Register
-			// Note: Memmap Offset for I/O addresses is +0x20 to skip past registers:
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opIO0_63(m_OpMemory) + 0x20), opIO0_63(m_OpMemory) + 0x20, m_nStartPC, TLabel(), msgFile, errFile);
+			if (bAddLabels) GenDataLabel(MT_IO, opIO0_63(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "D@%04X", opIO0_63(m_OpMemory) + 0x20);
+			std::sprintf(strSrcTemp, "D@%04X", opIO0_63(m_OpMemory));
 			break;
 
 		case S_OUT:			// 6-bit Absolute I/O Address and Register
-			// Note: Memmap Offset for I/O addresses is +0x20 to skip past registers:
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opIO0_63(m_OpMemory) + 0x20), opIO0_63(m_OpMemory) + 0x20, m_nStartPC, TLabel(), msgFile, errFile);
-			std::sprintf(strDstTemp, "D@%04X", opIO0_63(m_OpMemory) + 0x20);
+			if (bAddLabels) GenDataLabel(MT_IO, opIO0_63(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			std::sprintf(strDstTemp, "D@%04X", opIO0_63(m_OpMemory));
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
@@ -1933,14 +2193,14 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 		case S_LDS:			// 16-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
 			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opDAbs16bit(m_OpMemory)), opDAbs16bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			if (bAddLabels) GenDataLabel(MT_RAM, opDAbs16bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
 			std::sprintf(strSrcTemp, "D@%04lX", static_cast<unsigned long>(opDAbs16bit(m_OpMemory)));
 			break;
 
 		case S_LDSrc:		// 7-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opLDSrc7bit(m_OpMemory)), opLDSrc7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			if (bAddLabels) GenDataLabel(MT_RAM, opLDSrc7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
 			std::sprintf(strDstTemp, "R%u", opDstReg16_31(m_OpMemory));
 			std::sprintf(strSrcTemp, "D@%02lX", static_cast<unsigned long>(opLDSrc7bit(m_OpMemory)));
 			break;
@@ -1948,14 +2208,14 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 		case S_STS:			// 16-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
 			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opDAbs16bit(m_OpMemory)), opDAbs16bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			if (bAddLabels) GenDataLabel(MT_RAM, opDAbs16bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
 			std::sprintf(strDstTemp, "D@%04lX", static_cast<unsigned long>(opDAbs16bit(m_OpMemory)));
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_STSrc:		// 7-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
-			if (bAddLabels) GenDataLabel(MemTypeIORAM(opLDSrc7bit(m_OpMemory)), opLDSrc7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
+			if (bAddLabels) GenDataLabel(MT_RAM, opLDSrc7bit(m_OpMemory), m_nStartPC, TLabel(), msgFile, errFile);
 			std::sprintf(strDstTemp, "D@%02lX", static_cast<unsigned long>(opLDSrc7bit(m_OpMemory)));
 			std::sprintf(strSrcTemp, "R%u", opDstReg16_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
@@ -2130,15 +2390,15 @@ std::string CAVRDisassembler::CreateOperand()
 			break;
 
 		case S_IOR:			// 5-bit Absolute I/O Address and bit
-			std::sprintf(strTemp, "%s,%u", IOLabelDeref(opIO0_31(m_OpMemory) + 0x20).c_str(), opBit(m_OpMemory));
+			std::sprintf(strTemp, "%s,%u", IOLabelDeref(opIO0_31(m_OpMemory)).c_str(), opBit(m_OpMemory));
 			break;
 
 		case S_IN:			// 6-bit Absolute I/O Address and Register
-			std::sprintf(strTemp, "R%u,%s", opDstReg0_31(m_OpMemory), IOLabelDeref(opIO0_63(m_OpMemory) + 0x20).c_str());
+			std::sprintf(strTemp, "R%u,%s", opDstReg0_31(m_OpMemory), IOLabelDeref(opIO0_63(m_OpMemory)).c_str());
 			break;
 
 		case S_OUT:			// 6-bit Absolute I/O Address and Register
-			std::sprintf(strTemp, "%s,R%u", IOLabelDeref(opIO0_63(m_OpMemory) + 0x20).c_str(), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			std::sprintf(strTemp, "%s,R%u", IOLabelDeref(opIO0_63(m_OpMemory)).c_str(), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_SNGL_X:		// Single Register and X Register -- no label
@@ -2294,12 +2554,12 @@ TAddress CAVRDisassembler::CreateOperandAddress()
 			break;
 
 		case S_IOR:			// 5-bit Absolute I/O Address and bit
-			nAddress = opIO0_31(m_OpMemory) + 0x20;
+			nAddress = opIO0_31(m_OpMemory);
 			break;
 
 		case S_IN:			// 6-bit Absolute I/O Address and Register
 		case S_OUT:			// 6-bit Absolute I/O Address and Register
-			nAddress = opIO0_63(m_OpMemory) + 0x20;
+			nAddress = opIO0_63(m_OpMemory);
 			break;
 
 		case S_LDS:			// 16-bit Absolute Data Address
@@ -2367,7 +2627,7 @@ TLabel CAVRDisassembler::CodeLabelDeref(TAddress nAddress)
 
 TLabel CAVRDisassembler::DataLabelDeref(TAddress nAddress)
 {
-	const MEMORY_TYPE nMemType = MemTypeIORAM(nAddress);
+	const MEMORY_TYPE nMemType = MT_RAM;
 
 	std::string strTemp;
 	char strCharTemp[30];
@@ -2388,7 +2648,7 @@ TLabel CAVRDisassembler::DataLabelDeref(TAddress nAddress)
 
 TLabel CAVRDisassembler::IOLabelDeref(TAddress nAddress)
 {
-	const MEMORY_TYPE nMemType = MemTypeIORAM(nAddress);
+	const MEMORY_TYPE nMemType = MT_IO;
 
 	std::string strTemp;
 	char strCharTemp[30];
@@ -2401,15 +2661,9 @@ TLabel CAVRDisassembler::IOLabelDeref(TAddress nAddress)
 			strTemp = FormatLabel(nMemType, LC_REF, TLabel(), nAddress);
 		}
 	} else {
-		std::sprintf(strCharTemp, "%s%02X", GetHexDelim().c_str(), nAddress - 0x20);	// I/O Addresses are offset by 0x20
+		std::sprintf(strCharTemp, "%s%02X", GetHexDelim().c_str(), nAddress);
 		strTemp = strCharTemp;
 	}
 	return strTemp;
-}
-
-CAVRDisassembler::MEMORY_TYPE CAVRDisassembler::MemTypeIORAM(TAddress nAddress)
-{
-	if (m_MemoryRanges[MT_IO].addressInRange(nAddress)) return MT_IO;
-	return MT_RAM;
 }
 

@@ -1710,13 +1710,12 @@ std::string CDisassembler::FormatAddress(TAddress nAddress)
 
 std::string CDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress)
 {
-	UNUSED(nMemoryType);
 	UNUSED(nLC);
 
 	std::ostringstream sstrTemp;
 
 	if (strLabel.empty()) {
-		sstrTemp << "L" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nAddress;
+		sstrTemp << GenLabel(nMemoryType, nAddress);
 	} else {
 		sstrTemp << strLabel;
 	}
@@ -2113,6 +2112,15 @@ bool CDisassembler::WritePreEquates(std::ostream& outFile, std::ostream *msgFile
 	return true;		// Don't do anything by default
 }
 
+bool CDisassembler::WritePreEquatesRange(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+{
+	UNUSED(nMemoryType);
+	UNUSED(outFile);
+	UNUSED(msgFile);
+	UNUSED(errFile);
+	return true;		// Don't do anything by default
+}
+
 bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	CStringArray saOutLine;
@@ -2126,82 +2134,96 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 
 		MEMORY_TYPE arrMemTypes[NUM_MEMORY_TYPES] = { MT_IO, MT_RAM, MT_ROM };
 		for (int ndxType = 0; ndxType < NUM_MEMORY_TYPES; ++ndxType) {
-			bool bTypeHeader = false;
-			MEMORY_TYPE ndxMemType = arrMemTypes[ndxType];
-			CMemRanges ranges = m_Memory[ndxMemType].ranges();
-			ranges.insert(ranges.end(), m_MemoryRanges[ndxMemType].cbegin(), m_MemoryRanges[ndxMemType].cend());
-			ranges.consolidate();		// Use consolidation of actual memory and specified ranges to make sure we output everything
+			MEMORY_TYPE nMemoryType = arrMemTypes[ndxType];
 
-			CLabelTableMap mapMissing = m_LabelTable[ndxMemType];		// Copy of map to find labels missed during output (because they are out of range)
+			if (WritePreEquatesRange(nMemoryType, outFile, msgFile, errFile)) {
+				bool bTypeHeader = false;
+				CMemRanges ranges = m_Memory[nMemoryType].ranges();
+				ranges.insert(ranges.end(), m_MemoryRanges[nMemoryType].cbegin(), m_MemoryRanges[nMemoryType].cend());
+				ranges.consolidate();		// Use consolidation of actual memory and specified ranges to make sure we output everything
 
-			for (auto const & itrRange : ranges) {		// This loop technically not necessary as there should only be a single range after the consolidation
-				m_PC = itrRange.startAddr();
-				for (TSize nSize = 0; nSize < itrRange.size(); ++nSize, ++m_PC) {
-					assert(m_Memory[ndxMemType].descriptor(m_PC) != DMEM_LOADED);		// Find Routines didn't find and analyze all memory!!  Fix it!
+				CLabelTableMap mapMissing = m_LabelTable[nMemoryType];		// Copy of map to find labels missed during output (because they are out of range)
 
-					if (m_Memory[ndxMemType].descriptor(m_PC) != DMEM_NOTLOADED) {
-						mapMissing.erase(m_PC);		// Remove from our track of missing
-						continue;		// Loaded addresses will get outputted during main part
-					}
+				for (auto const & itrRange : ranges) {		// This loop technically not necessary as there should only be a single range after the consolidation
+					m_PC = itrRange.startAddr();
+					for (TSize nSize = 0; nSize < itrRange.size(); ++nSize, ++m_PC) {
+						assert(m_Memory[nMemoryType].descriptor(m_PC) != DMEM_LOADED);		// Find Routines didn't find and analyze all memory!!  Fix it!
 
-					CLabelTableMap::const_iterator itrLabels = m_LabelTable[ndxMemType].find(m_PC);
-					if (itrLabels != m_LabelTable[ndxMemType].cend()) {
-						mapMissing.erase(itrLabels->first);		// Remove from our track of missing
-
-						ClearOutputLine(saOutLine);
-						saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-
-						if (!bTypeHeader) {
-							saOutLine[FC_LABEL] = GetCommentStartDelim() + " Equates for " + g_arrstrMemRanges[ndxMemType] + ": " + GetCommentEndDelim() + "\n";
-							outFile << MakeOutputLine(saOutLine) << "\n";
-							bTypeHeader = true;
+						if (m_Memory[nMemoryType].descriptor(m_PC) != DMEM_NOTLOADED) {
+							mapMissing.erase(m_PC);		// Remove from our track of missing
+							continue;		// Loaded addresses will get outputted during main part
 						}
 
-						for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
-							saOutLine[FC_LABEL] = FormatLabel(ndxMemType, LC_EQUATE, itrLabels->second.at(i), m_PC);
-							saOutLine[FC_MNEMONIC] = FormatMnemonic(ndxMemType, MC_EQUATE, m_PC);
-							saOutLine[FC_OPERANDS] = FormatOperands(ndxMemType, MC_EQUATE, m_PC);
-							saOutLine[FC_COMMENT] = FormatComments(ndxMemType, MC_EQUATE, m_PC);
-							outFile << MakeOutputLine(saOutLine) << "\n";
+						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
+						if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+							mapMissing.erase(itrLabels->first);		// Remove from our track of missing
+
+							ClearOutputLine(saOutLine);
+							saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
+
+							if (!bTypeHeader) {
+								saOutLine[FC_LABEL] = GetCommentStartDelim() + " Equates for " + g_arrstrMemRanges[nMemoryType] + ": " + GetCommentEndDelim() + "\n";
+								outFile << MakeOutputLine(saOutLine) << "\n";
+								bTypeHeader = true;
+							}
+
+							for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
+								saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrLabels->second.at(i), m_PC);
+								saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC);
+								saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC);
+								saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC);
+								outFile << MakeOutputLine(saOutLine) << "\n";
+							}
 						}
 					}
 				}
-			}
-			if (bTypeHeader) {
-				ClearOutputLine(saOutLine);
-				saOutLine[FC_ADDRESS] = FormatAddress(0);
-				outFile << MakeOutputLine(saOutLine) << "\n";
-			}
-
-			// Output missed labels for this memory type:
-			bTypeHeader = false;
-			for (auto const & itrMissing : mapMissing) {
-
-				if (!bTypeHeader) {
-					saOutLine[FC_LABEL] = GetCommentStartDelim() + " Out-of-Range Equates for " + g_arrstrMemRanges[ndxMemType] + ": " + GetCommentEndDelim() + "\n";
-					outFile << MakeOutputLine(saOutLine) << "\n";
-					bTypeHeader = true;
-				}
-
-				ClearOutputLine(saOutLine);
-				saOutLine[FC_ADDRESS] = FormatAddress(itrMissing.first);
-				for (CLabelArray::size_type i=0; i<itrMissing.second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(ndxMemType, LC_EQUATE, itrMissing.second.at(i), itrMissing.first);
-					saOutLine[FC_MNEMONIC] = FormatMnemonic(ndxMemType, MC_EQUATE, itrMissing.first);
-					saOutLine[FC_OPERANDS] = FormatOperands(ndxMemType, MC_EQUATE, itrMissing.first);
-					saOutLine[FC_COMMENT] = FormatComments(ndxMemType, MC_EQUATE, itrMissing.first);
+				if (bTypeHeader) {
+					ClearOutputLine(saOutLine);
+					saOutLine[FC_ADDRESS] = FormatAddress(0);
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-			}
-			if (bTypeHeader) {
-				ClearOutputLine(saOutLine);
-				saOutLine[FC_ADDRESS] = FormatAddress(0);
-				outFile << MakeOutputLine(saOutLine) << "\n";
+
+				// Output missed labels for this memory type:
+				bTypeHeader = false;
+				for (auto const & itrMissing : mapMissing) {
+
+					if (!bTypeHeader) {
+						saOutLine[FC_LABEL] = GetCommentStartDelim() + " Out-of-Range Equates for " + g_arrstrMemRanges[nMemoryType] + ": " + GetCommentEndDelim() + "\n";
+						outFile << MakeOutputLine(saOutLine) << "\n";
+						bTypeHeader = true;
+					}
+
+					ClearOutputLine(saOutLine);
+					saOutLine[FC_ADDRESS] = FormatAddress(itrMissing.first);
+					for (CLabelArray::size_type i=0; i<itrMissing.second.size(); ++i) {
+						saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrMissing.second.at(i), itrMissing.first);
+						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, itrMissing.first);
+						saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, itrMissing.first);
+						saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, itrMissing.first);
+						outFile << MakeOutputLine(saOutLine) << "\n";
+					}
+				}
+				if (bTypeHeader) {
+					ClearOutputLine(saOutLine);
+					saOutLine[FC_ADDRESS] = FormatAddress(0);
+					outFile << MakeOutputLine(saOutLine) << "\n";
+				}
+
+				WritePostEquatesRange(nMemoryType, outFile, msgFile, errFile);
 			}
 		}
 		bRetVal = bRetVal && WritePostEquates(outFile, msgFile, errFile);
 	}
 	return bRetVal;
+}
+
+bool CDisassembler::WritePostEquatesRange(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+{
+	UNUSED(nMemoryType);
+	UNUSED(outFile);
+	UNUSED(msgFile);
+	UNUSED(errFile);
+	return true;		// Don't do anything by default
 }
 
 bool CDisassembler::WritePostEquates(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)

@@ -118,9 +118,15 @@ public:
 
 	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress) override;
 
+	virtual bool WriteHeader(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+
 	virtual bool WritePreSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
+	virtual bool WriteDataSection(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+
 	virtual bool ResolveIndirect(TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;
+
+	virtual TLabel GenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) override;
 
 	virtual std::string GetExcludedPrintChars() const override;
 	virtual std::string GetHexDelim() const override;
@@ -171,14 +177,14 @@ private:
 	TLabel DataLabelDeref(TAddress nAddress);
 	TLabel IOLabelDeref(TAddress nAddress);
 
-	MEMORY_TYPE MemTypeIORAM(TAddress nAddress);	// RAM and I/O share memory space (not true Harvard), so do mapping here
-
 	// --------------------------------
 
 	static bool isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &anOpcode,
 											 const TAVRDisassembler::COpcodeSymbolArray &arrOpMemory);
 
 	// --------------------------------
+
+	std::string m_strDevice;				// Device Directive for avra assembler, set via mcu setting
 
 	bool m_bCurrentOpcodeIsSkip;			// Set to true if the current opcode being processes is a CTL_Skip or CTL_SkipIOLabel
 	bool m_bLastOpcodeWasSkip;				// Set to true if the last opcode processed was a CTL_Skip or CTL_SkipIOLabel (i.e. we are on the opcode that would be skipped)
