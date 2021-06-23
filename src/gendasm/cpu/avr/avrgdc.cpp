@@ -926,6 +926,11 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 
 		// Memory Mapping:
 		m_Memory[MT_RAM].push_back(CMemBlock{ 0x100ul, 0x100ul, true, 0x800ul, 0, DMEM_DATA });
+
+		m_MemoryRanges[MT_ROM].push_back(CMemRange(0x0000, 0x8000));	// Main Flash Memory
+		m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0000, 0x0100));	// I/O Space addressable as RAM
+		m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0100, 0x0800));	// RAM Memory
+		m_MemoryRanges[MT_IO].push_back(CMemRange(0x0000, 0x0040));		// I/O Space addressable as I/O
 	}
 
 	// m328pb specific:
