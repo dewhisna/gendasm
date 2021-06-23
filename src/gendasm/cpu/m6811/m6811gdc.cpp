@@ -868,6 +868,7 @@ std::string CM6811Disassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE 
 		default:
 			break;
 	}
+	if (strTemp.size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL))) strTemp += '\v';
 	return strTemp;
 }
 

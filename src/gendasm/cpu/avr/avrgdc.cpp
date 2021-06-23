@@ -1459,6 +1459,7 @@ std::string CAVRDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nL
 		default:
 			break;
 	}
+	if (strTemp.size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL))) strTemp += '\v';
 	return strTemp;
 }
 
