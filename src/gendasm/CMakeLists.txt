@@ -61,6 +61,20 @@ set(dfc_intel_Headers
 # -----------------------------------------------------------------------------
 
 #
+# Motorola (Srec) Data File Converter
+#
+
+set(dfc_srec_Sources
+	dfc/srec/srecdfc.cpp
+)
+
+set(dfc_srec_Headers
+	dfc/srec/srecdfc.h
+)
+
+# -----------------------------------------------------------------------------
+
+#
 # M6811 Disassembler
 #
 
@@ -97,6 +111,9 @@ add_executable(gendasm
 	# ----
 	${dfc_intel_Sources}
 	${dfc_intel_Headers}
+	# ----
+	${dfc_srec_Sources}
+	${dfc_srec_Headers}
 	# ----
 	${cpu_m6811_Sources}
 	${cpu_m6811_Headers}

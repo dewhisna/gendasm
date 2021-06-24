@@ -203,6 +203,7 @@ void CMemRanges::removeOverlaps(bool bIgnoreUserData)
 	}
 }
 
+
 //	Compact
 //		This function removes any size-zero entries
 void CMemRanges::compact()
@@ -215,6 +216,27 @@ void CMemRanges::compact()
 			++itr;
 		}
 	}
+}
+
+
+TAddress CMemRanges::lowestAddress() const
+{
+	TAddress nLowest = (empty() ? 0 : at(0).startAddr());
+	for (auto const & itr : *this) {
+		if (itr.startAddr() < nLowest) nLowest = itr.startAddr();
+	}
+	return nLowest;
+}
+
+
+TAddress CMemRanges::highestAddress() const
+{
+	TAddress nHighest = (empty() ? 0 : at(0).startAddr());	// Just set it to the first address here and update in the loop to minimize calculations/code
+	for (auto const & itr : *this) {
+		TAddress nLastAddr = (itr.size() ? (itr.startAddr()+itr.size()-1) : itr.startAddr());
+		if (nLastAddr > nHighest) nHighest = nLastAddr;
+	}
+	return nHighest;
 }
 
 

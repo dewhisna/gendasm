@@ -84,6 +84,9 @@ public:
 	void removeOverlaps(bool bIgnoreUserData = false);
 	void compact();
 
+	TAddress lowestAddress() const;			// Returns 0 if there's no memory defined
+	TAddress highestAddress() const;		// Returns 0 if there's no memory defined
+
 	inline TUserData userData() const { return m_aUserData; }
 	inline void setUserData(const TUserData &aUserData) { m_aUserData = aUserData; }
 

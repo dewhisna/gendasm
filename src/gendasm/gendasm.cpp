@@ -15,6 +15,7 @@
 
 #include <dfc/binary/binarydfc.h>
 #include <dfc/intel/inteldfc.h>
+#include <dfc/srec/srecdfc.h>
 
 #include <cpu/m6811/m6811gdc.h>
 #include <cpu/avr/avrgdc.h>
@@ -46,6 +47,8 @@ int main(int argc, char *argv[])
 	CDataFileConverters::registerDataFileConverter(&dfcBinary);
 	CIntelDataFileConverter dfcIntel;
 	CDataFileConverters::registerDataFileConverter(&dfcIntel);
+	CSrecDataFileConverter dfcSrec;
+	CDataFileConverters::registerDataFileConverter(&dfcSrec);
 
 	// Disassemblers:
 	CDisassemblers disassemblers;
