@@ -20,7 +20,7 @@ public:
 	virtual std::string GetLibraryName() const override { return "intel"; }
 	virtual std::string GetShortDescription() const override { return "Intel Hex Data File Converter"; }
 	virtual std::string GetDescription() const override { return "Intel Hex Data File Converter"; }
-	virtual std::vector<std::string> GetLibraryNameAliases() const override { return { "hex", "ihex" }; }
+	virtual std::vector<std::string> GetLibraryNameAliases() const override { return { "hex", "ihx", "ihex" }; }
 
 	const char *DefaultExtension() const override { return "hex"; }
 

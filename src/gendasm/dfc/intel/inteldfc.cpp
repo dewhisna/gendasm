@@ -17,7 +17,7 @@
 #include <assert.h>
 
 // Intel format:
-//    ccaaaammdd....kk
+//    :ccaaaammdd....kk
 //    where: cc=byte count
 //           aaaa=offset address
 //           mm=mode byte
@@ -108,7 +108,7 @@ bool CIntelDataFileConverter::_ReadDataFile(std::istream &aFile, TAddress nNewBa
 			if ((nMode == 0) && (nCurrAddr != (nExtendedAddr + nOffsetAddr + nNewBase))) bNeedRangeUpdate = true;
 
 			if (bNeedRangeUpdate) {
-				// If we need to update the Range do so, else only update the StartAddr
+				// If we need to write the Range do so, else only update the StartAddr
 				if (bNeedToWriteRange) {
 					if (pRange) {
 						pRange->push_back(CMemRange(nStartAddr, nCurrSize));
@@ -324,6 +324,10 @@ bool CIntelDataFileConverter::WriteDataFile(std::ostream &aFile, const CMemRange
 					 (nFillMode != DFC_CONDITIONAL_FILL_WITH_RANDOM))) {
 					if (bUsePhysicalAddr) {
 						if (nRealAddr != (aMemory.physicalAddr(nCurrAddr)+nNewBase)) {
+							bNeedNewOffset = true;
+						}
+					} else {
+						if (nRealAddr != (nCurrAddr + nNewBase)) {
 							bNeedNewOffset = true;
 						}
 					}

@@ -95,6 +95,10 @@ bool CBinaryDataFileConverter::WriteDataFile(std::ostream &aFile, const CMemRang
 		nBytesLeft = itrRange.size();
 
 		while (nBytesLeft) {
+			// TODO : While this does filling within a given range, it doesn't
+			//		do filling across ranges in the area between them.  Should
+			//		we just call consolidate on the range before we start
+			//		since binary files can't convey and address detail??
 			while (nBytesLeft && bNeedNewOffset) {
 				if ((nDesc == 0) || (nDesc & aMemory.descriptor(nCurrAddr)) || (nFillMode != DFC_NO_FILL)) {
 					if (bUsePhysicalAddr) {
@@ -144,6 +148,10 @@ bool CBinaryDataFileConverter::WriteDataFile(std::ostream &aFile, const CMemRang
 				if ((nDesc == 0) || (nDesc & aMemory.descriptor(nCurrAddr)) || (nFillMode != DFC_NO_FILL)) {
 					if (bUsePhysicalAddr) {
 						if (nRealAddr != (aMemory.physicalAddr(nCurrAddr) + nNewBase)) {
+							bNeedNewOffset = true;
+						}
+					} else {
+						if (nRealAddr != (nCurrAddr + nNewBase)) {
 							bNeedNewOffset = true;
 						}
 					}
