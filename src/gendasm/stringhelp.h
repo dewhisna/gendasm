@@ -17,9 +17,11 @@
 #include <string_view>
 #include <vector>
 
+typedef std::vector<std::string> CStringArray;
+
 // ============================================================================
 
-static inline bool contains(const std::vector<std::string> &arr, const std::string &s)
+static inline bool contains(const CStringArray &arr, const std::string &s)
 {
 	return (std::find(arr.cbegin(), arr.cend(), s) != arr.cend());
 }

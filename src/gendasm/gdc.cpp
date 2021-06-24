@@ -8,7 +8,6 @@
 
 #include "gdc.h"
 #include "dfc.h"
-#include "stringhelp.h"
 #include "errmsgs.h"
 
 #include <ctime>

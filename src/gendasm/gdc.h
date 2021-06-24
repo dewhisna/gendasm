@@ -12,6 +12,7 @@
 // ============================================================================
 
 #include "memclass.h"
+#include "stringhelp.h"
 
 #include <stdint.h>
 #include <time.h>
@@ -98,8 +99,6 @@ private:
 };
 
 // ============================================================================
-
-typedef std::vector<std::string> CStringArray;
 
 typedef std::string TLabel;									// Basic Label type (should support basic_string)
 typedef std::string TMnemonic;								// Basic Mnemonic type (should support basic_string)
