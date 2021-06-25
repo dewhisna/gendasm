@@ -24,6 +24,7 @@ set(gendasm_Sources
 
 set(gendasm_Headers
 	dfc.h				# Data File Converter
+	enumhelp.h			# Enum Helper Functions/Defines
 	errmsgs.h			# Error Message Handler
 	gdc.h				# Generic Disassembly Class
 	memclass.h			# Memory Management Class
