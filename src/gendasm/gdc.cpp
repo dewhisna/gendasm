@@ -159,6 +159,9 @@ CDisassembler::CDisassembler()
 		m_sDefaultDFC("binary"),
 		m_nLoadAddress(0),
 		m_bAllowMemRangeOverlap(false),
+		m_bVBreakEquateLabels(false),
+		m_bVBreakCodeLabels(false),
+		m_bVBreakDataLabels(false),
 		m_StartTime(time(nullptr)),
 		m_nCtrlLine(0),
 		m_nFilesLoaded(0),
@@ -205,6 +208,7 @@ static std::string::size_type getLongestMemMapName()
 static void parseArgLine(const std::string aLine, CStringArray &args)
 {
 	static const std::string strDelim = "\x009\x00a\x00b\x00c\x00d\x020";
+	static const std::string strWhitespace = "\x009\x00a\x00b\x00c\x00d\x020";
 	std::string strLine = aLine;
 	trim(strLine);
 
@@ -223,7 +227,7 @@ static void parseArgLine(const std::string aLine, CStringArray &args)
 			strLine = strLine.substr(1);
 
 			if (!bNonWhitespaceSeen) {		// Quoting can only begin at the first character
-				if (strDelim.find(ch) != std::string::npos) {
+				if (strWhitespace.find(ch) != std::string::npos) {
 					continue; // ignore all leading whitespace
 				} else {
 					bNonWhitespaceSeen = true;
@@ -256,9 +260,6 @@ static void parseArgLine(const std::string aLine, CStringArray &args)
 				strLine.clear();
 				if (strString.empty()) bDropField = true;	// Drop the field if this comment was it
 				break;
-			} else if (strLine.empty()) {
-				strString.push_back(ch);
-				break;	// Hitting the end of the string ends the field and the line
 			} else {
 				strString.push_back(ch);
 			}
@@ -820,7 +821,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				nArgError = ARGERR_Too_Many_Args;
 				break;
 			}
-			fnSetBoolean(argv.at(1), m_bAddrFlag);
+			fnSetBoolean(argv.at(1), m_bAsciiFlag);
 			break;
 		case CCE_SPIT:			// SPIT [ON | OFF | TRUE | FALSE | YES | NO]
 			if (argv.size() < 2) {
@@ -2143,6 +2144,7 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 
 							for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
 								saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrLabels->second.at(i), m_PC);
+								if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 								saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC);
 								saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC);
 								saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC);
@@ -2170,6 +2172,7 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 					saOutLine[FC_ADDRESS] = FormatAddress(itrMissing.first);
 					for (CLabelArray::size_type i=0; i<itrMissing.second.size(); ++i) {
 						saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrMissing.second.at(i), itrMissing.first);
+						if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 						saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, itrMissing.first);
 						saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, itrMissing.first);
 						saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, itrMissing.first);
@@ -2378,9 +2381,13 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
+					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
+				if (itrLabels->second.size()) {
+					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
+					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+				}
 			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
@@ -2576,9 +2583,13 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(i), m_PC);
+					if (m_bVBreakCodeLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(0), m_PC);
+				if (itrLabels->second.size()) {
+					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(0), m_PC);
+					if (m_bVBreakCodeLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+				}
 			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC

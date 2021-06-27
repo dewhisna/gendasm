@@ -855,6 +855,10 @@ CAVRDisassembler::CAVRDisassembler()
 
 	m_bAllowMemRangeOverlap = true;
 
+	m_bVBreakEquateLabels = true;
+	m_bVBreakCodeLabels = true;
+	m_bVBreakDataLabels = true;
+
 	// Add Data Labels for memmap of registers:
 	for (unsigned int nReg = 0; nReg < 32; ++nReg) {
 		char buf[10];
@@ -1459,7 +1463,6 @@ std::string CAVRDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nL
 		default:
 			break;
 	}
-	if (strTemp.size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL))) strTemp += '\v';
 	return strTemp;
 }
 
@@ -1567,9 +1570,13 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
+					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
-				if (itrLabels->second.size()) saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
+				if (itrLabels->second.size()) {
+					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
+					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+				}
 			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC

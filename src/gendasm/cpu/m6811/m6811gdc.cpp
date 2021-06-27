@@ -451,6 +451,9 @@ CM6811Disassembler::CM6811Disassembler()
 	m_Opcodes.AddOpcode({ { 0xFD }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "std" });
 	m_Opcodes.AddOpcode({ { 0xFE }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "ldx" });
 	m_Opcodes.AddOpcode({ { 0xFF }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "stx" });
+
+	m_bVBreakCodeLabels = true;
+	m_bVBreakDataLabels = true;
 }
 
 // ----------------------------------------------------------------------------
@@ -868,7 +871,6 @@ std::string CM6811Disassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE 
 		default:
 			break;
 	}
-	if (strTemp.size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL))) strTemp += '\v';
 	return strTemp;
 }
 

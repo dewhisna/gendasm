@@ -589,6 +589,9 @@ protected:
 	CStringArray	m_sInputFileList;	// This list is appended with each source file read (even with the single input name).  The only purpose for this list is for generating comments in the output file
 
 	bool			m_bAllowMemRangeOverlap;	// Set to true on Harvard (and similar) architectures where ROM/RAM/IO/etc can overlap in address range since they are on separate buses
+	bool			m_bVBreakEquateLabels;		// Set if the assembler allows labels in Equates to be broken to next line
+	bool			m_bVBreakCodeLabels;		// Set if the assembler allows labels in Code to be broken to next line
+	bool			m_bVBreakDataLabels;		// Set if the assembler allows labels in Data to be broken to next line
 
 	// --------------------------------
 
