@@ -69,6 +69,7 @@ static bool openForWriting(bool bForceOverwrite, std::fstream &file, const TStri
 static CStringArray parseCSVLine(const std::string aLine)
 {
 	static const std::string strDelim = ",";
+	static const std::string strWhitespace = "\x009\x00a\x00b\x00c\x00d\x020";
 	CStringArray arrFields;
 	std::string strLine = aLine;
 	trim(strLine);
@@ -87,7 +88,7 @@ static CStringArray parseCSVLine(const std::string aLine)
 			strLine = strLine.substr(1);
 
 			if (!bNonWhitespaceSeen) {		// Quoting can only begin at the first character
-				if (strDelim.find(ch) != std::string::npos) {
+				if (strWhitespace.find(ch) != std::string::npos) {
 					continue; // ignore all leading whitespace
 				} else {
 					bNonWhitespaceSeen = true;
