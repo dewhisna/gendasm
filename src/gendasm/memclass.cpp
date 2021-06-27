@@ -162,6 +162,10 @@ void CMemRanges::sort()
 	std::sort(begin(), end(), ascendingLessThanRanges);
 }
 
+bool CMemRange::rangesOverlap(const CMemRange &range) const
+{
+	return rangesOverlap(*this, range);
+}
 
 bool CMemRange::rangesOverlap(const CMemRange &range1, const CMemRange &range2)
 {
@@ -216,6 +220,15 @@ void CMemRanges::compact()
 			++itr;
 		}
 	}
+}
+
+
+bool CMemRanges::rangesOverlap(const CMemRange &range) const
+{
+	for (auto const & itr : *this) {
+		if (itr.rangesOverlap(range)) return true;
+	}
+	return false;
 }
 
 

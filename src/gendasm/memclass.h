@@ -55,6 +55,7 @@ public:
 	inline TUserData userData() const { return m_aUserData; }
 	inline void setUserData(const TUserData &aUserData) { m_aUserData = aUserData; }
 
+	bool rangesOverlap(const CMemRange &range) const;
 	static bool rangesOverlap(const CMemRange &range1, const CMemRange &range2);
 
 	// ----
@@ -83,6 +84,8 @@ public:
 	void sort();
 	void removeOverlaps(bool bIgnoreUserData = false);
 	void compact();
+
+	bool rangesOverlap(const CMemRange &range) const;
 
 	TAddress lowestAddress() const;			// Returns 0 if there's no memory defined
 	TAddress highestAddress() const;		// Returns 0 if there's no memory defined
