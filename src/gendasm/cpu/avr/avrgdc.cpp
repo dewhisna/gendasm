@@ -1345,6 +1345,12 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			} else if ((itrLabel = m_DataIndirectTable.find(nStartAddress)) != m_DataIndirectTable.cend()) {
 				strLabel = itrLabel->second;
 			}
+			if (strLabel.empty()) {
+				CLabelTableMap::const_iterator itrTable = m_LabelTable[nMemoryType].find(nAddress);
+				if ((itrTable != m_LabelTable[nMemoryType].cend()) && !itrTable->second.empty()) {
+					strLabel = itrTable->second.at(0);
+				}
+			}
 			strOpStr = FormatLabel(nMemoryType, LC_REF, strLabel, nAddress);
 			break;
 		}

@@ -1687,15 +1687,15 @@ std::string CDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, 
 {
 	UNUSED(nLC);
 
-	std::ostringstream sstrTemp;
+	TLabel strTemp;
 
 	if (strLabel.empty()) {
-		sstrTemp << GenLabel(nMemoryType, nAddress);
+		strTemp = GenLabel(nMemoryType, nAddress);
 	} else {
-		sstrTemp << strLabel;
+		strTemp = strLabel;
 	}
 
-	return sstrTemp.str();
+	return strTemp;
 }
 
 std::string CDisassembler::FormatReferences(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress)
