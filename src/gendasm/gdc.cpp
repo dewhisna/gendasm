@@ -966,7 +966,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			if (!m_bAllowMemRangeOverlap) {
 				for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
 					if (nType == nMemType) continue;
-					if (m_MemoryRanges[nMemType].addressInRange(nAddress)) {
+					if (m_MemoryRanges[nMemType].rangesOverlap(m_MemoryRanges[nType].back())) {
 						bRetVal = false;
 						m_ParseError = "*** Warning: Specified " + g_arrstrMemRanges[nType] +
 										" Mapping conflicts with " + g_arrstrMemRanges[nMemType] + " Mapping";
