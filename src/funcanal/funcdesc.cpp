@@ -158,9 +158,9 @@ static void ParseLine(const TString &line, TString::value_type cSepChar, CString
 // CFuncObject Class
 //////////////////////////////////////////////////////////////////////
 
-CFuncObject::CFuncObject(CFuncDescFile &ParentFuncFile, CFuncDesc &ParentFunc, CStringArray &argv)
-	:	m_ParentFuncFile(ParentFuncFile),
-		m_ParentFunc(ParentFunc)
+CFuncObject::CFuncObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv)
+	:	m_pParentFuncFile(pParentFuncFile),
+		m_pParentFunc(pParentFunc)
 {
 	assert(argv.size() >= 4);
 	CStringArray arrstrLabels;
@@ -218,8 +218,8 @@ CSymbolArray CFuncObject::GetSymbols() const
 
 	CSymbolArray arrRetVal;
 
-	if (m_ParentFuncFile.AddrHasLabel(m_nAbsAddress)) {
-		TSymbol strTemp = m_ParentFuncFile.GetPrimaryLabel(m_nAbsAddress);
+	if (m_pParentFuncFile->AddrHasLabel(m_nAbsAddress)) {
+		TSymbol strTemp = m_pParentFuncFile->GetPrimaryLabel(m_nAbsAddress);
 		if (!strTemp.empty()) {
 			arrRetVal.push_back("L" + strTemp);
 		}
@@ -246,8 +246,8 @@ int CFuncObject::GetFieldWidth(FIELD_CODE nFC)
 // CFuncAsmInstObject Class
 //////////////////////////////////////////////////////////////////////
 
-CFuncAsmInstObject::CFuncAsmInstObject(CFuncDescFile &ParentFuncFile, CFuncDesc &ParentFunc, CStringArray &argv)
-	:	CFuncObject(ParentFuncFile, ParentFunc, argv)
+CFuncAsmInstObject::CFuncAsmInstObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv)
+	:	CFuncObject(pParentFuncFile, pParentFunc, argv)
 {
 	assert(argv.size() >= 10);
 
@@ -275,7 +275,7 @@ TString CFuncAsmInstObject::ExportToDiff() const
 {
 	// TString strRetVal;
 	std::ostringstream ssDiff;
-	CMemRange zFuncRange(m_ParentFunc.GetMainAddress(), m_ParentFunc.GetFuncSize());
+	CMemRange zFuncRange(m_pParentFunc->GetMainAddress(), m_pParentFunc->GetFuncSize());
 
 	char arrTemp[30];
 	TString strTemp;
@@ -309,9 +309,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "C=" + m_ParentFuncFile.GetPrimaryLabel(nAddrTemp);
+							ssDiff << "C=" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
 						} else {
 							// If there isn't a label, see if this absolute address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -347,9 +347,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "C=" << m_ParentFuncFile.GetPrimaryLabel(nAddrTemp);
+							ssDiff << "C=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
 						} else {
 							// If there isn't a label, see if this relative address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -378,9 +378,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "D=" << m_ParentFuncFile.GetPrimaryLabel(nAddrTemp);
+							ssDiff << "D=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
 						} else {
 							// If there isn't a label, see if this absolute address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -392,9 +392,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 								ssDiff << arrTemp;
 							} else {
 								// See if it is an I/O or NON-ROM/RAM location:
-								if ((m_ParentFuncFile.isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
-									(!m_ParentFuncFile.isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
-									 !m_ParentFuncFile.isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
+								if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+									(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
+									 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
 									// If so, treat create a label to reference it as it is significant:
 									std::sprintf(arrTemp, "D=L%04X", nAddrTemp);
 									ssDiff << arrTemp;
@@ -425,9 +425,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "D=" << m_ParentFuncFile.GetPrimaryLabel(nAddrTemp);
+							ssDiff << "D=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
 						} else {
 							// If there isn't a label, see if this relative address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -438,9 +438,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 								ssDiff << arrTemp;
 							} else {
 								// See if it is an I/O or NON-ROM/RAM location:
-								if ((m_ParentFuncFile.isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
-									(!m_ParentFuncFile.isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
-									 !m_ParentFuncFile.isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
+								if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+									(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
+									 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
 									// If so, treat create a label to reference it as it is significant:
 									std::sprintf(arrTemp, "D=L%04X", nAddrTemp);
 									ssDiff << arrTemp;
@@ -481,7 +481,7 @@ TString CFuncAsmInstObject::CreateOutputLine(OUTPUT_OPTIONS nOutputOptions) cons
 		strRetVal += padString(arrTemp, GetFieldWidth(FIELD_CODE::FC_ADDRESS));
 	}
 
-	TString strTemp = m_ParentFunc.GetPrimaryLabel(m_nAbsAddress);
+	TString strTemp = m_pParentFunc->GetPrimaryLabel(m_nAbsAddress);
 	strRetVal += padString(strTemp + ((!strTemp.empty()) ? ": " : " "), GetFieldWidth(FIELD_CODE::FC_LABEL));
 	strRetVal += padString(m_strOpCodeText + " ", GetFieldWidth(FIELD_CODE::FC_MNEMONIC));
 	strRetVal += padString(m_strOperandText, GetFieldWidth(FIELD_CODE::FC_OPERANDS));
@@ -525,9 +525,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "C" + m_ParentFuncFile.GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "C" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -550,9 +550,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "C" + m_ParentFuncFile.GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "C" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -568,9 +568,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "D" + m_ParentFuncFile.GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "D" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -593,9 +593,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_ParentFuncFile.AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "D" + m_ParentFuncFile.GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "D" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -658,7 +658,7 @@ TString CFuncDataByteObject::CreateOutputLine(OUTPUT_OPTIONS nOutputOptions) con
 		strRetVal += padString(arrTemp, GetFieldWidth(FIELD_CODE::FC_ADDRESS));
 	}
 
-	strTemp = m_ParentFunc.GetPrimaryLabel(m_nAbsAddress);
+	strTemp = m_pParentFunc->GetPrimaryLabel(m_nAbsAddress);
 	strRetVal += padString(strTemp + ((!strTemp.empty()) ? ": " : " "), GetFieldWidth(FIELD_CODE::FC_LABEL));
 	strRetVal += padString(".data ", GetFieldWidth(FIELD_CODE::FC_MNEMONIC));
 	strTemp.clear();
@@ -802,7 +802,7 @@ void CFuncDesc::Add(std::shared_ptr<CFuncObject> pObj)
 // CFuncDescFile Class
 //////////////////////////////////////////////////////////////////////
 
-bool CFuncDescFile::ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream *msgFile, std::ostream *errFile, int nStartLineCount)
+bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstreamFuncDescFile &inFile, std::ostream *msgFile, std::ostream *errFile, int nStartLineCount)
 {
 	bool bRetVal = true;
 	TString strError = m_strUnexpectedError;
@@ -811,7 +811,7 @@ bool CFuncDescFile::ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream 
 	CStringArray argv;
 	TAddress nAddress;
 	TSize nSize;
-	CFuncDesc *pCurrentFunction = nullptr;
+	std::shared_ptr<CFuncDesc> pCurrentFunction;
 
 	constexpr int BUSY_CALLBACK_RATE = 50;
 
@@ -875,23 +875,35 @@ bool CFuncDescFile::ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream 
 						}
 					}
 //				}
+
+				break;
 			}
 
 			case '!':			// Label
+			{
 				pCurrentFunction = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
-				if (argv.size() != 2) {
+				if (argv.size() != 3) {
 					strError = m_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
 
-				nAddress = strtoul(argv.at(0).c_str(), nullptr, 16);
-				ParseLine(argv.at(1), ',', argv);
+				int nParseVal = parseKeyword(g_mapParseMemType, argv.at(0));
+				if (nParseVal == -1) {
+					strError = m_strSyntaxError;
+					bRetVal = false;
+					break;
+				}
 
+				nAddress = strtoul(argv.at(1).c_str(), nullptr, 16);
+				ParseLine(argv.at(2), ',', argv);
+
+				// TODO : Fix this to use the newly added MemoryType keyword in nParseVal
 				for (auto const & label : argv) AddLabel(nAddress, label);
 				break;
+			}
 
 			case '@':			// New Function declaration:
 				pCurrentFunction = nullptr;
@@ -905,8 +917,8 @@ bool CFuncDescFile::ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream 
 
 				nAddress = strtoul(argv.at(0).c_str(), nullptr, 16);
 
-				m_arrFunctions.push_back(CFuncDesc(nAddress, argv.at(1)));
-				pCurrentFunction = &m_arrFunctions.back();
+				m_arrFunctions.push_back(std::make_shared<CFuncDesc>(nAddress, argv.at(1)));
+				pCurrentFunction = m_arrFunctions.back();
 				break;
 
 			default:
@@ -929,9 +941,9 @@ bool CFuncDescFile::ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream 
 					}
 
 					if (argv.size() == 4) {
-						pCurrentFunction->Add(std::make_unique<CFuncDataByteObject>(*this, *pCurrentFunction, argv));
+						pCurrentFunction->Add(std::make_shared<CFuncDataByteObject>(pThis, pCurrentFunction, argv));
 					} else {
-						pCurrentFunction->Add(std::make_unique<CFuncAsmInstObject>(*this, *pCurrentFunction, argv));
+						pCurrentFunction->Add(std::make_shared<CFuncAsmInstObject>(pThis, pCurrentFunction, argv));
 					}
 				} else {
 					strError = m_strSyntaxError;
@@ -973,9 +985,9 @@ bool CFuncDescFile::ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream 
 
 		for (auto const & func : m_arrFunctions) {
 			(*msgFile) << "        0x"
-						<< std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << func.GetMainAddress()
+						<< std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << func->GetMainAddress()
 						<< std::nouppercase << std::setbase(0)
-						<< " -> " << func.GetMainName() << "\n";
+						<< " -> " << func->GetMainName() << "\n";
 		}
 
 		(*msgFile) << "\n    " << m_mapLabelTable.size() << " Unique Label"
@@ -1052,7 +1064,7 @@ CFuncDescArray::size_type CFuncDescFileArray::GetFuncCount() const
 	CFuncDescArray::size_type nRetVal = 0;
 
 	for (auto const & itrDescFile : *this) {
-		nRetVal += itrDescFile.GetFuncCount();
+		nRetVal += itrDescFile->GetFuncCount();
 	}
 
 	return nRetVal;
@@ -1065,7 +1077,7 @@ double CFuncDescFileArray::CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 {
 	try
 	{
-		return ::CompareFunctions(nMethod, at(nFile1Ndx), nFile1FuncNdx, at(nFile2Ndx), nFile2FuncNdx, bBuildEditScript);
+		return ::CompareFunctions(nMethod, *at(nFile1Ndx), nFile1FuncNdx, *at(nFile2Ndx), nFile2FuncNdx, bBuildEditScript);
 	}
 	catch (const EXCEPTION_ERROR &aErr)
 	{
@@ -1085,7 +1097,7 @@ TString CFuncDescFileArray::DiffFunctions(FUNC_COMPARE_METHOD nMethod,
 									double &nMatchPercent,
 									CSymbolMap *pSymbolMap) const
 {
-	return ::DiffFunctions(nMethod, at(nFile1Ndx), nFile1FuncNdx, at(nFile2Ndx), nFile2FuncNdx,
+	return ::DiffFunctions(nMethod, *at(nFile1Ndx), nFile1FuncNdx, *at(nFile2Ndx), nFile2FuncNdx,
 							nOutputOptions, nMatchPercent, pSymbolMap);
 }
 

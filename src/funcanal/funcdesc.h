@@ -83,7 +83,7 @@ typedef bool (*TFN_FuncAnalProgressCallback)(int nProgressPos, int nProgressMax,
 class CFuncObject
 {
 public:
-	CFuncObject(CFuncDescFile &ParentFuncFile, CFuncDesc &ParentFunc, CStringArray &argv);
+	CFuncObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv);
 
 	virtual bool isExactMatch(const CFuncObject &obj) const;
 
@@ -111,8 +111,8 @@ public:
 	static int GetFieldWidth(FIELD_CODE nFC);
 
 protected:
-	CFuncDescFile &m_ParentFuncFile;
-	CFuncDesc &m_ParentFunc;
+	std::shared_ptr<const CFuncDescFile> m_pParentFuncFile;
+	std::shared_ptr<const CFuncDesc> m_pParentFunc;
 
 	TAddress	m_nRelFuncAddress;		// Address of object relative to function start
 	TAddress	m_nAbsAddress;			// Absolute Address of object
@@ -129,7 +129,7 @@ protected:
 class CFuncAsmInstObject : public CFuncObject
 {
 public:
-	CFuncAsmInstObject(CFuncDescFile &ParentFuncFile, CFuncDesc &ParentFunc, CStringArray &argv);
+	CFuncAsmInstObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv);
 
 	virtual TString ExportToDiff() const override;
 	virtual void ExportToDiff(CStringArray &anArray) const override;
@@ -162,8 +162,8 @@ protected:
 class CFuncDataByteObject : public CFuncObject
 {
 public:
-	CFuncDataByteObject(CFuncDescFile &ParentFuncFile, CFuncDesc &ParentFunc, CStringArray &argv)
-		:	CFuncObject(ParentFuncFile, ParentFunc, argv)
+	CFuncDataByteObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv)
+		:	CFuncObject(pParentFuncFile, pParentFunc, argv)
 	{ }
 
 	virtual TString ExportToDiff() const override;
@@ -179,7 +179,7 @@ public:
 //////////////////////////////////////////////////////////////////////
 //		This specifies exactly one function as an array of CFuncObject
 //		objects:
-class CFuncDesc : public std::vector<std::shared_ptr<CFuncObject> >
+class CFuncDesc : public std::vector< std::shared_ptr<CFuncObject> >
 {
 public:
 	CFuncDesc(TAddress nAddress, const TString &strNames);
@@ -217,7 +217,7 @@ protected:
 	CLabelTableMap m_mapFuncNameTable;				// Table of names for this function.  First entry is typical default
 	CLabelTableMap m_mapLabelTable;					// Table of labels in this function.  First entry is typical default
 };
-typedef std::vector<CFuncDesc> CFuncDescArray;
+typedef std::vector< std::shared_ptr<CFuncDesc> > CFuncDescArray;
 
 // ============================================================================
 
@@ -233,7 +233,7 @@ class CFuncDescFile
 public:
 	using MEMORY_TYPE = CDisassembler::MEMORY_TYPE;
 
-	virtual bool ReadFuncDescFile(ifstreamFuncDescFile &inFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);			// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial line counter value
+	virtual bool ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstreamFuncDescFile &inFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);			// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial line counter value
 
 	virtual bool AddLabel(TAddress nAddress, const TLabel &strLabel);
 	virtual bool AddrHasLabel(TAddress nAddress) const;
@@ -241,7 +241,7 @@ public:
 	virtual CLabelArray GetLabelList(TAddress nAddress) const;
 
 	virtual CFuncDescArray::size_type GetFuncCount() const { return m_arrFunctions.size(); }
-	virtual const CFuncDesc &GetFunc(CFuncDescArray::size_type nIndex) const { return m_arrFunctions.at(nIndex); }
+	virtual const CFuncDesc &GetFunc(CFuncDescArray::size_type nIndex) const { return *m_arrFunctions.at(nIndex); }
 
 	TString GetFuncPathName() const { return m_strFilePathName; }
 	TString GetFuncFileName() const { return m_strFileName; }
@@ -278,7 +278,7 @@ protected:
 //////////////////////////////////////////////////////////////////////
 //		This specifies a cluster of Func Definition Files as an array
 //		of CFuncDescFile Objects.
-class CFuncDescFileArray : public std::vector<CFuncDescFile>
+class CFuncDescFileArray : public std::vector< std::shared_ptr<CFuncDescFile> >
 {
 public:
 	virtual CFuncDescArray::size_type GetFuncCount() const;
