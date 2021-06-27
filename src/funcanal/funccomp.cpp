@@ -667,8 +667,8 @@ TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
 		nLeftIndex = strtoul(strEntry.substr(0, pos).c_str(), nullptr, 0);
 		nRightIndex = strtoul(strEntry.substr(pos+1).c_str(), nullptr, 0);
 
-		assert(nLeftIndex < Func1Lines.size());
-		assert(nRightIndex < Func2Lines.size());
+		assert(nLeftIndex <= Func1Lines.size());
+		assert(nRightIndex <= Func2Lines.size());
 
 		for (; ((nLeftPos < nLeftIndex) && (nRightPos < nRightIndex)); nLeftPos++, nRightPos++) {
 			assert(nLeftPos < function1.size());
