@@ -89,8 +89,11 @@ int main(int argc, char *argv[])
 	}
 	std::cout << std::endl;
 	if (bNeedUsage) {
-		std::cout << "Usage: gendasm <disassembler> <ctrl-filename1> [<ctrl-filename2> <ctrl-filename3> ...]" << std::endl;
+		std::cout << "Usage: gendasm [--deterministic] <disassembler> <ctrl-filename1> [<ctrl-filename2> <ctrl-filename3> ...]" << std::endl;
 		std::cout << std::endl;
+		std::cout <<"The following switches can be specified but are optional:\n"
+					"    --deterministic  Skip output like dates and version numbers so that the\n"
+					"                     output can be compared with other content for tests.\n\n";
 		std::cout << "Valid <disassembler> types:" << std::endl;
 		for (auto const & itrDisassemblers : disassemblers) {
 			CStringArray arrMCUs = itrDisassemblers->GetMCUList();

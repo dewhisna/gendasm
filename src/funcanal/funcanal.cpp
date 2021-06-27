@@ -189,6 +189,7 @@ int main(int argc, char* argv[])
 	TString m_strSymFilename;
 	CStringArray m_arrInputFilenames;
 	bool m_bForceOverwrite = false;
+	bool m_bOutputOptionAddAddress = false;
 
 	bool bNeedUsage = false;
 	CStringArray::size_type nMinReqInputFiles = 1;				// Must have at least one input filename
@@ -292,6 +293,8 @@ int main(int argc, char* argv[])
 			nMinReqInputFiles = 2;		// Must have 2 input files
 		} else if (strArg == "-f") {
 			m_bForceOverwrite = true;
+		} else if (strArg == "-ooa") {
+			m_bOutputOptionAddAddress = true;
 		} else if (strArg.starts_with("-l")) {
 			if (strArg.size() > 2) {
 				nMinCompLimit = atof(&strArg.c_str()[2])/100;
@@ -361,7 +364,7 @@ int main(int argc, char* argv[])
 
 	if (bNeedUsage) {
 		std::cerr <<"Usage:\n"
-					"funcanal [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [-d <dro-fn>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
+					"funcanal [--deterministic] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [-d <dro-fn>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
 					"\n"
 					"Where:\n\n"
 					"    <oes-fn>   = Output Optimal Edit Script Filename to generate\n\n"
@@ -393,6 +396,8 @@ int main(int argc, char* argv[])
 					"                 probability based symbol table\n\n"
 					"\n"
 					"The following switches can be specified but are optional:\n"
+					"    --deterministic  Skip output like dates and version numbers so that the\n"
+					"                     output can be compared with other content for tests.\n\n"
 					"    -mi <mtx-fn> Reads the specified matrix file to get function cross\n"
 					"                 comparison information rather than recalculating it.\n"
 					"                 Cannot be used with the -mo switch.\n\n"
@@ -409,6 +414,7 @@ int main(int argc, char* argv[])
 					"                       0 = Dynamic Programming X-Drop Algorithm\n"
 					"                       1 = Dynamic Programming Greedy Algorithm\n"
 					"                 If not specified, the X-Drop algorithm will be used.\n\n"
+					"    -ooa         Output-Option Add Address to diff create line output.\n\n"
 					"\n";
 		return -1;
 	}
@@ -629,7 +635,8 @@ int main(int argc, char* argv[])
 
 					double nMatchPercent;
 					TString strDiff = DiffFunctions(nCompMethod, funcFile1, ndxFile1, funcFile2, ndxFile2,
-														OO_ADD_ADDRESS, nMatchPercent, &aSymbolMap);
+													(m_bOutputOptionAddAddress ? OO_ADD_ADDRESS : OO_NONE),
+													nMatchPercent, &aSymbolMap);
 					if (fileComp.is_open()) {
 						if (bCompOESFlag) {
 							if (GetLastEditScript(oes)) {
