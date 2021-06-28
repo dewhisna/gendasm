@@ -60,6 +60,7 @@ protected:
 
 	virtual void clearOpMemory() override;
 	virtual size_t opcodeSymbolSize() const override;
+	virtual size_t getOpMemorySize() const override;
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue) override;
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues) override;
 

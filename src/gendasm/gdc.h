@@ -476,6 +476,7 @@ protected:
 	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
 	virtual std::string FormatReferences(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all references for the specified address
 	virtual std::string FormatUserComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
+	virtual std::string FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);	// Generate debug comments from the function flags if it's enabled
 
 	virtual int GetFieldWidth(FIELD_CODE nFC) const;						// Defines the widths of each output field.  Can be overridden to alter output formatting.  To eliminate space/tab mixing, these should typically be a multiple of the tab width
 	virtual std::string MakeOutputLine(CStringArray& saOutputData) const;	// Formats the data in saOutputData, which should have indicies corresponding to FIELD_CODE enum, to a string that can be sent to the output file
@@ -548,6 +549,7 @@ protected:
 
 	virtual void clearOpMemory() = 0;							// Pure Virtual to clear the data->OpMemory for the processor
 	virtual size_t opcodeSymbolSize() const = 0;				// Pure Virtual to return the sizeof TOpcodeSymbol or element size of m_OpMemory i.e. sizeof(TDisassemblerTypes::TOpcodeSymbol) or sizeof(decltype(m_OpMemory)::value_type)
+	virtual size_t getOpMemorySize() const = 0;					// Pure Virtual to return number of elements in the OpMemory array
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue) = 0;			// Pure Virtual to push back a TMemoryElement for the specified address.  The address is mostly for architecture purposes (like alignment, etc) if memory element type doesn't match CPU opcode type
 	virtual void pushBackOpMemory(TAddress nLogicalAddress, const CMemoryArray &maValues) = 0;	// Pure Virtual to push back an array of TMemoryElement (see single value version above)
 

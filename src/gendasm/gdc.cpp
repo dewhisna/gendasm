@@ -1782,6 +1782,61 @@ std::string CDisassembler::FormatUserComments(MEMORY_TYPE nMemoryType, MNEMONIC_
 	return strRetVal;
 }
 
+std::string CDisassembler::FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
+{
+	std::string strFuncFlags;
+
+#ifdef FUNC_FLAG_COMMENT
+	if ((nMemoryType == MT_ROM) && ((nMCCode == MC_OPCODE) || (nMCCode == MC_ILLOP))) {
+		std::ostringstream ssFuncFlags;
+		CStringArray arrFuncFlags;
+		for (TAddressOffset nOffset = 0; nOffset < static_cast<TAddressOffset>(getOpMemorySize()*opcodeSymbolSize()); ++nOffset) {
+			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(nStartAddress + nOffset);
+			if (itrFunction != m_FunctionsTable.cend()) {
+				switch (itrFunction->second) {
+					case FUNCF_HARDSTOP:
+						arrFuncFlags.push_back("HARDSTOP");
+						break;
+					case FUNCF_EXITBRANCH:
+						arrFuncFlags.push_back("EXITBRANCH");
+						break;
+					case FUNCF_SOFTSTOP:
+						arrFuncFlags.push_back("SOFTSTOP");
+						break;
+					case FUNCF_BRANCHOUT:
+						arrFuncFlags.push_back("BRANCHOUT");
+						break;
+					case FUNCF_BRANCHIN:
+						arrFuncFlags.push_back("BRANCHIN");
+						break;
+					case FUNCF_ENTRY:
+						arrFuncFlags.push_back("ENTRY");
+						break;
+					case FUNCF_INDIRECT:
+						arrFuncFlags.push_back("INDIRECT");
+						break;
+					case FUNCF_CALL:
+						arrFuncFlags.push_back("CALL");
+						break;
+					default:
+						arrFuncFlags.push_back("???");
+						break;
+				}
+			} else {
+				arrFuncFlags.push_back("---");
+			}
+		}
+		std::copy(arrFuncFlags.cbegin(), arrFuncFlags.cend(), std::ostream_iterator<TString>(ssFuncFlags, ", "));
+		strFuncFlags = ssFuncFlags.str();
+		assert(strFuncFlags.size() >= 2);
+		strFuncFlags.pop_back();
+		strFuncFlags.pop_back();
+	}
+#endif
+
+	return strFuncFlags;
+}
+
 // ----------------------------------------------------------------------------
 
 int CDisassembler::GetFieldWidth(FIELD_CODE nFC) const

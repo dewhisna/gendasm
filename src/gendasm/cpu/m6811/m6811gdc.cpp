@@ -787,8 +787,15 @@ std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC
 	bool bBranchOutside;
 	TAddress nAddress;
 
+	// Add Function Flag Debug Comments (if enabled):
+	strRetVal += FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
+
 	// Add user comments:
-	strRetVal = FormatUserComments(nMemoryType, nMCCode, nStartAddress);
+	std::string strUserComments = FormatUserComments(nMemoryType, nMCCode, nStartAddress);
+	if (!strUserComments.empty()) {
+		if (!strRetVal.empty()) strRetVal += "\n";
+		strRetVal += strUserComments;
+	}
 	if (nMCCode == MC_OPCODE) {
 		m_nOpPointer = m_CurrentOpcode.opcode().size();	// Get position of start of operands following opcode
 
@@ -960,6 +967,11 @@ void CM6811Disassembler::clearOpMemory()
 size_t CM6811Disassembler::opcodeSymbolSize() const
 {
 	return sizeof(TM6811Disassembler::TOpcodeSymbol);
+}
+
+size_t CM6811Disassembler::getOpMemorySize() const
+{
+	return m_OpMemory.size();
 }
 
 void CM6811Disassembler::pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue)

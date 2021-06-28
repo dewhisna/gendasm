@@ -1375,8 +1375,15 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 
 	using namespace TAVRDisassembler_ENUMS;
 
+	// Add Function Flag Debug Comments (if enabled):
+	strRetVal += FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
+
 	// Add user comments:
-	strRetVal = FormatUserComments(nMemoryType, nMCCode, nStartAddress);
+	std::string strUserComments = FormatUserComments(nMemoryType, nMCCode, nStartAddress);
+	if (!strUserComments.empty()) {
+		if (!strRetVal.empty()) strRetVal += "\n";
+		strRetVal += strUserComments;
+	}
 	if (nMCCode == MC_OPCODE) {
 		std::string strRefComment = FormatOperandRefComments();
 		if (!strRefComment.empty()) {
@@ -1792,6 +1799,11 @@ void CAVRDisassembler::clearOpMemory()
 size_t CAVRDisassembler::opcodeSymbolSize() const
 {
 	return sizeof(TAVRDisassembler::TOpcodeSymbol);
+}
+
+size_t CAVRDisassembler::getOpMemorySize() const
+{
+	return m_OpMemory.size();
 }
 
 void CAVRDisassembler::pushBackOpMemory(TAddress nLogicalAddress, TMemoryElement nValue)

@@ -14,6 +14,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -----------------------------------------------------------------------------
 
+# Compile Options
+
+option(FUNC_FLAG_COMMENT "Add Function Flags to Comment Field" OFF)
+
+# -----------------------------------------------------------------------------
+
 set(gendasm_Sources
 	dfc.cpp				# Data File Converter
 	errmsgs.cpp			# Error Message Handler
@@ -123,3 +129,8 @@ add_executable(gendasm
 	${cpu_avr_Headers}
 )
 
+if(FUNC_FLAG_COMMENT)
+	target_compile_definitions(gendasm PRIVATE
+		FUNC_FLAG_COMMENT
+	)
+endif()
