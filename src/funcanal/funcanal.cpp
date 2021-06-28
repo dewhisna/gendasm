@@ -46,7 +46,6 @@ static bool promptFileOverwrite(const std::string &strFilename)
 			std::cout.flush();
 			std::cin >> ch;
 		} while (!std::cin.fail() && (ch != 'y') && (ch != 'n'));
-		std::cout << "\n\n";
 		return (ch == 'y');
 	}
 
