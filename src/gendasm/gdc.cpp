@@ -500,7 +500,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 									<< std::nouppercase << std::setbase(0);
 					}
 					AddLabel(MT_ROM, nResolvedAddress, false, 0, itrIndirects.second);	// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
-					m_FunctionsTable[nResolvedAddress] = FUNCF_INDIRECT;		// Resolved code indirects are also considered start-of functions
+					m_FunctionEntryTable[nResolvedAddress] = FUNCF_INDIRECT;		// Resolved code indirects are also considered start-of functions
 					if (!AddBranch(nResolvedAddress, true, itrIndirects.first)) {
 						if (errFile) {
 							(*errFile) << "    *** Warning: Indirect Address ["
@@ -618,7 +618,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				m_ParseError = "*** Warning: Duplicate entry address";
 			}
 			m_EntryTable.insert(nAddress);				// Add an entry to the entry table
-			m_FunctionsTable[nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
+			m_FunctionEntryTable[nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
 			if (argv.size() == 3) {
 				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2))) {
 					bRetVal = false;
@@ -926,7 +926,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate function exit address";
 			}
-			m_FunctionsTable[nAddress] = FUNCF_ENTRY;	// Exit Function Entry points are also considered start-of functions
+			m_FunctionEntryTable[nAddress] = FUNCF_ENTRY;	// Exit Function Entry points are also considered start-of functions
 			m_FuncExitAddresses.insert(nAddress);		// Add function exit entry
 			if (argv.size() == 3) {
 				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2))) {
@@ -1480,21 +1480,31 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			bool bLastFlag = false;			// Flag for last instruction of a function
 			bool bBranchOutFlag = false;	// Flag for branch out of a function
 
-			// Check for function start/end flags:
-			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(m_PC);
-			if (itrFunction != m_FunctionsTable.cend()) {
-				switch (itrFunction->second) {
+			// Check for function end flags:
+			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(m_PC);
+			if (itrFunctionExit != m_FunctionExitTable.cend()) {
+				switch (itrFunctionExit->second) {
 					case FUNCF_HARDSTOP:
 					case FUNCF_EXITBRANCH:
 					case FUNCF_SOFTSTOP:
 						bLastFlag = true;
-						bInFunc = false;
 						break;
 
 					case FUNCF_BRANCHOUT:
 						bBranchOutFlag = true;
 						break;
 
+					default:
+						assert(false);			// Unexpected Function Flag!!  Check Code!!
+						bRetVal = false;
+						continue;
+				}
+			}
+
+			// Check for function start flags:
+			CFuncEntryMap::const_iterator itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
+			if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+				switch (itrFunctionEntry->second) {
 					case FUNCF_BRANCHIN:
 						if (bInFunc) break;		// Continue if already inside a function
 						// Else, fall-through and setup for new function:
@@ -1528,6 +1538,20 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 						assert(false);			// Unexpected Function Flag!!  Check Code!!
 						bRetVal = false;
 						continue;
+				}
+			}
+
+			// Check for function end flags:
+			itrFunctionExit = m_FunctionExitTable.find(m_PC);
+			if (itrFunctionExit != m_FunctionExitTable.cend()) {
+				switch (itrFunctionExit->second) {
+					case FUNCF_HARDSTOP:
+					case FUNCF_EXITBRANCH:
+					case FUNCF_SOFTSTOP:
+						bInFunc = false;
+						break;
+					default:
+						break;
 				}
 			}
 
@@ -1589,9 +1613,9 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			}
 
 			if (bBranchOutFlag) {
-				CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(m_PC);
-				if (itrFunction != m_FunctionsTable.cend()) {
-					switch (itrFunction->second) {
+				itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
+				if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+					switch (itrFunctionEntry->second) {
 						case FUNCF_ENTRY:
 						case FUNCF_INDIRECT:
 						case FUNCF_CALL:
@@ -1608,9 +1632,9 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			}
 
 			if (bLastFlag) {
-				CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(m_PC);
-				if (itrFunction != m_FunctionsTable.cend()) {
-					switch (itrFunction->second) {
+				itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
+				if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+					switch (itrFunctionEntry->second) {
 						case FUNCF_BRANCHIN:
 							bLastFlag = false;
 							bInFunc = true;
@@ -1791,40 +1815,57 @@ std::string CDisassembler::FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, M
 		std::ostringstream ssFuncFlags;
 		CStringArray arrFuncFlags;
 		for (TAddressOffset nOffset = 0; nOffset < static_cast<TAddressOffset>(getOpMemorySize()*opcodeSymbolSize()); ++nOffset) {
-			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(nStartAddress + nOffset);
-			if (itrFunction != m_FunctionsTable.cend()) {
-				switch (itrFunction->second) {
-					case FUNCF_HARDSTOP:
-						arrFuncFlags.push_back("HARDSTOP");
-						break;
-					case FUNCF_EXITBRANCH:
-						arrFuncFlags.push_back("EXITBRANCH");
-						break;
-					case FUNCF_SOFTSTOP:
-						arrFuncFlags.push_back("SOFTSTOP");
-						break;
-					case FUNCF_BRANCHOUT:
-						arrFuncFlags.push_back("BRANCHOUT");
-						break;
+			std::string strFlags;
+
+			CFuncEntryMap::const_iterator itrFunctionEntry = m_FunctionEntryTable.find(nStartAddress + nOffset);
+			if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+				switch (itrFunctionEntry->second) {
 					case FUNCF_BRANCHIN:
-						arrFuncFlags.push_back("BRANCHIN");
+						strFlags += "BRANCHIN";
 						break;
 					case FUNCF_ENTRY:
-						arrFuncFlags.push_back("ENTRY");
+						strFlags += "ENTRY";
 						break;
 					case FUNCF_INDIRECT:
-						arrFuncFlags.push_back("INDIRECT");
+						strFlags += "INDIRECT";
 						break;
 					case FUNCF_CALL:
-						arrFuncFlags.push_back("CALL");
+						strFlags += "CALL";
 						break;
 					default:
-						arrFuncFlags.push_back("???");
+						strFlags += "???";
 						break;
 				}
 			} else {
-				arrFuncFlags.push_back("---");
+				strFlags += "---";
 			}
+
+			strFlags += "|";
+
+			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(nStartAddress + nOffset);
+			if (itrFunctionExit != m_FunctionExitTable.cend()) {
+				switch (itrFunctionExit->second) {
+					case FUNCF_HARDSTOP:
+						strFlags += "HARDSTOP";
+						break;
+					case FUNCF_EXITBRANCH:
+						strFlags += "EXITBRANCH";
+						break;
+					case FUNCF_SOFTSTOP:
+						strFlags += "SOFTSTOP";
+						break;
+					case FUNCF_BRANCHOUT:
+						strFlags += "BRANCHOUT";
+						break;
+					default:
+						strFlags += "???";
+						break;
+				}
+			} else {
+				strFlags += "---";
+			}
+
+			arrFuncFlags.push_back(strFlags);
 		}
 		std::copy(arrFuncFlags.cbegin(), arrFuncFlags.cend(), std::ostream_iterator<TString>(ssFuncFlags, ", "));
 		strFuncFlags = ssFuncFlags.str();
@@ -2596,20 +2637,31 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			bLastFlag = false;
 			bBranchOutFlag = false;
 
-			// Check for function start/end flags:
-			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(m_PC);
-			if (itrFunction != m_FunctionsTable.cend()) {
-				switch (itrFunction->second) {
+			// Check for function end flags:
+			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(m_PC);
+			if (itrFunctionExit != m_FunctionExitTable.cend()) {
+				switch (itrFunctionExit->second) {
 					case FUNCF_HARDSTOP:
 					case FUNCF_EXITBRANCH:
 					case FUNCF_SOFTSTOP:
-						bInFunc = false;
 						bLastFlag = true;
 						break;
 
 					case FUNCF_BRANCHOUT:
 						bBranchOutFlag = true;
 						break;
+
+					default:
+						assert(false);			// Unexpected Function Flag!!  Check Code!!
+						bRetVal = false;
+						continue;
+				}
+			}
+
+			// Check for function start flags:
+			CFuncEntryMap::const_iterator itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
+			if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+				switch (itrFunctionEntry->second) {
 
 					case FUNCF_BRANCHIN:
 						if (bInFunc) {
@@ -2628,6 +2680,19 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 						assert(false);			// Unexpected Function Flag!!  Check Code!!
 						bRetVal = false;
 						continue;
+				}
+			}
+
+			itrFunctionExit = m_FunctionExitTable.find(m_PC);
+			if (itrFunctionExit != m_FunctionExitTable.cend()) {
+				switch (itrFunctionExit->second) {
+					case FUNCF_HARDSTOP:
+					case FUNCF_EXITBRANCH:
+					case FUNCF_SOFTSTOP:
+						bInFunc = false;
+						break;
+					default:
+						break;
 				}
 			}
 
@@ -2688,9 +2753,9 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			}
 
 			if (bBranchOutFlag) {
-				itrFunction = m_FunctionsTable.find(m_PC);
-				if (itrFunction != m_FunctionsTable.cend()) {
-					switch (itrFunction->second) {
+				itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
+				if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+					switch (itrFunctionEntry->second) {
 						case FUNCF_ENTRY:
 						case FUNCF_INDIRECT:
 						case FUNCF_CALL:
@@ -2707,9 +2772,9 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			}
 
 			if (bLastFlag) {
-				itrFunction = m_FunctionsTable.find(m_PC);
-				if (itrFunction != m_FunctionsTable.cend()) {
-					switch (itrFunction->second) {
+				itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
+				if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
+					switch (itrFunctionEntry->second) {
 						case FUNCF_BRANCHIN:
 							bLastFlag = false;
 							bInFunc = true;

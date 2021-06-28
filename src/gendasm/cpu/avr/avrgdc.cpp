@@ -1165,7 +1165,7 @@ bool CAVRDisassembler::CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels,
 //	// See if this is the end of a function.  Note: These preempt all previously
 //	//		decoded function tags -- such as call, etc:
 //	if (m_CurrentOpcode.control() & TAVRDisassembler::OCTL_HARDSTOP) {
-//		m_FunctionsTable[m_nStartPC] = FUNCF_HARDSTOP;
+//		m_FunctionExitTable[m_nStartPC] = FUNCF_HARDSTOP;
 //	}
 
 	return true;
@@ -2332,45 +2332,45 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 		if (((m_CurrentOpcode.group() == S_JMP) || (m_CurrentOpcode.group() == S_RJMP)) &&
 			((m_CurrentOpcode.control() & TAVRDisassembler::OCTL_STOP) == 0)) {		// Check for 'call' or 'rcall'
 			// Add these only if it is replacing a lower priority value:
-			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(nTargetAddr);
-			if (itrFunction == m_FunctionsTable.cend()) {
-				m_FunctionsTable[nTargetAddr] = FUNCF_CALL;
+			CFuncEntryMap::const_iterator itrFunction = m_FunctionEntryTable.find(nTargetAddr);
+			if (itrFunction == m_FunctionEntryTable.cend()) {
+				m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
 			} else {
-				if (itrFunction->second > FUNCF_CALL) m_FunctionsTable[nTargetAddr] = FUNCF_CALL;
+				if (itrFunction->second > FUNCF_CALL) m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
 			}
 
 			// See if this is the end of a function (explicitly tagged):
 			if (m_FuncExitAddresses.contains(nTargetAddr)) {
-				m_FunctionsTable[m_nStartPC] = FUNCF_EXITBRANCH;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_EXITBRANCH;
 			}
 		} else {
 			// Here on 'brxx' branch statements and 'jmp' and 'rjmp'
 			// Add these only if there isn't a function tag here:
-			if (!m_FunctionsTable.contains(nTargetAddr)) m_FunctionsTable[nTargetAddr] = FUNCF_BRANCHIN;
+			if (!m_FunctionEntryTable.contains(nTargetAddr)) m_FunctionEntryTable[nTargetAddr] = FUNCF_BRANCHIN;
 		}
 	}
 
 	if (m_bLastOpcodeWasSkip) {
 		// If the previous opcode was a skip, add a branchin for the next
 		//	opcode since it's what we "skipped" to:
-		if (!m_FunctionsTable.contains(m_PC)) m_FunctionsTable[m_PC] = FUNCF_BRANCHIN;
+		if (!m_FunctionEntryTable.contains(m_PC)) m_FunctionEntryTable[m_PC] = FUNCF_BRANCHIN;
 	}
 
 	// See if this is the end of a function:
 	if (m_CurrentOpcode.control() & (TAVRDisassembler::OCTL_HARDSTOP | TAVRDisassembler::OCTL_STOP)) {		// jmp, rjmp, ret, reti, etc.
 		if (bAddFunctionBranchRef) {
 			if (m_FuncExitAddresses.contains(nTargetAddr)) {
-				m_FunctionsTable[m_nStartPC] = FUNCF_EXITBRANCH;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_EXITBRANCH;
 			} else {
-				m_FunctionsTable[m_nStartPC] = FUNCF_BRANCHOUT;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_BRANCHOUT;
 			}
 		} else {
 			if (CurrentOpcodeIsStop()) {		// Distinguish between just a branchout and hardstop on CTL_Skip cases
 				// Non-Deterministic branches get tagged as a hardstop (usually it exits the function):
-				m_FunctionsTable[m_nStartPC] = FUNCF_HARDSTOP;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_HARDSTOP;
 			} else {
 				// Non-Deterministic branches in a skip get tagged as a branchout:
-				m_FunctionsTable[m_nStartPC] = FUNCF_BRANCHOUT;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_BRANCHOUT;
 			}
 		}
 	}

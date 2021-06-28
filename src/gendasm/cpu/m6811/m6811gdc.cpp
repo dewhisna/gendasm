@@ -627,7 +627,7 @@ bool CM6811Disassembler::CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabel
 	//		decoded function tags -- such as call, etc:
 	if ((compareNoCase(m_CurrentOpcode.mnemonic(), "rts") == 0) ||
 		(compareNoCase(m_CurrentOpcode.mnemonic(), "rti") == 0)) {
-		m_FunctionsTable[m_nStartPC] = FUNCF_HARDSTOP;
+		m_FunctionExitTable[m_nStartPC] = FUNCF_HARDSTOP;
 	}
 
 	return true;
@@ -1209,16 +1209,16 @@ bool CM6811Disassembler::DecodeOpcode(TM6811Disassembler::TGroupFlags nGroup, TM
 		if ((compareNoCase(m_CurrentOpcode.mnemonic(), "jsr") == 0) ||
 			(compareNoCase(m_CurrentOpcode.mnemonic(), "bsr") == 0)) {
 			// Add these only if it is replacing a lower priority value:
-			CFuncMap::const_iterator itrFunction = m_FunctionsTable.find(nTargetAddr);
-			if (itrFunction == m_FunctionsTable.cend()) {
-				m_FunctionsTable[nTargetAddr] = FUNCF_CALL;
+			CFuncEntryMap::const_iterator itrFunction = m_FunctionEntryTable.find(nTargetAddr);
+			if (itrFunction == m_FunctionEntryTable.cend()) {
+				m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
 			} else {
-				if (itrFunction->second > FUNCF_CALL) m_FunctionsTable[nTargetAddr] = FUNCF_CALL;
+				if (itrFunction->second > FUNCF_CALL) m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
 			}
 
 			// See if this is the end of a function:
 			if (m_FuncExitAddresses.contains(nTargetAddr)) {
-				m_FunctionsTable[m_nStartPC] = FUNCF_EXITBRANCH;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_EXITBRANCH;
 			}
 		}
 
@@ -1242,7 +1242,7 @@ bool CM6811Disassembler::DecodeOpcode(TM6811Disassembler::TGroupFlags nGroup, TM
 			(compareNoCase(m_CurrentOpcode.mnemonic(), "bra") == 0) ||
 			(compareNoCase(m_CurrentOpcode.mnemonic(), "jmp") == 0)) {
 			// Add these only if there isn't a function tag here:
-			if (!m_FunctionsTable.contains(nTargetAddr)) m_FunctionsTable[nTargetAddr] = FUNCF_BRANCHIN;
+			if (!m_FunctionEntryTable.contains(nTargetAddr)) m_FunctionEntryTable[nTargetAddr] = FUNCF_BRANCHIN;
 		}
 	}
 
@@ -1251,16 +1251,16 @@ bool CM6811Disassembler::DecodeOpcode(TM6811Disassembler::TGroupFlags nGroup, TM
 		(compareNoCase(m_CurrentOpcode.mnemonic(), "bra") == 0)) {
 		if (nTargetAddr != 0xFFFFFFFFul) {
 			if (m_FuncExitAddresses.contains(nTargetAddr)) {
-				m_FunctionsTable[m_nStartPC] = FUNCF_EXITBRANCH;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_EXITBRANCH;
 			} else {
-				m_FunctionsTable[m_nStartPC] = FUNCF_BRANCHOUT;
+				m_FunctionExitTable[m_nStartPC] = FUNCF_BRANCHOUT;
 			}
 		} else {
 			// Non-Deterministic branches get tagged as a branchout:
-			//m_FunctionsTable[m_nStartPC] = FUNCF_BRANCHOUT;
+			//m_FunctionExitTable[m_nStartPC] = FUNCF_BRANCHOUT;
 
 			// Non-Deterministic branches get tagged as a hardstop (usually it exits the function):
-			m_FunctionsTable[m_nStartPC] = FUNCF_HARDSTOP;
+			m_FunctionExitTable[m_nStartPC] = FUNCF_HARDSTOP;
 		}
 	}
 

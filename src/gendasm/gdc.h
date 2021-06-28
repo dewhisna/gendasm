@@ -307,18 +307,23 @@ class CDisassembler
 {
 public:
 	// The following define the function identification flags:
-	enum FUNC_FLAGS {	// Entries <128 = Stops:
-						FUNCF_HARDSTOP = 0,			// Hard Stop = RTS or RTI encountered
-						FUNCF_EXITBRANCH = 1,		// Exit Branch = Branch to a specified exit address
-						FUNCF_BRANCHOUT = 2,		// Execution branched out (JMP, BRA, etc)
-						FUNCF_SOFTSTOP = 3,			// Soft Stop = Code execution flowed into another function definition
-						// Entries >=128 = Starts:
-						FUNCF_ENTRY = 128,			// Entry Point Start
-						FUNCF_INDIRECT = 129,		// Indirect Code Entry Point Start
-						FUNCF_CALL = 130,			// Call Start Point (JSR, BSR, etc)
-						FUNCF_BRANCHIN = 131 };		// Entry from a branch into (BEQ, BNE, etc)
+	enum FUNC_EXIT_FLAGS {
+		FUNCF_HARDSTOP = 0,			// Hard Stop = RTS or RTI encountered
+		FUNCF_EXITBRANCH = 1,		// Exit Branch = Branch to a specified exit address
+		FUNCF_BRANCHOUT = 2,		// Execution branched out (JMP, BRA, etc)
+		FUNCF_SOFTSTOP = 3,			// Soft Stop = Code execution flowed into another function definition
+	};
 
-	using CFuncMap = std::map<TAddress, FUNC_FLAGS>;
+	using CFuncExitMap = std::map<TAddress, FUNC_EXIT_FLAGS>;
+
+	enum FUNC_ENTRY_FLAGS {
+		FUNCF_ENTRY = 0,			// Entry Point Start
+		FUNCF_INDIRECT = 1,			// Indirect Code Entry Point Start
+		FUNCF_CALL = 2,				// Call Start Point (JSR, BSR, etc)
+		FUNCF_BRANCHIN = 3,			// Entry from a branch into (BEQ, BNE, etc)
+	};
+
+	using CFuncEntryMap = std::map<TAddress, FUNC_ENTRY_FLAGS>;
 
 	// The following define the memory descriptors for the disassembler memory.
 	//		0 = The memory is unused/not-loaded
@@ -607,7 +612,8 @@ protected:
 
 	CAddressSet m_EntryTable;		// (Always MT_ROM) Table of Entry values (start addresses) from control file
 
-	CFuncMap	m_FunctionsTable;	// (Always MT_ROM) Table of start-of and end-of functions
+	CFuncEntryMap	m_FunctionEntryTable;	// (Always MT_ROM) Table of start-of functions
+	CFuncExitMap	m_FunctionExitTable;	// (Always MT_ROM) Table of end-of functions
 
 	CAddressSet m_FuncExitAddresses;	// (Always MT_ROM) Table of address that are equivalent to function exit like RTS or RTI.  Any JMP or BRA or execution into one of these addresses will equate to a function exit
 	CAddressTableMap m_BranchTable;		// (Always MT_ROM) Table mapping branch addresses encountered with the address that referenced it in disassembly.
