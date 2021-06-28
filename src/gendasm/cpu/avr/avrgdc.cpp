@@ -496,7 +496,7 @@ namespace {
 		{ 0x45, "TCCR0B" },
 		{ 0x46, "TCNT0" },
 		{ 0x47, "OCRA0" },
-		{ 0x47, "OCRB0" },
+		{ 0x48, "OCRB0" },
 		// ----
 		{ 0x4A, "GPIOR1" },
 		{ 0x4B, "GPIOR2" },
