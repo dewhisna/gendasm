@@ -1565,7 +1565,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					}
 
 					sstrTemp.str(std::string());
-					sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << m_Memory[nMemType].element(m_PC) << "|";
+					sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_Memory[nMemType].element(m_PC)) << "|";
 					m_sFunctionalOpcode += sstrTemp.str();
 
 					++m_PC;
