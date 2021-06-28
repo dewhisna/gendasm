@@ -1480,27 +1480,6 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			bool bLastFlag = false;			// Flag for last instruction of a function
 			bool bBranchOutFlag = false;	// Flag for branch out of a function
 
-			// Check for function end flags:
-			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(m_PC);
-			if (itrFunctionExit != m_FunctionExitTable.cend()) {
-				switch (itrFunctionExit->second) {
-					case FUNCF_HARDSTOP:
-					case FUNCF_EXITBRANCH:
-					case FUNCF_SOFTSTOP:
-						bLastFlag = true;
-						break;
-
-					case FUNCF_BRANCHOUT:
-						bBranchOutFlag = true;
-						break;
-
-					default:
-						assert(false);			// Unexpected Function Flag!!  Check Code!!
-						bRetVal = false;
-						continue;
-				}
-			}
-
 			// Check for function start flags:
 			CFuncEntryMap::const_iterator itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
 			if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
@@ -1542,16 +1521,26 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 			}
 
 			// Check for function end flags:
-			itrFunctionExit = m_FunctionExitTable.find(m_PC);
+			//	This has to be done after the start flags above so
+			//	that BranchIn works correctly
+			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(m_PC);
 			if (itrFunctionExit != m_FunctionExitTable.cend()) {
 				switch (itrFunctionExit->second) {
 					case FUNCF_HARDSTOP:
 					case FUNCF_EXITBRANCH:
 					case FUNCF_SOFTSTOP:
+						bLastFlag = true;
 						bInFunc = false;
 						break;
-					default:
+
+					case FUNCF_BRANCHOUT:
+						bBranchOutFlag = true;
 						break;
+
+					default:
+						assert(false);			// Unexpected Function Flag!!  Check Code!!
+						bRetVal = false;
+						continue;
 				}
 			}
 
@@ -2637,27 +2626,6 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			bLastFlag = false;
 			bBranchOutFlag = false;
 
-			// Check for function end flags:
-			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(m_PC);
-			if (itrFunctionExit != m_FunctionExitTable.cend()) {
-				switch (itrFunctionExit->second) {
-					case FUNCF_HARDSTOP:
-					case FUNCF_EXITBRANCH:
-					case FUNCF_SOFTSTOP:
-						bLastFlag = true;
-						break;
-
-					case FUNCF_BRANCHOUT:
-						bBranchOutFlag = true;
-						break;
-
-					default:
-						assert(false);			// Unexpected Function Flag!!  Check Code!!
-						bRetVal = false;
-						continue;
-				}
-			}
-
 			// Check for function start flags:
 			CFuncEntryMap::const_iterator itrFunctionEntry = m_FunctionEntryTable.find(m_PC);
 			if (itrFunctionEntry != m_FunctionEntryTable.cend()) {
@@ -2683,16 +2651,27 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 				}
 			}
 
-			itrFunctionExit = m_FunctionExitTable.find(m_PC);
+			// Check for function end flags:
+			//	This has to be done after the start flags above so
+			//	that BranchIn works correctly
+			CFuncExitMap::const_iterator itrFunctionExit = m_FunctionExitTable.find(m_PC);
 			if (itrFunctionExit != m_FunctionExitTable.cend()) {
 				switch (itrFunctionExit->second) {
 					case FUNCF_HARDSTOP:
 					case FUNCF_EXITBRANCH:
 					case FUNCF_SOFTSTOP:
+						bLastFlag = true;
 						bInFunc = false;
 						break;
-					default:
+
+					case FUNCF_BRANCHOUT:
+						bBranchOutFlag = true;
 						break;
+
+					default:
+						assert(false);			// Unexpected Function Flag!!  Check Code!!
+						bRetVal = false;
+						continue;
 				}
 			}
 
