@@ -903,6 +903,7 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 			assert(ValidateLabelName(entry.m_strLabel));
 			if (!m_EntryTable.contains(entry.m_nAddress)) {
 				m_EntryTable.insert(entry.m_nAddress);
+				m_FunctionEntryTable[entry.m_nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
 				AddLabel(MT_ROM, entry.m_nAddress, false, 0, entry.m_strLabel);
 				if (!entry.m_strComment.empty()) {
 					AddComment(MT_ROM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
