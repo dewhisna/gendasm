@@ -508,26 +508,32 @@ printf("\n");
 
 			// Build Edit Script:
 			if (bBuildEditScript) {
-				int last_i, last_j;
-				int cur_i, cur_j;
-
 				if (dbest > 0) {
+					// Note: dbest will always be the number of OES operations
+					//	required unless the very last one is a no-op case, in
+					//	which it will be one over (see bDeleteEntry below)
 					g_EditScript.resize(dbest);
 					k = kbest;
-					last_i = M+1;
-					last_j = N+1;
 
 #if DEBUG_OES_SCRIPT
 printf("\n%s with %s:\n", function1.GetMainName().c_str(), function2.GetMainName().c_str());
 #endif
 
 					for (d=dbest-1; d>=0; d--) {	// Use (d-1) for loop so all calls to R() don't below don't have to subtract 1
-						std::pair<int, int> curR(0, (R(d, k) + 1));				// Default to '-'
+						bool bDeleteEntry = false;			// True if this entry should get deleted
+
+						// The curR pair will be the current operation with the
+						//		current adjusted 'R' value being tested:
+						//	Operation will be:
+						//		-1 for deletion    (>)
+						//		0  for replacement (-)
+						//		1  for insertion   (<)
+						std::pair<int, int> curR(0, (R(d, k) + 1));				// Default to '-' (replacement)
 						if ((R(d, k-1) + 1) > curR.second) {
-							curR = std::pair<int, int>(1, (R(d, k-1) + 1));		// Check for '>'
+							curR = std::pair<int, int>(1, (R(d, k-1) + 1));		// Check for '>' (deletion)
 						}
 						if ((R(d, k+1)) > curR.second) {
-							curR = std::pair<int, int>(-1, (R(d, k+1)));		// Check for '<'
+							curR = std::pair<int, int>(-1, (R(d, k+1)));		// Check for '<' (insertion)
 						}
 
 						i = curR.second;
@@ -547,21 +553,16 @@ for (int ktemp=Rvisitmin[dbest-1]-1; ktemp<=Rvisitmax[dbest-1]+1; ktemp++) {
 printf("\n");
 #endif
 
-
 						if (curR.first == 1) {
 							std::sprintf(arrTemp, "%d>%d", i-1, j);
-							cur_i = i-1;
-							cur_j = j;
 							k--;
 						} else if (curR.first == -1) {
 							std::sprintf(arrTemp, "%d<%d", i, j-1);
-							cur_i = i;
-							cur_j = j-1;
 							k++;
 						} else {	// curR.first == 0
 							std::sprintf(arrTemp, "%d-%d", i-1, j-1);
-							cur_i = i-1;
-							cur_j = j-1;
+							int cur_i = i-1;
+							int cur_j = j-1;
 							// k=k;
 
 							if ((cur_i < M) && (cur_j >= N)) {
@@ -569,17 +570,17 @@ printf("\n");
 printf(" - becomes > : ");
 #endif
 								std::sprintf(arrTemp, "%d>%d", cur_i, N);
-								cur_j = N;
 								//k--;  // ?? these are always last entries, so no need to update k
-								curR.first = 1;		// But update so we have a consistent less/greater-than status
+								curR.first = 1;		// But update curR so we have a consistent operation value
 							} else if ((cur_i >= M) && (cur_j < N)) {
 #if DEBUG_OES_SCRIPT
 printf(" - becomes < : ");
 #endif
 								std::sprintf(arrTemp, "%d<%d", M, cur_j);
-								cur_i = M;
 								//k++;  // ?? these are always last entries, so no need to update k
-								curR.first = -1;	// But update so we have a consistent less/greater-than status
+								curR.first = -1;	// But update curR so we have a consistent operation value
+							} else if ((cur_i >= M) && (cur_j >= N)) {
+								bDeleteEntry = true;
 							}
 						}
 						g_EditScript[d] = arrTemp;
@@ -595,23 +596,18 @@ printf("%d : %s", d, arrTemp);
 						//				LastElement > End	(handled above)
 						//				End < LastElement	(handled above)
 						//				End - End			(needs to be deleted here)
-						if ((curR.first == 0) &&
-							((cur_i >= M) || (cur_j >= N))) {
+						if (bDeleteEntry) {
 							// This is always a last entry and where both: cur_i==M and cur_j==N
 							g_EditScript.erase(g_EditScript.begin() + d);
-
 #if DEBUG_OES_SCRIPT
 printf("  *** erasing: %d", d);
 #endif
-
 						}
 
 #if DEBUG_OES_SCRIPT
 printf("\n");
 #endif
 
-						last_i = cur_i;
-						last_j = cur_j;
 					}
 				}
 
