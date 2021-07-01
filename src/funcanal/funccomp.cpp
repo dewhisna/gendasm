@@ -34,7 +34,9 @@
 #include <limits.h>
 #include <float.h>
 #include <algorithm>
+#include <iterator>
 #include <sstream>
+#include <utility>
 
 #include <assert.h>
 
@@ -105,10 +107,10 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			//								+ mis/2	if a(i+1/2) != b(j+1/2)
 			//				}
 			//				T' <- max{T', S(i, j)}
-			//				if S(i, j) < (T - X) then S(i, j) <- -oo
+			//				if S(i, j) < (T - X) then S(i, j) <- -∞
 			//			}
-			//			L <- min{i : S(i, k-i) > -oo }
-			//			U <- max{i : S(i, k-i) > -oo }
+			//			L <- min{i : S(i, k-i) > -∞ }
+			//			U <- max{i : S(i, k-i) > -∞ }
 			//			L <- max{L, k+1-N}				<<< Should be: L <- max{L, k+1/2-N}
 			//			U <- min{U, M-1}				<<< Should be: U <- min(U, M-1/2}
 			//			T <- T'
@@ -135,7 +137,7 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			//	Testing has also been done and it has been proven that the order of
 			//		the two arrays has no effect on the outcome.
 			//
-			//	In the following, we will define oo as DBL_MAX and -oo as -DBL_MAX.
+			//	In the following, we will define ∞ as DBL_MAX and -∞ as -DBL_MAX.
 			//
 			//	To hold to the non-Generalized Greedy Algorithm requirements, set
 			//		ind = mis - mat/2
@@ -276,17 +278,17 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			//							R(d-1, k) + 1		if L <= k <= U
 			//							R(d-1, k+1)			if k < U
 			//				j <- i - k
-			//				if i > -oo and S'(i+j, d) >= T[d'] - X then
+			//				if i > -∞ and S'(i+j, d) >= T[d'] - X then
 			//					while i<M, j<N, and a(i+1) = b(j+1) do
 			//						i <- i + 1;  j <- j + 1
 			//					R(d, k) <- i
 			//					T' <- max{T', S'(i+j, d)}
-			//				else R(d, k) <- -oo
+			//				else R(d, k) <- -∞
 			//			T[d] <- T'
-			//			L <- min{k : R(d, k) > -oo}
-			//			U <- max{k : R(d, k) > -oo}
-			//			L <- max{L, max{k : R(d, k) = N + k} + 2}	<<< Should be: L <- max{L, max{k : R(d, k) = N + k} + 1}
-			//			U <- min{U, min{k : R(d, k) = M } - 2}		<<< Should be: U <- min{U, min{k : R(d, k) = M } - 1}
+			//			L <- min{k : R(d, k) > -∞}
+			//			U <- max{k : R(d, k) > -∞}
+			//			L <- max{L, max{k : R(d, k) = N + k} + 2}	<<< Should be: L <- max{L, max{k : R(d, k) = N + k} } *** See Below
+			//			U <- min{U, min{k : R(d, k) = M } - 2}		<<< Should be: U <- min{U, min{k : R(d, k) = M } }
 			//		until L > U + 2
 			//		report T'
 			//
@@ -316,10 +318,32 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			//	these differences can be tracked either forward or backward, so
 			//	the memory will be allocated for the full search field.
 			//
-			//	We are also going to define -oo as being -2 since no index can be
+			//	We are also going to define -∞ as being -2 since no index can be
 			//	lower than 0.  The reason for the -2 instead of -1 is to allow
 			//	for the i=R(d,k)+1 calculations to still be below 0.  That is
-			//	to say so that -oo + 1 = -oo
+			//	to say so that -∞ + 1 = -∞
+			//
+			//
+			//	*** The L and U computations above with the +2/-2 is part of the diagonal pruning
+			//		in the original algorithm as noted in the paper:
+			//
+			//		"But pruning does not affect the computed result. In particular, consider lines
+			//		21–22 of Figure 4, which handle situations when the grid boundary is reached.
+			//		If extension down diagonal k reaches i = M , then there is no need to consider
+			//		diagonals larger than i, since positions searched at a later phase (larger d)
+			//		will have smaller antidiagonal index, and hence smaller score. Thus we set
+			//		U ← k - 2, so that when diagonals with index at most U + 1 are considered in
+			//		the next phase, unnecessary work will be avoided. L is handled similarly."
+			//
+			//		HOWEVER, while pruning doesn't affect the computed match percentage result,
+			//		this optimization causes the "dbest" and "kbest" calculated for the entire
+			//		set to not be complete in the terminal nodes which wreaks havoc on the
+			//		optimal edit script generation logic, since it ends up starting at the wrong
+			//		kbest, which shifts the entire tree off into the weeds.  Originally, I had
+			//		discovered this and reduced it to +/-1, which helped in some scenrios, but
+			//		was not the complete solution.  The only final solution was to remove this
+			//		optimization entirely and extend L and U to the full range of 'k'.  Thus,
+			//		we have this 'should be' change to the algorithm.
 			//
 
 			CStringArray &a = zFunc1;
@@ -334,8 +358,8 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			int i, j, k, L, U;
 			int d, dp;
 			int dbest, kbest;
-			int M = a.size();
-			int N = b.size();
+			const int M = a.size();
+			const int N = b.size();
 			const int dmax = ((M+N)*2)+1;
 			const int kmax = (M+N+1);
 			const int rksize = (kmax*2)+1;
@@ -344,7 +368,7 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			const double X = -1;
 			const int floored_d_offset = (int)((X+(mat/2))/(mat-mis));
 			#define Sp(x, y) ((double)((x)*(mat/2) - ((y)*(mat-mis))))
-			#define R(x, y) (Rm[(x)][(y)+kmax])
+			#define R(x, y) (Rm[(x)][(y)+kmax])		// Allow for negative indices of +/- kmax
 
 			// Allocate Memory:
 			T = new double[dmax];
@@ -402,9 +426,9 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			Rvisitmin[0] = 0;
 			Rvisitmax[0] = 0;
 
-/*
+
 printf("\n");
-*/
+
 
 			if ((i != M) || (i != N)) {
 				do {
@@ -432,39 +456,41 @@ printf("\n");
 							if (Rvisitmax[d] < k) Rvisitmax[d] = k;
 							nTemp = Sp(i+j, d);
 							Tp = std::max(Tp, nTemp);
-/*
-printf("d=%2ld : k=%2ld, i=%2ld, j=%2ld, M=%2ld, N=%2ld, T=%2ld, Tp=%2ld, Tpp=%2ld", d, k, i, j, M, N, (int)nTemp, (int)Tp, (int)Tpp);
-*/
+
+printf("d=%2d : k=%2d, i=%2d, j=%2d, M=%2d, N=%2d, T=%2d, Tp=%2d, Tpp=%2d", d, k, i, j, M, N, (int)nTemp, (int)Tp, (int)Tpp);
+
 							if (nTemp > Tpp) {
 								Tpp = nTemp;
-/*
-printf(" * Best (%2ld)", (int)Tpp);
-*/
+
+printf(" * Best (%2d)", (int)Tpp);
+
+//								if ((i < M) || (j < N)) {
 									dbest = d;
 									kbest = k;
+//								}
 
 
 									// Account for hitting the max M or N boundaries:
-									if ((i != M) || (j != N)) {
-										if (j > N) {
-											kbest++;
-/*
-printf(" >>>>>>  k++ j shift");
-*/
-										} else {
-											if (i > M) {
-												kbest--;
-/*
-printf(" <<<<<<  k-- i shift");
-*/
-											}
-										}
-									}
+//									if ((i != M) || (j != N)) {
+//										if (j > N) {
+//											kbest++;
+//
+//printf(" >>>>>>  k++ j shift");
+//
+//										} else {
+//											if (i > M) {
+//												kbest--;
+//
+//printf(" <<<<<<  k-- i shift");
+//
+//											}
+//										}
+//									}
 
 							}
-/*
+
 printf("\n");
-*/
+
 
 						} else {
 							R(d, k) = -2;
@@ -476,12 +502,12 @@ printf("\n");
 
 					L = Rvisitmin[d];
 					U = Rvisitmax[d];
-					for (k=Rvisitmax[d]; k>=Rvisitmin[d]; k--) if (R(d, k) == (N+k)) break;
-					if (k<Rvisitmin[d]) k = INT_MIN;
-					L = std::max(L, k+1);
-					for (k=Rvisitmin[d]; k<=Rvisitmax[d]; k++) if (R(d, k) == M) break;
-					if (k>Rvisitmax[d]) k = INT_MAX;
-					U = std::min(U, k-1);
+					for (k=Rvisitmax[d]+1; k>=Rvisitmin[d]-1; k--) if (R(d, k) == (N+k)) break;
+					if (k<Rvisitmin[d]-1) k = INT_MIN;
+					L = std::max(L, k);
+					for (k=Rvisitmin[d]-1; k<=Rvisitmax[d]+1; k++) if (R(d, k) == M) break;
+					if (k>Rvisitmax[d]+1) k = INT_MAX;
+					U = std::min(U, k);
 				} while (L <= U+2);
 			}
 
@@ -506,52 +532,84 @@ printf("\n");
 					last_i = M+1;
 					last_j = N+1;
 
-/*
-printf("\n%s with %s:\n", LPCTSTR(pFunction1->GetMainName()), LPCTSTR(pFunction2->GetMainName()));
-*/
 
-					for (d=dbest-1; d>=0; d--) {
-						i = std::max((R(d, k-1) + 1), std::max((R(d, k) + 1), (R(d, k+1))));
+printf("\n%s with %s:\n", function1.GetMainName().c_str(), function2.GetMainName().c_str());
 
-/*
-printf("(%3ld, %3ld) : %3ld(%5ld), %3ld(%5ld), %3ld(%5ld) :", d, k,
+
+					for (d=dbest-1; d>=0; d--) {	// Use (d-1) for loop so all calls to R() don't below don't have to subtract 1
+						std::pair<int, int> curR(0, (R(d, k) + 1));				// Default to '-'
+						if ((R(d, k-1) + 1) > curR.second) {
+							curR = std::pair<int, int>(1, (R(d, k-1) + 1));		// Check for '>'
+						}
+						if ((R(d, k+1)) > curR.second) {
+							curR = std::pair<int, int>(-1, (R(d, k+1)));		// Check for '<'
+						}
+
+//						i = std::max((R(d, k-1) + 1), std::max((R(d, k) + 1), (R(d, k+1))));
+
+						i = curR.second;
+						k_rest = curR.first;
+
+printf("(%3d, %3d) : %3d(%5d), %3d(%5d), %3d(%5d) :", d, k,
 						(R(d, k-1) + 1), (int)Sp((R(d, k-1))*2-k+1, d),
 						(R(d, k) + 1), (int)Sp((R(d, k))*2-k, d),
 						(R(d, k+1)), (int)Sp((R(d, k+1))*2-k-1, d));
 
-for (j=Rvisitmin[dbest-1]; j<=Rvisitmax[dbest-1]; j++) {
-	if (j == k-1) printf("("); else printf(" ");
-	if (R(d,j)<0) printf("   "); else printf("%3ld", R(d, j));
-	if (j == k+1) printf(")"); else printf(" ");
+for (int ktemp=Rvisitmin[dbest-1]-1; ktemp<=Rvisitmax[dbest-1]+1; ktemp++) {
+	if (ktemp == k-1) printf("("); else printf(" ");
+	if (R(d,ktemp)<0) printf("   "); else printf("%3d", R(d, ktemp));
+	if (ktemp == k+1) printf(")"); else printf(" ");
 }
 printf("\n");
-*/
+
 
 						j = i-k;
 
-						if (i == (R(d, k-1) + 1)) {
+//						if ((i == (R(d, k-1) + 1)) && (i<=M)) {
+						if (k_rest == 1) {
 							std::sprintf(arrTemp, "%d>%d", i-1, j);
 							cur_i = i-1;
 							cur_j = j;
 							k--;
-							k_rest = 1;
+//							k_rest = 1;
+
 						} else {
-							if (i == (R(d, k+1))) {
+//							if ((i == (R(d, k+1))) && (j<=N)) {
+							if (k_rest == -1) {
 								std::sprintf(arrTemp, "%d<%d", i, j-1);
 								cur_i = i;
 								cur_j = j-1;
 								k++;
-								k_rest = -1;
+//								k_rest = -1;
+
 							} else {
-								// if (i == (R(d, k) + 1))
-								std::sprintf(arrTemp, "%d-%d", i-1, j-1);
-								cur_i = i-1;
-								cur_j = j-1;
-								// k=k;
-								k_rest = 0;
+								//if (i == (R(d, k) + 1)) {
+									std::sprintf(arrTemp, "%d-%d", i-1, j-1);
+									cur_i = i-1;
+									cur_j = j-1;
+									// k=k;
+//									k_rest = 0;
+
+									if ((cur_i < M) && (cur_j >= N)) {
+printf(" - becomes >\n");
+										std::sprintf(arrTemp, "%d>%d", cur_i, N);
+										cur_j = N;
+//										k--;  // ?? these are always last entries
+										k_rest = 1;
+									} else if ((cur_i >= M) && (cur_j < N)) {
+printf(" - becomes <\n");
+										std::sprintf(arrTemp, "%d<%d", M, cur_j);
+										cur_i = M;
+//										k++;  // ?? these are always last entries
+										k_rest = -1;
+									}
+								//}
 							}
 						}
 						g_EditScript[d] = arrTemp;
+
+printf("%d : %s", d, arrTemp);
+
 						// The following test is needed since our insertion/deletion indexes are
 						//		one greater than the stored i and/or j values from the R matrix.
 						//		It is possible that the previous comparison added some extra
@@ -560,10 +618,22 @@ printf("\n");
 						//		However, since the indexes should be always increasing, we simply
 						//		filter out extra entries added to the end that don't satisfy
 						//		this condition:
+//						if ((k_rest == 0) &&
+//							((cur_i == last_i) && (cur_j == last_j))) {
+//							g_EditScript.erase(g_EditScript.begin() + d);
+//
+//printf("  *** erasing: %d", d);
+//
+//						}
 						if ((k_rest == 0) &&
-							((cur_i == last_i) && (cur_j == last_j))) {
+							((cur_i >= M) || (cur_j >= N))) {
+							// This is always a last entry and where both: cur_i==M and cur_j==N
 							g_EditScript.erase(g_EditScript.begin() + d);
+
+printf("  *** erasing: %d", d);
 						}
+
+printf("\n");
 
 						last_i = cur_i;
 						last_j = cur_j;
@@ -683,6 +753,14 @@ TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
 			strRetVal += Func2Lines.at(nRightPos) + "\n";
 			if (pSymbolMap) pSymbolMap->AddObjectMapping(*function1.at(nLeftPos), *function2.at(nRightPos));
 		}
+
+if ((nLeftPos != nLeftIndex) || (nRightPos != nRightIndex)) {
+	std::cerr << "\n";
+	std::cerr << "@" << function1.GetMainName() << "(" << (nFile1FuncNdx+1)
+			<< ")|" << function2.GetMainName() << "(" << (nFile2FuncNdx+1) << ")\n";
+	std::copy(oes.cbegin(), oes.cend(), std::ostream_iterator<TString>(std::cerr, "\n"));
+}
+
 		assert(nLeftPos == nLeftIndex);
 		assert(nRightPos == nRightIndex);
 
