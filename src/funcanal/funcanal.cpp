@@ -494,6 +494,7 @@ int main(int argc, char* argv[])
 		if (fileMatrixIn.is_open()) {
 			TString strLine;
 			std::getline(fileMatrixIn, strLine);
+			bool bMatrixMatchesFunctions = true;		// True if the matrix input file matches the function files
 
 			CStringArray arrMatrixSize = parseCSVLine(strLine);
 			CFuncDescArray::size_type nTempFunc1Size = 0;
@@ -506,33 +507,49 @@ int main(int argc, char* argv[])
 
 			if ((nTempFunc1Size != pFuncFile1->GetFuncCount()) ||
 				(nTempFunc2Size != pfuncFile2->GetFuncCount())) {
-				std::cerr << "*** Warning: Specified Input Matrix File doesn't match\n"
-								"        the specified function description files.  A full\n"
-								"        cross-comparison will be performed!\n\n";
-				m_strMatrixInFilename.clear();
+				bMatrixMatchesFunctions = false;
 			} else {
+				CStringArray arrMatrixLine;
 				bool bReadGood = true;
-				std::getline(fileMatrixIn, strLine);	// Read and toss 'X' break-points line
+				std::getline(fileMatrixIn, strLine);	// Read and compare function names on break-points line
 				int nLine = 2;		// We already read the first two lines
-				for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < nTempFunc1Size; ++ndxFile1) {
+				arrMatrixLine = parseCSVLine(strLine);
+				if (arrMatrixLine.size() != (nTempFunc2Size+1)) {
+					bReadGood = false;
+				} else {
+					// Check the function names to make sure they match:
+					for (CFuncDescArray::size_type ndxFile2 = 0; ((ndxFile2 < nTempFunc2Size) && bMatrixMatchesFunctions); ++ndxFile2) {
+						if (arrMatrixLine[ndxFile2+1] != pfuncFile2->GetFunc(ndxFile2).GetMainName()) {
+							std::cerr <<"*** Expected function \"" << pfuncFile2->GetFunc(ndxFile2).GetMainName() <<
+										"\" on line " << nLine << ", column " << static_cast<int>(ndxFile2+1) << " of matrix file, but found \"" << arrMatrixLine[ndxFile2+1] << "\"\n";
+							bMatrixMatchesFunctions = false;
+						}
+					}
+				}
+				for (CFuncDescArray::size_type ndxFile1 = 0; ((ndxFile1 < nTempFunc1Size) && bReadGood && bMatrixMatchesFunctions); ++ndxFile1) {
 					if (!fileMatrixIn.good() || fileMatrixIn.eof()) {
 						bReadGood = false;
-						break;
+						continue;
 					}
 
 					std::getline(fileMatrixIn, strLine);
 					++nLine;
-					CStringArray arrMatrixLine = parseCSVLine(strLine);
+					arrMatrixLine = parseCSVLine(strLine);
 
 					if (arrMatrixLine.size() != (nTempFunc2Size+1)) {	// Will be +1 due to 'Y' break-points
 						bReadGood = false;
-						break;
+						continue;
+					} else if (arrMatrixLine[0] != pFuncFile1->GetFunc(ndxFile1).GetMainName()) {
+						std::cerr <<"*** Expected function \"" << pFuncFile1->GetFunc(ndxFile1).GetMainName() <<
+									"\" on line " << nLine << " of matrix file, but found \"" << arrMatrixLine[0] << "\"\n";
+						bMatrixMatchesFunctions = false;
+						continue;
 					}
 					for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < nTempFunc2Size; ++ndxFile2) {
 						m_matrixCompResult[ndxFile1][ndxFile2] = atof(trim(arrMatrixLine[ndxFile2+1]).c_str());	// +1 to skip Y breakpoint
 					}
 				}
-				if (!bReadGood) {
+				if (!bReadGood && bMatrixMatchesFunctions) {	// Only print bad file warning if things are matching, otherwise print the mismatch error below
 					std::cerr << "*** Warning: Failed to read Input Matrix File.\n"
 									"        Bad line at " << nLine << ".\n"
 									"        Reverting to perform a full cross-comparison.\n";
@@ -541,6 +558,13 @@ int main(int argc, char* argv[])
 			}
 
 			fileMatrixIn.close();
+
+			if (!bMatrixMatchesFunctions) {
+				std::cerr << "*** Warning: Specified Input Matrix File doesn't match\n"
+								"        the specified function description files.  A full\n"
+								"        cross-comparison will be performed!\n\n";
+				m_strMatrixInFilename.clear();
+			}
 		}
 
 		// If no MatrixIn file was specified or we failed to read it,
