@@ -551,7 +551,7 @@ int main(int argc, char* argv[])
 				// Write 'X' breakpoints:
 				fileMatrixOut << pFuncFile1->GetFuncCount() << "," << pfuncFile2->GetFuncCount() << "\n";
 				for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pfuncFile2->GetFuncCount(); ++ndxFile2) {
-					fileMatrixOut << "," << (ndxFile2+1);
+					fileMatrixOut << "," << pfuncFile2->GetFunc(ndxFile2).GetMainName();
 				}
 				fileMatrixOut << "\n";
 			}
@@ -559,7 +559,7 @@ int main(int argc, char* argv[])
 			for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) {
 				std::cerr << ".";
 				if (fileMatrixOut.is_open()) {
-					fileMatrixOut << (ndxFile1+1);		// Y breakpoint
+					fileMatrixOut << pFuncFile1->GetFunc(ndxFile1).GetMainName();		// Y breakpoint
 				}
 				for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pfuncFile2->GetFuncCount(); ++ndxFile2) {
 					m_matrixCompResult[ndxFile1][ndxFile2] = CompareFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pfuncFile2, ndxFile2, false);
