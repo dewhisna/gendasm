@@ -40,6 +40,8 @@
 
 #include <assert.h>
 
+#define DEBUG_OES_SCRIPT 0			// Set to '1' (or non-zero) to debug OES generation code
+
 static CStringArray g_EditScript;
 static bool g_bEditScriptValid = false;
 
@@ -426,9 +428,9 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			Rvisitmin[0] = 0;
 			Rvisitmax[0] = 0;
 
-
+#if DEBUG_OES_SCRIPT
 printf("\n");
-
+#endif
 
 			if ((i != M) || (i != N)) {
 				do {
@@ -457,40 +459,24 @@ printf("\n");
 							nTemp = Sp(i+j, d);
 							Tp = std::max(Tp, nTemp);
 
+#if DEBUG_OES_SCRIPT
 printf("d=%2d : k=%2d, i=%2d, j=%2d, M=%2d, N=%2d, T=%2d, Tp=%2d, Tpp=%2d", d, k, i, j, M, N, (int)nTemp, (int)Tp, (int)Tpp);
+#endif
 
 							if (nTemp > Tpp) {
 								Tpp = nTemp;
+								dbest = d;
+								kbest = k;
 
+#if DEBUG_OES_SCRIPT
 printf(" * Best (%2d)", (int)Tpp);
-
-//								if ((i < M) || (j < N)) {
-									dbest = d;
-									kbest = k;
-//								}
-
-
-									// Account for hitting the max M or N boundaries:
-//									if ((i != M) || (j != N)) {
-//										if (j > N) {
-//											kbest++;
-//
-//printf(" >>>>>>  k++ j shift");
-//
-//										} else {
-//											if (i > M) {
-//												kbest--;
-//
-//printf(" <<<<<<  k-- i shift");
-//
-//											}
-//										}
-//									}
+#endif
 
 							}
 
+#if DEBUG_OES_SCRIPT
 printf("\n");
-
+#endif
 
 						} else {
 							R(d, k) = -2;
@@ -524,7 +510,6 @@ printf("\n");
 			if (bBuildEditScript) {
 				int last_i, last_j;
 				int cur_i, cur_j;
-				int k_rest;
 
 				if (dbest > 0) {
 					g_EditScript.resize(dbest);
@@ -532,9 +517,9 @@ printf("\n");
 					last_i = M+1;
 					last_j = N+1;
 
-
+#if DEBUG_OES_SCRIPT
 printf("\n%s with %s:\n", function1.GetMainName().c_str(), function2.GetMainName().c_str());
-
+#endif
 
 					for (d=dbest-1; d>=0; d--) {	// Use (d-1) for loop so all calls to R() don't below don't have to subtract 1
 						std::pair<int, int> curR(0, (R(d, k) + 1));				// Default to '-'
@@ -545,11 +530,10 @@ printf("\n%s with %s:\n", function1.GetMainName().c_str(), function2.GetMainName
 							curR = std::pair<int, int>(-1, (R(d, k+1)));		// Check for '<'
 						}
 
-//						i = std::max((R(d, k-1) + 1), std::max((R(d, k) + 1), (R(d, k+1))));
-
 						i = curR.second;
-						k_rest = curR.first;
+						j = i-k;
 
+#if DEBUG_OES_SCRIPT
 printf("(%3d, %3d) : %3d(%5d), %3d(%5d), %3d(%5d) :", d, k,
 						(R(d, k-1) + 1), (int)Sp((R(d, k-1))*2-k+1, d),
 						(R(d, k) + 1), (int)Sp((R(d, k))*2-k, d),
@@ -561,79 +545,70 @@ for (int ktemp=Rvisitmin[dbest-1]-1; ktemp<=Rvisitmax[dbest-1]+1; ktemp++) {
 	if (ktemp == k+1) printf(")"); else printf(" ");
 }
 printf("\n");
+#endif
 
 
-						j = i-k;
-
-//						if ((i == (R(d, k-1) + 1)) && (i<=M)) {
-						if (k_rest == 1) {
+						if (curR.first == 1) {
 							std::sprintf(arrTemp, "%d>%d", i-1, j);
 							cur_i = i-1;
 							cur_j = j;
 							k--;
-//							k_rest = 1;
+						} else if (curR.first == -1) {
+							std::sprintf(arrTemp, "%d<%d", i, j-1);
+							cur_i = i;
+							cur_j = j-1;
+							k++;
+						} else {	// curR.first == 0
+							std::sprintf(arrTemp, "%d-%d", i-1, j-1);
+							cur_i = i-1;
+							cur_j = j-1;
+							// k=k;
 
-						} else {
-//							if ((i == (R(d, k+1))) && (j<=N)) {
-							if (k_rest == -1) {
-								std::sprintf(arrTemp, "%d<%d", i, j-1);
-								cur_i = i;
-								cur_j = j-1;
-								k++;
-//								k_rest = -1;
-
-							} else {
-								//if (i == (R(d, k) + 1)) {
-									std::sprintf(arrTemp, "%d-%d", i-1, j-1);
-									cur_i = i-1;
-									cur_j = j-1;
-									// k=k;
-//									k_rest = 0;
-
-									if ((cur_i < M) && (cur_j >= N)) {
-printf(" - becomes >\n");
-										std::sprintf(arrTemp, "%d>%d", cur_i, N);
-										cur_j = N;
-//										k--;  // ?? these are always last entries
-										k_rest = 1;
-									} else if ((cur_i >= M) && (cur_j < N)) {
-printf(" - becomes <\n");
-										std::sprintf(arrTemp, "%d<%d", M, cur_j);
-										cur_i = M;
-//										k++;  // ?? these are always last entries
-										k_rest = -1;
-									}
-								//}
+							if ((cur_i < M) && (cur_j >= N)) {
+#if DEBUG_OES_SCRIPT
+printf(" - becomes > : ");
+#endif
+								std::sprintf(arrTemp, "%d>%d", cur_i, N);
+								cur_j = N;
+								//k--;  // ?? these are always last entries, so no need to update k
+								curR.first = 1;		// But update so we have a consistent less/greater-than status
+							} else if ((cur_i >= M) && (cur_j < N)) {
+#if DEBUG_OES_SCRIPT
+printf(" - becomes < : ");
+#endif
+								std::sprintf(arrTemp, "%d<%d", M, cur_j);
+								cur_i = M;
+								//k++;  // ?? these are always last entries, so no need to update k
+								curR.first = -1;	// But update so we have a consistent less/greater-than status
 							}
 						}
 						g_EditScript[d] = arrTemp;
 
+#if DEBUG_OES_SCRIPT
 printf("%d : %s", d, arrTemp);
+#endif
 
-						// The following test is needed since our insertion/deletion indexes are
-						//		one greater than the stored i and/or j values from the R matrix.
-						//		It is possible that the previous comparison added some extra
-						//		entries to the R matrix than what was really needed.  This will
-						//		cause extra erroneous entries to appear in the edit script.
-						//		However, since the indexes should be always increasing, we simply
-						//		filter out extra entries added to the end that don't satisfy
-						//		this condition:
-//						if ((k_rest == 0) &&
-//							((cur_i == last_i) && (cur_j == last_j))) {
-//							g_EditScript.erase(g_EditScript.begin() + d);
-//
-//printf("  *** erasing: %d", d);
-//
-//						}
-						if ((k_rest == 0) &&
+						// The following delete is needed because our very last entry will
+						//		either be a "- → >" or "- → <" conversion above or it will
+						//		be a "-" entry for one beyond both function arrays.  In
+						//		other words, the last entry is either:
+						//				LastElement > End	(handled above)
+						//				End < LastElement	(handled above)
+						//				End - End			(needs to be deleted here)
+						if ((curR.first == 0) &&
 							((cur_i >= M) || (cur_j >= N))) {
 							// This is always a last entry and where both: cur_i==M and cur_j==N
 							g_EditScript.erase(g_EditScript.begin() + d);
 
+#if DEBUG_OES_SCRIPT
 printf("  *** erasing: %d", d);
+#endif
+
 						}
 
+#if DEBUG_OES_SCRIPT
 printf("\n");
+#endif
 
 						last_i = cur_i;
 						last_j = cur_j;
@@ -754,17 +729,19 @@ TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
 			if (pSymbolMap) pSymbolMap->AddObjectMapping(*function1.at(nLeftPos), *function2.at(nRightPos));
 		}
 
+#if DEBUG_OES_SCRIPT
 if ((nLeftPos != nLeftIndex) || (nRightPos != nRightIndex)) {
 	std::cerr << "\n";
 	std::cerr << "@" << function1.GetMainName() << "(" << (nFile1FuncNdx+1)
 			<< ")|" << function2.GetMainName() << "(" << (nFile2FuncNdx+1) << ")\n";
 	std::copy(oes.cbegin(), oes.cend(), std::ostream_iterator<TString>(std::cerr, "\n"));
 }
+#endif
 
 		assert(nLeftPos == nLeftIndex);
 		assert(nRightPos == nRightIndex);
 
-		#ifdef _DEBUG
+		#if 0
 		// The following is for special debugging only:
 		if (nLeftPos != nLeftIndex) {
 			std::ostringstream ssTemp;
@@ -781,7 +758,7 @@ if ((nLeftPos != nLeftIndex) || (nRightPos != nRightIndex)) {
 		}
 		#endif
 
-		#ifdef _DEBUG
+		#if 0
 		switch (strEntry.at(pos)) {
 			case '<':
 				if (nRightPos >= Func2Lines.size()) {
