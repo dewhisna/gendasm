@@ -12,6 +12,8 @@
 #include <iomanip>
 #include <iterator>
 #include <filesystem>
+#include <set>
+#include <utility>
 
 #include <stringhelp.h>
 
@@ -25,6 +27,11 @@
 #ifndef UNUSED
 	#define UNUSED(x) ((void)(x))
 #endif
+
+// ============================================================================
+
+typedef std::vector<double> CCompResultArray;
+typedef std::vector<CCompResultArray> CCompResultMatrix;
 
 // ============================================================================
 
@@ -128,6 +135,53 @@ static CStringArray parseCSVLine(const std::string aLine)
 
 // ----------------------------------------------------------------------------
 
+static void dumpComparison(std::fstream &fileComp, std::fstream &fileOES,
+							bool bCompOESFlag,
+							const CCompResultMatrix &matrixCompResult,
+							FUNC_COMPARE_METHOD nCompMethod,
+							std::shared_ptr<const CFuncDescFile> pFuncFile1, CFuncDescArray::size_type ndxFile1,
+							std::shared_ptr<const CFuncDescFile> pFuncFile2, CFuncDescArray::size_type ndxFile2,
+							OUTPUT_OPTIONS nOutputOptions,
+							CSymbolMap *pSymbolMap)
+{
+	CStringArray oes;
+
+	if (fileComp.is_open()) {
+		fileComp << "--------------------------------------------------------------------------------\n";
+		fileComp << "    Left Function  : " << pFuncFile1->GetFunc(ndxFile1).GetMainName()
+											<< " (" << (ndxFile1+1) << ")\n" <<
+					"    Right Function : " << pFuncFile2->GetFunc(ndxFile2).GetMainName()
+											<< " (" << (ndxFile2+1) << ")\n" <<
+					"    Matches by     : " << matrixCompResult[ndxFile1][ndxFile2]*100 << "%\n";
+		fileComp << "--------------------------------------------------------------------------------\n";
+	}
+
+	double nMatchPercent;
+	TString strDiff = DiffFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pFuncFile2, ndxFile2,
+									nOutputOptions, nMatchPercent, pSymbolMap);
+	if (fileComp.is_open()) {
+		if (bCompOESFlag) {
+			if (GetLastEditScript(oes)) {
+				std::copy(oes.cbegin(), oes.cend(), std::ostream_iterator<TString>(fileComp, "\n"));
+			}
+			fileComp << "--------------------------------------------------------------------------------\n";
+		}
+		fileComp << strDiff;
+		fileComp << "--------------------------------------------------------------------------------\n";
+	}
+
+	if (fileOES.is_open()) {
+		if (GetLastEditScript(oes)) {
+			fileOES << "\n";
+			fileOES << "@" << pFuncFile1->GetFunc(ndxFile1).GetMainName() << "(" << (ndxFile1+1)
+					<< ")|" << pFuncFile2->GetFunc(ndxFile2).GetMainName() << "(" << (ndxFile2+1) << ")\n";
+			std::copy(oes.cbegin(), oes.cend(), std::ostream_iterator<TString>(fileOES, "\n"));
+		}
+	}
+}
+
+// ----------------------------------------------------------------------------
+
 static void dumpSymbols(std::fstream &fileSym,
 						const CSymbolMap &aSymbolMap,
 						CSymbolArray (*fncGetSymbolList)(const CSymbolMap *pSymbolMap),
@@ -175,9 +229,6 @@ static void dumpSymbols(std::fstream &fileSym,
 }
 
 // ----------------------------------------------------------------------------
-
-typedef std::vector<double> CCompResultArray;
-typedef std::vector<CCompResultArray> CCompResultMatrix;
 
 int main(int argc, char* argv[])
 {
@@ -350,7 +401,6 @@ int main(int argc, char* argv[])
 	CFuncDescFileArray m_arrFuncFiles;
 	CCompResultMatrix m_matrixCompResult;
 	double nMaxCompResult;
-	CStringArray oes;
 	bool bFlag;
 
 	if (!bDeterministic) {
@@ -600,8 +650,6 @@ int main(int argc, char* argv[])
 			std::cerr << "\n\n";
 		}
 
-		std::cout << "\nBest Matches:\n";
-
 		if (fileComp.is_open()) {
 			fileComp << "Left Filename  : ";
 			fileComp << pFuncFile1->GetFuncPathName() + "\n";
@@ -624,20 +672,38 @@ int main(int argc, char* argv[])
 			fileSym << pFuncFile2->GetFuncPathName() + "\n";
 		}
 
+		// --------------------------------------------------------------------
+
+		typedef std::pair<TLabel, TLabel> TFunctionPair;
+		std::set<TFunctionPair> setCompsWritten;		// Pairing of Left/Right functions already outputted
+		std::ostringstream ssCompResult;
+
+		// Output comparison of Left->Right
+		std::cout << "\nBest Matches (Left->Right):\n";
+		if (fileComp.is_open()) {
+			fileComp << "================================================================================\n";
+			fileComp << "                          Best Matches (Left->Right):\n";
+			fileComp << "================================================================================\n\n";
+		}
 		for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) {
 			nMaxCompResult = 0.0;
 			for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) nMaxCompResult = std::max(nMaxCompResult, m_matrixCompResult[ndxFile1][ndxFile2]);
 			bFlag = false;
+			ssCompResult.str(std::string());
 			if ((nMaxCompResult > 0.0) && (nMaxCompResult >= nMinCompLimit)) {
-				std::cout << "    " << padString(pFuncFile1->GetFunc(ndxFile1).GetMainName(), CFuncObject::GetFieldWidth(CFuncObject::FIELD_CODE::FC_LABEL)) << " : ";
+				ssCompResult << "    " << padString(pFuncFile1->GetFunc(ndxFile1).GetMainName(), CFuncObject::GetFieldWidth(CFuncObject::FIELD_CODE::FC_LABEL)) << " : ";
 				for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
 					if (m_matrixCompResult[ndxFile1][ndxFile2] < nMaxCompResult) continue;
+
+					TFunctionPair thisFunctionPair(pFuncFile1->GetFunc(ndxFile1).GetMainName(),
+														 pFuncFile2->GetFunc(ndxFile2).GetMainName());
+					if (setCompsWritten.contains(thisFunctionPair)) continue;
 
 					if (bFlag) {
 						if (fileComp.is_open()) {
 							fileComp << "\n\n";
 						}
-						std::cout << ", ";
+						ssCompResult << ", ";
 					} else {
 						if (fileComp.is_open()) {
 							fileComp << "================================================================================\n";
@@ -645,46 +711,77 @@ int main(int argc, char* argv[])
 					}
 					bFlag = true;
 
-					std::cout << pFuncFile2->GetFunc(ndxFile2).GetMainName();
+					ssCompResult << pFuncFile2->GetFunc(ndxFile2).GetMainName();
 
-					if (fileComp.is_open()) {
-						fileComp << "--------------------------------------------------------------------------------\n";
-						fileComp << "    Left Function  : " << pFuncFile1->GetFunc(ndxFile1).GetMainName()
-															<< " (" << (ndxFile1+1) << ")\n" <<
-									"    Right Function : " << pFuncFile2->GetFunc(ndxFile2).GetMainName()
-															<< " (" << (ndxFile2+1) << ")\n" <<
-									"    Matches by     : " << m_matrixCompResult[ndxFile1][ndxFile2]*100 << "%\n";
-						fileComp << "--------------------------------------------------------------------------------\n";
-					}
+					dumpComparison(fileComp, fileOES, bCompOESFlag, m_matrixCompResult,
+									nCompMethod, pFuncFile1, ndxFile1, pFuncFile2, ndxFile2,
+									(m_bOutputOptionAddAddress ? OO_ADD_ADDRESS : OO_NONE),
+									&aSymbolMap);
 
-					double nMatchPercent;
-					TString strDiff = DiffFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pFuncFile2, ndxFile2,
-													(m_bOutputOptionAddAddress ? OO_ADD_ADDRESS : OO_NONE),
-													nMatchPercent, &aSymbolMap);
-					if (fileComp.is_open()) {
-						if (bCompOESFlag) {
-							if (GetLastEditScript(oes)) {
-								std::copy(oes.cbegin(), oes.cend(), std::ostream_iterator<TString>(fileComp, "\n"));
-							}
-							fileComp << "--------------------------------------------------------------------------------\n";
-						}
-						fileComp << strDiff;
-						fileComp << "--------------------------------------------------------------------------------\n";
-					}
-
-					if (fileOES.is_open()) {
-						if (GetLastEditScript(oes)) {
-							fileOES << "\n";
-							fileOES << "@" << pFuncFile1->GetFunc(ndxFile1).GetMainName() << "(" << (ndxFile1+1)
-									<< ")|" << pFuncFile2->GetFunc(ndxFile2).GetMainName() << "(" << (ndxFile2+1) << ")\n";
-							std::copy(oes.cbegin(), oes.cend(), std::ostream_iterator<TString>(fileOES, "\n"));
-						}
-					}
+					setCompsWritten.insert(thisFunctionPair);
 				}
+			}
+			if (bFlag) {
 				if (fileComp.is_open()) {
 					fileComp << "================================================================================\n\n\n";
 				}
-				std::cout << " : (" << nMaxCompResult*100 << "%)\n";
+				ssCompResult << " : (" << nMaxCompResult*100 << "%)\n";
+				std::cout << ssCompResult.str();
+			}
+		}
+
+		// Output comparison of Right->Left : This is needed because some functions
+		//		on left may match multiple functions on the right, but not "optimally".
+		//		This will add the right-side's best matches on the left so that all
+		//		best matches are shown:
+		std::cout << "\nBest Matches (Right->Left):\n";
+		if (fileComp.is_open()) {
+			fileComp << "================================================================================\n";
+			fileComp << "                          Best Matches (Right->Left):\n";
+			fileComp << "================================================================================\n\n";
+		}
+		for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
+			nMaxCompResult = 0.0;
+			for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) nMaxCompResult = std::max(nMaxCompResult, m_matrixCompResult[ndxFile1][ndxFile2]);
+			bFlag = false;
+			ssCompResult.str(std::string());
+			if ((nMaxCompResult > 0.0) && (nMaxCompResult >= nMinCompLimit)) {
+				ssCompResult << "    " << padString(pFuncFile2->GetFunc(ndxFile2).GetMainName(), CFuncObject::GetFieldWidth(CFuncObject::FIELD_CODE::FC_LABEL)) << " : ";
+				for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) {
+					if (m_matrixCompResult[ndxFile1][ndxFile2] < nMaxCompResult) continue;
+
+					TFunctionPair thisFunctionPair(pFuncFile1->GetFunc(ndxFile1).GetMainName(),
+														 pFuncFile2->GetFunc(ndxFile2).GetMainName());
+					if (setCompsWritten.contains(thisFunctionPair)) continue;
+
+					if (bFlag) {
+						if (fileComp.is_open()) {
+							fileComp << "\n\n";
+						}
+						ssCompResult << ", ";
+					} else {
+						if (fileComp.is_open()) {
+							fileComp << "================================================================================\n";
+						}
+					}
+					bFlag = true;
+
+					ssCompResult << pFuncFile1->GetFunc(ndxFile1).GetMainName();
+
+					dumpComparison(fileComp, fileOES, bCompOESFlag, m_matrixCompResult,
+									nCompMethod, pFuncFile1, ndxFile1, pFuncFile2, ndxFile2,
+									(m_bOutputOptionAddAddress ? OO_ADD_ADDRESS : OO_NONE),
+									&aSymbolMap);
+
+					setCompsWritten.insert(thisFunctionPair);
+				}
+			}
+			if (bFlag) {
+				if (fileComp.is_open()) {
+					fileComp << "================================================================================\n\n\n";
+				}
+				ssCompResult << " : (" << nMaxCompResult*100 << "%)\n";
+				std::cout << ssCompResult.str();
 			}
 		}
 
