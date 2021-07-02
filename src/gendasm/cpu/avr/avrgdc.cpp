@@ -1132,7 +1132,7 @@ bool CAVRDisassembler::CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels,
 
 	m_sFunctionalOpcode += "|";
 
-	// All words of OpMemory:
+	// All words of OpMemory -- as-is:
 	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
 		std::sprintf(strTemp, "%04X", m_OpMemory.at(i));
 		m_sFunctionalOpcode += strTemp;
@@ -1140,15 +1140,25 @@ bool CAVRDisassembler::CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels,
 
 	m_sFunctionalOpcode += "|";
 
-	// All words of opcode part of OpMemory (will always be full OpMemory on RISC);
-	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
-		std::sprintf(strTemp, "%04X", m_OpMemory.at(i));
+	// All words of opcode part of OpMemory -- opcode with the operands masked out:
+	const COpcodeSymbolArray_type &curOpcode = m_CurrentOpcode.opcode();
+	const COpcodeSymbolArray_type &curOpcodeMask = m_CurrentOpcode.opcodeMask();
+	assert(m_OpMemory.size() == curOpcode.size());
+	assert(m_OpMemory.size() == curOpcodeMask.size());
+
+	for (COpcodeSymbolArray_type::size_type i=0; i<curOpcode.size(); ++i) {
+		std::sprintf(strTemp, "%04X", curOpcode.at(i));		// Cheat and use the pre-computed value
 		m_sFunctionalOpcode += strTemp;
 	}
 
 	m_sFunctionalOpcode += "|";
 
-	// All bytes of operand part of OpMemory (will always be empty on RISC);
+	// All bytes of operand part of OpMemory -- operands with the opcode masked out:
+	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
+		TAVRDisassembler::TOpcodeSymbol nInvMask = ~curOpcodeMask.at(i);
+		std::sprintf(strTemp, "%04X", (m_OpMemory.at(i) & nInvMask));
+		m_sFunctionalOpcode += strTemp;
+	}
 
 	m_sFunctionalOpcode += "|";
 

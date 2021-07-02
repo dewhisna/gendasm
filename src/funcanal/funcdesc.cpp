@@ -157,6 +157,7 @@ namespace {
 	const static char g_strUnknownFuncAnalCommand[] = "Unknown FuncAnal Specific Command";
 	const static char g_strInvalidTrueFalse[] = "Invalid True/False Specifier";
 	const static char g_strInvalidOpcodeSymbolWidth[] = "Invalid Opcode Symbol Width";
+	const static char g_strInvalidOpcodeLength[] = "Opcode Symbols not a multiple of OpcodeSymbolWidth";
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1055,7 +1056,13 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 					if (argv.size() == 4) {
 						pCurrentFunction->Add(std::make_shared<CFuncDataByteObject>(pThis, pCurrentFunction, argv));
 					} else {
-						pCurrentFunction->Add(std::make_shared<CFuncAsmInstObject>(pThis, pCurrentFunction, argv));
+						std::shared_ptr<CFuncAsmInstObject> pAsmInst = std::make_shared<CFuncAsmInstObject>(pThis, pCurrentFunction, argv);
+						pCurrentFunction->Add(pAsmInst);
+						assert(pThis->opcodeSymbolSize() > 0);
+						if (pAsmInst->GetOpCodeByteCount() % pThis->opcodeSymbolSize()) {
+							strError = g_strInvalidOpcodeLength;
+							bRetVal = false;
+						}
 					}
 				} else {
 					strError = g_strSyntaxError;
