@@ -248,7 +248,7 @@ TString CFuncObject::GetBytes() const
 {
 	std::ostringstream ssTemp;
 	for (auto const &itrByte : m_Bytes) {
-		ssTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << itrByte;
+		ssTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(itrByte);
 	}
 	return ssTemp.str();
 }
@@ -703,7 +703,7 @@ TString CFuncAsmInstObject::GetOpCodeBytes() const
 {
 	std::ostringstream ssTemp;
 	for (auto const &itrByte : m_OpCodeBytes) {
-		ssTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << itrByte;
+		ssTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(itrByte);
 	}
 	return ssTemp.str();
 }
@@ -712,7 +712,7 @@ TString CFuncAsmInstObject::GetOperandBytes() const
 {
 	std::ostringstream ssTemp;
 	for (auto const &itrByte : m_OperandBytes) {
-		ssTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << itrByte;
+		ssTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(itrByte);
 	}
 	return ssTemp.str();
 }

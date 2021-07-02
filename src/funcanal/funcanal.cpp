@@ -501,7 +501,7 @@ int main(int argc, char* argv[])
 		if (fileDFRO.is_open()) {
 			for (CFuncDescArray::size_type ndx = 0; ndx < pFuncDescFile->GetFuncCount(); ++ndx) {
 				fileDFRO << "File \"" << pFuncDescFile->GetFuncFileName() <<
-							"\" Function " << pFuncDescFile->GetFunc(ndx).GetMainName() <<
+							"\" Function \"" << pFuncDescFile->GetFunc(ndx).GetMainName() <<
 							"\" (" << ndx+1 << "):\n";
 				fileDFRO << pFuncDescFile->GetFunc(ndx).ExportToDiff();
 				fileDFRO << "\n\n";
