@@ -12,6 +12,13 @@
 //
 //		Any line beginning with a ";" is considered to be a commment line and is ignored
 //
+//		FuncAnal Commands:
+//			-cmd|args
+//			  |   |_________  Comma separated list of arguments for the command (or empty field if none)
+//			  |_____________  Command specifcally for funcanal:
+//		                        memrangeoverlap -- If present, indicates the memory ranges overlap, and ROM/RAM/IO are independent, such as Harvard architecture, argument = true/false
+//		                        opcodesymbolsize -- Indicates width (in bytes) of the opcodes, argument = width in bytes (used where opcodes are wider than a byte, like an AVR)
+//
 //		Memory Mapping:
 //			#type|addr|size
 //			   |    |    |____  Size of Mapped area (hex)
@@ -108,8 +115,34 @@ namespace {
 
 	// --------------------------------
 
+	enum FUNC_ANAL_COMMANDS_ENUM {
+		FACE_MemRangeOverlap = 0,
+		FACE_OpcodeSymbolSize = 1,
+	};
+
+	static const TKeywordMap g_mapParseFuncAnalCmds = {
+		{ "^memrangeoverlap$", FACE_MemRangeOverlap },
+		{ "^opcodesymbolsize$", FACE_OpcodeSymbolSize },
+	};
+
+	enum TRUE_FALSE_ENUM {
+		TFE_False = 0,
+		TFE_True = 1,
+	};
+
+	static const TKeywordMap g_mapParseTrueFalse = {
+		{ "^false|no|off|0$", TFE_False },
+		{ "^true|yes|on|1$", TFE_True },
+	};
+
+	// --------------------------------
+
 	const static char m_strUnexpectedError[] = "Unexpected Error";
 	const static char m_strSyntaxError[] = "Syntax Error or Unexpected Entry";
+	const static char m_strUnknownMemoryRangeName[] = "Unknown Memory Range Name";
+	const static char m_strUnknownFuncAnalCommand[] = "Unknown FuncAnal Specific Command";
+	const static char m_strInvalidTrueFalse[] = "Invalid True/False Specifier";
+	const static char m_strInvalidOpcodeSymbolWidth[] = "Invalid Opcode Symbol Width";
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -838,6 +871,59 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				// Ignore comment lines:
 				break;
 
+			case '-':				// FuncAnal Command
+			{
+				pCurrentFunction = nullptr;
+
+				ParseLine(strLine.substr(1), '|', argv);
+				if (argv.size() != 2) {
+					strError = m_strSyntaxError;
+					bRetVal = false;
+					break;
+				}
+
+				int nParseCmd = parseKeyword(g_mapParseFuncAnalCmds, argv.at(0));
+				if (nParseCmd == -1) {
+					strError = m_strUnknownFuncAnalCommand;
+					bRetVal = false;
+					break;
+				}
+
+				ParseLine(argv.at(1), ',', argv);	// Parse Command Arguments
+
+				switch (static_cast<FUNC_ANAL_COMMANDS_ENUM>(nParseCmd)) {
+					case FACE_MemRangeOverlap:
+						if (argv.size() != 1) {
+							strError = m_strSyntaxError;
+							bRetVal = false;
+						} else {
+							int nParseTF = parseKeyword(g_mapParseTrueFalse, argv.at(0));
+							if (nParseTF == -1) {
+								strError = m_strInvalidTrueFalse;
+								bRetVal = false;
+							} else {
+								m_bAllowMemRangeOverlap = (nParseTF != TFE_False);
+							}
+						}
+						break;
+
+					case FACE_OpcodeSymbolSize:
+						if (argv.size() != 1) {
+							strError = m_strSyntaxError;
+							bRetVal = false;
+						} else {
+							m_nOpcodeSymbolSize = strtoul(argv[0].c_str(), nullptr, 0);
+							if (m_nOpcodeSymbolSize == 0) {		// Width can't be zero
+								strError = m_strInvalidOpcodeSymbolWidth;
+								bRetVal = false;
+							}
+						}
+						break;
+				}
+
+				break;
+			}
+
 			case '#':			// Memory Mapping
 			{
 				pCurrentFunction = nullptr;
@@ -851,7 +937,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 				int nParseVal = parseKeyword(g_mapParseMemType, argv.at(0));
 				if (nParseVal == -1) {
-					strError = m_strSyntaxError;
+					strError = m_strUnknownMemoryRangeName;
 					bRetVal = false;
 					break;
 				}
@@ -864,7 +950,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				m_MemoryRanges[nParseVal].removeOverlaps();
 				m_MemoryRanges[nParseVal].sort();
 
-//				if (!m_bAllowMemRangeOverlap) {		// TODO : Figure out how to get m_bAllowMemRangeOverlap
+				if (!allowMemRangeOverlap()) {
 					for (int nMemType = 0; nMemType < MEMORY_TYPE::NUM_MEMORY_TYPES; ++nMemType) {
 						if (nParseVal == nMemType) continue;
 						if (m_MemoryRanges[nMemType].rangesOverlap(m_MemoryRanges[nParseVal].back())) {
@@ -874,7 +960,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 							}
 						}
 					}
-//				}
+				}
 
 				break;
 			}
@@ -954,6 +1040,13 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 	}
 
 	if ((bRetVal) && (msgFile)) {
+		if (allowMemRangeOverlap()) {
+			(*msgFile) << "\n    Allowing Memory Range Overlaps\n";
+		}
+		if (opcodeSymbolSize() > 1) {
+			(*msgFile) << "\n    Opcode Symbol Size: " << opcodeSymbolSize() << "\n";
+		}
+
 		(*msgFile) << "\n    Memory Mappings:\n";
 
 		for (int nMemType = 0; nMemType < MEMORY_TYPE::NUM_MEMORY_TYPES; ++nMemType) {

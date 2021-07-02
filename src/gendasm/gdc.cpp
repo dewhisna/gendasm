@@ -1333,6 +1333,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 		return false;
 	}
 
+	// Output File Header Comments:
 	aFunctionsFile << ";\n";
 	aFunctionsFile << "; GenDasm - Generic Code-Seeking Disassembler\n";
 	aFunctionsFile << "; " << GetGDCLongName() << " Generated Function Information File\n";
@@ -1388,6 +1389,18 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 		aFunctionsFile << ";       Generated:  " << std::ctime(&m_StartTime);		// Note: std::ctime adds extra \n character, so no need to add our own
 	}
 	aFunctionsFile << ";\n\n";
+
+	// Output FuncAnal Specific Commands:
+	bTempFlag = false;
+	if (allowMemRangeOverlap()) {
+		aFunctionsFile << "-memrangeoverlap|true\n";
+		bTempFlag = true;
+	}
+	if (opcodeSymbolSize() > 1) {
+		aFunctionsFile << "-opcodesymbolsize|" << opcodeSymbolSize() << "\n";
+		bTempFlag = true;
+	}
+	if (bTempFlag) aFunctionsFile << "\n";
 
 	// Output Memory Mapping:
 	bTempFlag = false;
