@@ -158,17 +158,17 @@
 //			D&xx(r)			Register Data Offset (xx=hex offset, r=register number or name), ex: lpm -> "D&00(Z)"; elpm -> "D&00(RAMPZ:Z)"
 //			Rn				Register (n=register number, 0-31)
 //			Rn,b			Register (n=register number, 0-31), (b=bit number, 0-7)
-//			X				X Register
-//			X+				X Register with post-increment
-//			-X				X Register with pre-decrement
-//			Y				Y Register
-//			Y+				Y Register with post-increment
-//			-Y				Y Register with pre-decrement
-//			Y+q				Y Register with 'q' offset (in decimal)
-//			Z				Z Register
-//			Z+				Z Register with post-increment
-//			-Z				Z Register with pre-decrement
-//			Z+q				Z Register with 'q' offset (in decimal)
+//			RX				X Register
+//			RX+				X Register with post-increment
+//			R-X				X Register with pre-decrement
+//			RY				Y Register
+//			RY+				Y Register with post-increment
+//			R-Y				Y Register with pre-decrement
+//			RY+q			Y Register with 'q' offset (in decimal)
+//			RZ				Z Register
+//			RZ+				Z Register with post-increment
+//			R-Z				Z Register with pre-decrement
+//			RZ+q			Z Register with 'q' offset (in decimal)
 //
 //			If any of the above also includes a mask, then the following will be added:
 //			,Mxx			Value mask (xx=hex mask value) [Note: Doesn't apply to AVR]
@@ -2121,32 +2121,32 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 
 		case S_SNGL_X:		// Single Register and X Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "X");
+			std::sprintf(strSrcTemp, "RX");
 			break;
 
 		case S_SNGL_Xp:		// Single Register and X Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "X+");
+			std::sprintf(strSrcTemp, "RX+");
 			break;
 
 		case S_SNGL_nX:		// Single Register and X Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "-X");
+			std::sprintf(strSrcTemp, "R-X");
 			break;
 
 		case S_SNGL_Y:		// Single Register and Y Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "Y");
+			std::sprintf(strSrcTemp, "RY");
 			break;
 
 		case S_SNGL_Yp:		// Single Register and Y Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "Y+");
+			std::sprintf(strSrcTemp, "RY+");
 			break;
 
 		case S_SNGL_nY:		// Single Register and Y Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "-Y");
+			std::sprintf(strSrcTemp, "R-Y");
 			break;
 
 		case S_SNGL_Z:		// Single Register and Z Register -- no label
@@ -2158,7 +2158,7 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 					std::sprintf(strSrcTemp, "D&00(Z)");			// Special Case for elpm
 				}
 			} else {
-				std::sprintf(strSrcTemp, "Z");
+				std::sprintf(strSrcTemp, "RZ");
 			}
 			break;
 
@@ -2171,77 +2171,77 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 					std::sprintf(strSrcTemp, "D&00(Z+)");			// Special Case for elpm
 				}
 			} else {
-				std::sprintf(strSrcTemp, "Z+");
+				std::sprintf(strSrcTemp, "RZ+");
 			}
 			break;
 
 		case S_SNGL_nZ:		// Single Register and Z Register -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "-Z");
+			std::sprintf(strSrcTemp, "R-Z");
 			break;
 
 		case S_X_SNGL:		// Single Register and X Register -- no label
-			std::sprintf(strDstTemp, "X");
+			std::sprintf(strDstTemp, "RX");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_Xp_SNGL:		// Single Register and X Register -- no label
-			std::sprintf(strDstTemp, "X+");
+			std::sprintf(strDstTemp, "RX+");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_nX_SNGL:		// Single Register and X Register -- no label
-			std::sprintf(strDstTemp, "-X");
+			std::sprintf(strDstTemp, "R-X");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_Y_SNGL:		// Single Register and Y Register -- no label
-			std::sprintf(strDstTemp, "Y");
+			std::sprintf(strDstTemp, "RY");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_Yp_SNGL:		// Single Register and Y Register -- no label
-			std::sprintf(strDstTemp, "Y+");
+			std::sprintf(strDstTemp, "RY+");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_nY_SNGL:		// Single Register and Y Register -- no label
-			std::sprintf(strDstTemp, "-Y");
+			std::sprintf(strDstTemp, "R-Y");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_Z_SNGL:		// Single Register and Z Register -- no label
-			std::sprintf(strDstTemp, "Z");
+			std::sprintf(strDstTemp, "RZ");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_Zp_SNGL:		// Single Register and Z Register -- no label
-			std::sprintf(strDstTemp, "Z+");
+			std::sprintf(strDstTemp, "RZ+");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_nZ_SNGL:		// Single Register and Z Register -- no label
-			std::sprintf(strDstTemp, "-Z");
+			std::sprintf(strDstTemp, "R-Z");
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_SNGL_Yq:		// Single Register and Y Register with Offset -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "Y+%u", opRegYZqval(m_OpMemory));
+			std::sprintf(strSrcTemp, "RY+%u", opRegYZqval(m_OpMemory));
 			break;
 
 		case S_SNGL_Zq:		// Single Register and Z Register with Offset -- no label
 			std::sprintf(strDstTemp, "R%u", opDstReg0_31(m_OpMemory));
-			std::sprintf(strSrcTemp, "Z+%u", opRegYZqval(m_OpMemory));
+			std::sprintf(strSrcTemp, "RZ+%u", opRegYZqval(m_OpMemory));
 			break;
 
 		case S_Yq_SNGL:		// Single Register and Y Register with Offset -- no label
-			std::sprintf(strDstTemp, "Y+%u", opRegYZqval(m_OpMemory));
+			std::sprintf(strDstTemp, "RY+%u", opRegYZqval(m_OpMemory));
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_Zq_SNGL:		// Single Register and Z Register with Offset -- no label
-			std::sprintf(strDstTemp, "Z+%u", opRegYZqval(m_OpMemory));
+			std::sprintf(strDstTemp, "RZ+%u", opRegYZqval(m_OpMemory));
 			std::sprintf(strSrcTemp, "R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
@@ -2287,7 +2287,7 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 					std::sprintf(strDstTemp, "D&00(Z+)");
 				}
 			} else {
-				std::sprintf(strDstTemp, "Z+");
+				std::sprintf(strDstTemp, "RZ+");
 			}
 			break;
 

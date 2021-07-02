@@ -60,8 +60,22 @@
 //			C^n(xxxx)		Relative Code Address (n=signed offset in hex, xxxx=resolved absolute address in hex)
 //			C&xx(r)			Register Code Offset (xx=hex offset, r=register number or name), ex: jmp 2,x -> "C$02(x)"
 //			D@xxxx			Absolute Data Address (xxxx=hex address)
+//			D@xxxx,b		Absolute Data Address (xxxx=hex address), (b=bit number, 0-7)
 //			D^n(xxxx)		Relative Data Address (n=signed offset in hex, xxxx=resolved absolute address in hex)
 //			D&xx(r)			Register Data Offset (xx=hex offset, r=register number or name), ex: ldaa 1,y -> "D$01(y)"
+//			Rn				Register (n=register number, 0-31)
+//			Rn,b			Register (n=register number, 0-31), (b=bit number, 0-7)
+//			RX				X Register
+//			RX+				X Register with post-increment
+//			R-X				X Register with pre-decrement
+//			RY				Y Register
+//			RY+				Y Register with post-increment
+//			R-Y				Y Register with pre-decrement
+//			RY+q			Y Register with 'q' offset (in decimal)
+//			RZ				Z Register
+//			RZ+				Z Register with post-increment
+//			R-Z				Z Register with pre-decrement
+//			RZ+q			Z Register with 'q' offset (in decimal)
 //
 //			If any of the above also includes a mask, then the following will be added:
 //			,Mxx			Value mask (xx=hex mask value)
@@ -415,34 +429,43 @@ TString CFuncAsmInstObject::ExportToDiff() const
 							// If the address has a user-defined file-level label, use it instead:
 							ssDiff << "D=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
 						} else {
-							// If there isn't a label, see if this absolute address lies inside the function:
-							if (zFuncRange.addressInRange(nAddrTemp)) {
-								// If so, convert and treat as a relative address:
-								nAddrOffsetTemp = nAddrTemp - (GetAbsAddress() + GetByteCount());
-								std::sprintf(arrTemp, "D^%c%lX",
-											((nAddrOffsetTemp != labs(nAddrOffsetTemp)) ? '-' : '+'),
-											labs(nAddrOffsetTemp));
-								ssDiff << arrTemp;
-							} else {
-								// See if it is an I/O or NON-ROM/RAM location:
-								if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
-									(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
-									 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
-									// If so, treat create a label to reference it as it is significant:
-									std::sprintf(arrTemp, "D=L%04X", nAddrTemp);
+							if (!m_pParentFuncFile->allowMemRangeOverlap()) {
+								// Handle non-Harvard Architecture:
+								// If there isn't a label, see if this absolute address lies inside the function:
+								if (zFuncRange.addressInRange(nAddrTemp)) {
+									// If so, convert and treat as a relative address:
+									nAddrOffsetTemp = nAddrTemp - (GetAbsAddress() + GetByteCount());
+									std::sprintf(arrTemp, "D^%c%lX",
+												((nAddrOffsetTemp != labs(nAddrOffsetTemp)) ? '-' : '+'),
+												labs(nAddrOffsetTemp));
 									ssDiff << arrTemp;
 								} else {
-									// Otherwise, it is an outside reference to something unknown in RAM/ROM
-									//		and is probably a variable in memory that can move:
-									ssDiff << "D?";
+									// See if it is an I/O or NON-ROM/RAM location:
+									if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+										(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
+										 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
+										// If so, create a label to reference it as it is significant:
+										std::sprintf(arrTemp, "D=L%04X", nAddrTemp);
+										ssDiff << arrTemp;
+									} else {
+										// Otherwise, it is an outside reference to something unknown in RAM/ROM
+										//		and is probably a variable in memory that can move:
+										ssDiff << "D?";
+									}
 								}
+							} else {
+								// Handle Harvard-like Architecture (i.e. no code relative data):
+								// If there isn't a label, create a data label to reference it as it is significant:
+								std::sprintf(arrTemp, "D=DL%04X", nAddrTemp);
+								ssDiff << arrTemp;
 							}
 						}
-						// If there is a mask (or other appendage) add it:
+						// If there is a mask (or other appendage like bit flags) add it:
 						pos = strTemp.find(',');
 						if (pos != strTemp.npos) ssDiff << strTemp.substr(pos);
 						break;
 					case '^':		// Relative
+						// These will only be on non-Harvard architectures where we can have data relative to code
 						// Relative addressing is always relative to the "next byte" after the instruction:
 						if (strTemp.size() < 3) continue;
 						pos = strTemp.find('(', 3);
@@ -492,6 +515,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 						ssDiff << strTemp;
 						break;
 				}
+				break;
+			case 'R':				// Registers
+				ssDiff << strTemp;
 				break;
 		}
 	}
