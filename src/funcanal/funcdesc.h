@@ -235,10 +235,11 @@ public:
 
 	virtual bool ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstreamFuncDescFile &inFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);			// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial line counter value
 
-	virtual bool AddLabel(TAddress nAddress, const TLabel &strLabel);
-	virtual bool AddrHasLabel(TAddress nAddress) const;
-	virtual TLabel GetPrimaryLabel(TAddress nAddress) const;
-	virtual CLabelArray GetLabelList(TAddress nAddress) const;
+	virtual bool AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, const TLabel &strLabel);
+	virtual bool AddrHasLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) const;
+	virtual TLabel GetPrimaryLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) const;
+	virtual TLabel GetAnyPrimaryLabel(bool bInvertPriority, TAddress nAddress) const;
+	virtual CLabelArray GetLabelList(MEMORY_TYPE nMemoryType, TAddress nAddress) const;
 
 	virtual CFuncDescArray::size_type GetFuncCount() const { return m_arrFunctions.size(); }
 	virtual const CFuncDesc &GetFunc(CFuncDescArray::size_type nIndex) const { return *m_arrFunctions.at(nIndex); }
@@ -273,8 +274,8 @@ protected:
 	//			at the file level by "!" entries.  NOT those down at the
 	//			individual function level.  Specifically it doesn't
 	//			include 'L' names.
-	CLabelTableMap m_mapLabelTable;				// Table of labels.  First entry is typical default
-	CFuncDescArray m_arrFunctions;				// Array of functions in the file
+	CLabelTableMap m_mapLabelTable[MEMORY_TYPE::NUM_MEMORY_TYPES];		// Table of labels.  First entry is typical default
+	CFuncDescArray m_arrFunctions;						// Array of functions in the file
 };
 
 // ============================================================================

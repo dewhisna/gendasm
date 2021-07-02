@@ -240,8 +240,8 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			// If the two PrimaryLabels at the function's address don't match, decrement match by 1*mat.
 			//		This helps if there are two are more functions that the user has labeled that
 			//		are identical except for the labels:
-			if (compareNoCase(file1.GetPrimaryLabel(function1.GetMainAddress()),
-								file2.GetPrimaryLabel(function2.GetMainAddress())) != 0) Tp = std::max(0.0, Tp - mat);
+			if (compareNoCase(file1.GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, function1.GetMainAddress()),
+								file2.GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, function2.GetMainAddress())) != 0) Tp = std::max(0.0, Tp - mat);
 
 			// Normalize it:
 			nRetVal = Tp/(std::max(M,N)*mat);
@@ -500,8 +500,8 @@ printf("\n");
 			// If the two PrimaryLabels at the function's address don't match, decrement match by 1*mat.
 			//		This helps if there are two are more functions that the user has labeled that
 			//		are identical except for the labels:
-			if (compareNoCase(file1.GetPrimaryLabel(function1.GetMainAddress()),
-								file2.GetPrimaryLabel(function2.GetMainAddress())) != 0) Tp = std::max(0.0, Tp - mat);
+			if (compareNoCase(file1.GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, function1.GetMainAddress()),
+								file2.GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, function2.GetMainAddress())) != 0) Tp = std::max(0.0, Tp - mat);
 
 			// Normalize it:
 			nRetVal = Tp/(std::max(M,N)*mat);

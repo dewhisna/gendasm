@@ -158,7 +158,7 @@ static void dumpSymbols(std::fstream &fileSym,
 		if (!arrHitList.empty()) {
 			if (nTotalHits == 0) nTotalHits = 1;	// Safe-guard for divide by zero
 			for (CSymbolArray::size_type ndxHits = 0; ndxHits < arrHitList.size(); ++ndxHits) {
-				if (arrHitList.at(ndxHits).empty()) arrHitList[ndxHits] = "???";
+				if (arrHitList.at(ndxHits).empty()) arrHitList[ndxHits] = "???";		// Special case for unnamed functions
 				char arrTemp[120];
 				std::sprintf(arrTemp, "%s%s (%f%%)", (ndxHits ? ", " : ""), arrHitList.at(ndxHits).c_str(),
 									(static_cast<double>(arrHitCount.at(ndxHits))/nTotalHits)*100.0);

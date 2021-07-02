@@ -266,11 +266,9 @@ CSymbolArray CFuncObject::GetSymbols() const
 
 	CSymbolArray arrRetVal;
 
-	if (m_pParentFuncFile->AddrHasLabel(m_nAbsAddress)) {
-		TSymbol strTemp = m_pParentFuncFile->GetPrimaryLabel(m_nAbsAddress);
-		if (!strTemp.empty()) {
-			arrRetVal.push_back("L" + strTemp);
-		}
+	TSymbol strTemp = m_pParentFuncFile->GetAnyPrimaryLabel(m_pParentFuncFile->allowMemRangeOverlap(), m_nAbsAddress);
+	if (!strTemp.empty()) {
+		arrRetVal.push_back("L" + strTemp);
 	}
 	return arrRetVal;
 }
@@ -357,9 +355,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "C=" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
+							ssDiff << "C=" + m_pParentFuncFile->GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp);
 						} else {
 							// If there isn't a label, see if this absolute address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -395,9 +393,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "C=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
+							ssDiff << "C=" << m_pParentFuncFile->GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp);
 						} else {
 							// If there isn't a label, see if this relative address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -422,16 +420,19 @@ TString CFuncAsmInstObject::ExportToDiff() const
 				}
 				break;
 			case 'D':				// Data addressing
+			{
+				TLabel strLabel;
 				if (strTemp.size() < 2) continue;
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
-							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "D=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
-						} else {
-							if (!m_pParentFuncFile->allowMemRangeOverlap()) {
-								// Handle non-Harvard Architecture:
+						if (!m_pParentFuncFile->allowMemRangeOverlap()) {
+							// Handle non-Harvard Architecture:
+							strLabel = m_pParentFuncFile->GetAnyPrimaryLabel(false, nAddrTemp);
+							if (!strLabel.empty()) {
+								// If the address has a user-defined file-level label, use it instead:
+								ssDiff << "D=" << strLabel;
+							} else {
 								// If there isn't a label, see if this absolute address lies inside the function:
 								if (zFuncRange.addressInRange(nAddrTemp)) {
 									// If so, convert and treat as a relative address:
@@ -454,11 +455,28 @@ TString CFuncAsmInstObject::ExportToDiff() const
 										ssDiff << "D?";
 									}
 								}
+							}
+						} else {
+							// Handle Harvard-like Architecture (i.e. no code relative data):
+							//	Like non-Harvard, but give priority to IO and RAM data (i.e. invert priority), and don't use
+							//	function relative addressing:
+							strLabel = m_pParentFuncFile->GetAnyPrimaryLabel(true, nAddrTemp);
+							if (!strLabel.empty()) {
+								// If the address has a user-defined file-level label, use it instead:
+								ssDiff << "D=" << strLabel;
 							} else {
-								// Handle Harvard-like Architecture (i.e. no code relative data):
-								// If there isn't a label, create a data label to reference it as it is significant:
-								std::sprintf(arrTemp, "D=DL%04X", nAddrTemp);
-								ssDiff << arrTemp;
+								// See if it is an I/O or NON-ROM/RAM location:
+								if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+									(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
+									 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
+									// If so, create a label to reference it as it is significant:
+									std::sprintf(arrTemp, "D=DL%04X", nAddrTemp);
+									ssDiff << arrTemp;
+								} else {
+									// Otherwise, it is an outside reference to something unknown in RAM/ROM
+									//		and is probably a variable in memory that can move:
+									ssDiff << "D?";
+								}
 							}
 						}
 						// If there is a mask (or other appendage like bit flags) add it:
@@ -482,9 +500,10 @@ TString CFuncAsmInstObject::ExportToDiff() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						strLabel = m_pParentFuncFile->GetAnyPrimaryLabel(m_pParentFuncFile->allowMemRangeOverlap(), nAddrTemp);
+						if (!strLabel.empty()) {
 							// If the address has a user-defined file-level label, use it instead:
-							ssDiff << "D=" << m_pParentFuncFile->GetPrimaryLabel(nAddrTemp);
+							ssDiff << "D=" << strLabel;
 						} else {
 							// If there isn't a label, see if this relative address lies inside the function:
 							if (zFuncRange.addressInRange(nAddrTemp)) {
@@ -517,6 +536,7 @@ TString CFuncAsmInstObject::ExportToDiff() const
 						break;
 				}
 				break;
+			}
 			case 'R':				// Registers
 				ssDiff << strTemp;
 				break;
@@ -585,9 +605,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "C" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "C" + m_pParentFuncFile->GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp));
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -610,9 +630,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						if (m_pParentFuncFile->AddrHasLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp)) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "C" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "C" + m_pParentFuncFile->GetPrimaryLabel(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp));
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -624,13 +644,16 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 				}
 				break;
 			case 'D':				// Data addressing
+			{
+				TLabel strLabel;
 				if (strTemp.size() < 2) continue;
 				switch (strTemp.at(1)) {
 					case '@':		// Absolute
 						nAddrTemp = strtoul(strTemp.substr(2).c_str(), nullptr, 16);
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						strLabel = m_pParentFuncFile->GetAnyPrimaryLabel(m_pParentFuncFile->allowMemRangeOverlap(), nAddrTemp);
+						if (!strLabel.empty()) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "D" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "D" + strLabel);
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -653,9 +676,10 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 						nAddrOffsetTemp = strtoul(strTemp2.c_str(), nullptr, 16);
 						if (strTemp.at(2) == '-') nAddrOffsetTemp = 0 - nAddrOffsetTemp;
 						nAddrTemp = GetAbsAddress() + GetByteCount() + nAddrOffsetTemp;		// Resolve address
-						if (m_pParentFuncFile->AddrHasLabel(nAddrTemp)) {
+						strLabel = m_pParentFuncFile->GetAnyPrimaryLabel(m_pParentFuncFile->allowMemRangeOverlap(), nAddrTemp);
+						if (!strLabel.empty()) {
 							// If the address has a user-defined file-level label, use it instead:
-							aSymbolArray.push_back(strLabelPrefix + "D" + m_pParentFuncFile->GetPrimaryLabel(nAddrTemp));
+							aSymbolArray.push_back(strLabelPrefix + "D" + strLabel);
 						} else {
 							// Else, build a label:
 							std::sprintf(arrTemp, "L%04X", nAddrTemp);
@@ -665,6 +689,9 @@ CSymbolArray CFuncAsmInstObject::GetSymbols() const
 					case '&':		// Reg. Offset
 						break;
 				}
+				break;
+			}
+			case 'R':				// Registers
 				break;
 		}
 	}
@@ -764,13 +791,16 @@ TLabel CFuncDesc::GetMainName() const
 	TString strRetVal;
 	char arrTemp[30];
 
-	std::sprintf(arrTemp, "L%0X", m_nMainAddress);
+	// Ideally, these would be "L" or "CL" based on CFuncDescFile::allowMemRangeOverlap(),
+	//	but we don't have a pointer to the parent function.  So just default to the
+	//	unambiguous "CL":
+	std::sprintf(arrTemp, "CL%0X", m_nMainAddress);
 	strRetVal = arrTemp;
 
 	CLabelTableMap::const_iterator itrFuncNames = m_mapFuncNameTable.find(m_nMainAddress);
 	if (itrFuncNames != m_mapFuncNameTable.cend()) {
 		if (itrFuncNames->second.empty()) return strRetVal;
-		if (itrFuncNames->second.at(0) == "???") return strRetVal;
+		if (itrFuncNames->second.at(0) == "???") return strRetVal;		// Special case for unnamed functions
 		return itrFuncNames->second.at(0);
 	}
 
@@ -1013,8 +1043,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				nAddress = strtoul(argv.at(1).c_str(), nullptr, 16);
 				ParseLine(argv.at(2), ',', argv);
 
-				// TODO : Fix this to use the newly added MemoryType keyword in nParseVal
-				for (auto const & label : argv) AddLabel(nAddress, label);
+				for (auto const & label : argv) AddLabel(static_cast<CFuncDescFile::MEMORY_TYPE>(nParseVal), nAddress, label);
 				break;
 			}
 
@@ -1116,21 +1145,24 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 						<< " -> " << func->GetMainName() << "\n";
 		}
 
-		(*msgFile) << "\n    " << m_mapLabelTable.size() << " Unique Label"
-					<< ((m_mapLabelTable.size() != 1) ? "s" : "") << " Defined"
-					<< ((m_mapLabelTable.size() != 0) ? ":" : "") << "\n";
-		for (auto const & labelList : m_mapLabelTable) {
-			(*msgFile) << "        0x"
-						<< std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << labelList.first
-						<< std::nouppercase << std::setbase(0)
-						<< "=";
-			bool bFirst = true;
-			for (auto const & label : labelList.second) {
-				(*msgFile) << (!bFirst ? "," : "") << label;
-				bFirst = false;
-			}
+		for (int nMemType = 0; nMemType < MEMORY_TYPE::NUM_MEMORY_TYPES; ++nMemType) {
 			(*msgFile) << "\n";
-
+			(*msgFile) << "    " << m_mapLabelTable[nMemType].size()
+						<< " Unique " << g_arrstrMemRanges[nMemType] << " Label"
+						<< ((m_mapLabelTable[nMemType].size() != 1) ? "s" : "") << " Defined"
+						<< ((m_mapLabelTable[nMemType].size() != 0) ? ":" : "") << "\n";
+			for (auto const & labelList : m_mapLabelTable[nMemType]) {
+				(*msgFile) << "        0x"
+							<< std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << labelList.first
+							<< std::nouppercase << std::setbase(0)
+							<< "=";
+				bool bFirst = true;
+				for (auto const & label : labelList.second) {
+					(*msgFile) << (!bFirst ? "," : "") << label;
+					bFirst = false;
+				}
+				(*msgFile) << "\n";
+			}
 		}
 
 		(*msgFile) << "\n";
@@ -1144,11 +1176,11 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 	return bRetVal;
 }
 
-bool CFuncDescFile::AddLabel(TAddress nAddress, const TLabel &strLabel)
+bool CFuncDescFile::AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, const TLabel &strLabel)
 {
 	if (strLabel.empty()) return false;
 
-	CLabelArray &arrLabels = m_mapLabelTable[nAddress];
+	CLabelArray &arrLabels = m_mapLabelTable[nMemoryType][nAddress];
 	for (auto const &itrLabels : arrLabels) {
 		if (compareNoCase(strLabel, itrLabels) == 0) return false;	// Skip if we have the label already
 	}
@@ -1156,22 +1188,39 @@ bool CFuncDescFile::AddLabel(TAddress nAddress, const TLabel &strLabel)
 	return true;
 }
 
-bool CFuncDescFile::AddrHasLabel(TAddress nAddress) const
+bool CFuncDescFile::AddrHasLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) const
 {
-	return (m_mapLabelTable.contains(nAddress));
+	return (m_mapLabelTable[nMemoryType].contains(nAddress));
 }
 
-TLabel CFuncDescFile::GetPrimaryLabel(TAddress nAddress) const
+TLabel CFuncDescFile::GetPrimaryLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) const
 {
-	CLabelArray arrLabels = GetLabelList(nAddress);
-	if (arrLabels.empty()) return TLabel();
-	return arrLabels.at(0);
+	if (!AddrHasLabel(nMemoryType, nAddress)) return TLabel();
+	CLabelTableMap::const_iterator itrMap = m_mapLabelTable[nMemoryType].find(nAddress);
+	if (itrMap == m_mapLabelTable[nMemoryType].cend()) return TLabel();
+	return itrMap->second.at(0);
 }
 
-CLabelArray CFuncDescFile::GetLabelList(TAddress nAddress) const
+TLabel CFuncDescFile::GetAnyPrimaryLabel(bool bInvertPriority, TAddress nAddress) const
 {
-	CLabelTableMap::const_iterator itrMap = m_mapLabelTable.find(nAddress);
-	if (itrMap == m_mapLabelTable.cend()) return CLabelArray();
+	TLabel strLabel;
+
+	if (!bInvertPriority) {
+		strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_ROM, nAddress);
+		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_RAM, nAddress);
+		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_IO, nAddress);
+	} else {
+		strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_IO, nAddress);
+		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_RAM, nAddress);
+		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_ROM, nAddress);
+	}
+	return strLabel;
+}
+
+CLabelArray CFuncDescFile::GetLabelList(MEMORY_TYPE nMemoryType, TAddress nAddress) const
+{
+	CLabelTableMap::const_iterator itrMap = m_mapLabelTable[nMemoryType].find(nAddress);
+	if (itrMap == m_mapLabelTable[nMemoryType].cend()) return CLabelArray();
 	return itrMap->second;
 }
 
@@ -1250,13 +1299,13 @@ void CSymbolMap::AddObjectMapping(const CFuncObject &aLeftObject, const CFuncObj
 	arrLeftSymbols = aLeftObject.GetSymbols();
 	arrRightSymbols = aRightObject.GetSymbols();
 
-	// Since we are comparing functions, any "L" entries are automatically "Code" entries:
+	// Since we are comparing functions, any "L" and "CL" entries are automatically "Code" entries:
 	for (auto const & leftSymbol : arrLeftSymbols) {
-		if (leftSymbol.empty() || (leftSymbol.at(0) != 'L')) continue;
+		if (leftSymbol.empty() || ((leftSymbol.at(0) != 'L') && !leftSymbol.starts_with("CL"))) continue;
 		if (leftSymbol.size() < 2) continue;
 		bool bFlag = false;
 		for (auto const & rightSymbol : arrRightSymbols) {
-			if (rightSymbol.empty() || (rightSymbol.at(0) != 'L')) continue;
+			if (rightSymbol.empty() || ((rightSymbol.at(0) != 'L') && !rightSymbol.starts_with("CL"))) continue;
 			if (rightSymbol.size() < 2) continue;
 			AddLeftSideCodeSymbol(leftSymbol.substr(1), rightSymbol.substr(1));
 			bFlag = true;
@@ -1265,11 +1314,11 @@ void CSymbolMap::AddObjectMapping(const CFuncObject &aLeftObject, const CFuncObj
 	}
 
 	for (auto const & rightSymbol : arrRightSymbols) {
-		if (rightSymbol.empty() || (rightSymbol.at(0) != 'L')) continue;
+		if (rightSymbol.empty() || ((rightSymbol.at(0) != 'L') && !rightSymbol.starts_with("CL"))) continue;
 		if (rightSymbol.size() < 2) continue;
 		bool bFlag = false;
 		for (auto const & leftSymbol : arrLeftSymbols) {
-			if (leftSymbol.empty() || (leftSymbol.at(0) != 'L')) continue;
+			if (leftSymbol.empty() || ((leftSymbol.at(0) != 'L') && !leftSymbol.starts_with("CL"))) continue;
 			if (leftSymbol.size() < 2) continue;
 			AddRightSideCodeSymbol(rightSymbol.substr(1), leftSymbol.substr(1));
 			bFlag = true;
