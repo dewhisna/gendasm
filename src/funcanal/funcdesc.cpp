@@ -137,12 +137,12 @@ namespace {
 
 	// --------------------------------
 
-	const static char m_strUnexpectedError[] = "Unexpected Error";
-	const static char m_strSyntaxError[] = "Syntax Error or Unexpected Entry";
-	const static char m_strUnknownMemoryRangeName[] = "Unknown Memory Range Name";
-	const static char m_strUnknownFuncAnalCommand[] = "Unknown FuncAnal Specific Command";
-	const static char m_strInvalidTrueFalse[] = "Invalid True/False Specifier";
-	const static char m_strInvalidOpcodeSymbolWidth[] = "Invalid Opcode Symbol Width";
+	const static char g_strUnexpectedError[] = "Unexpected Error";
+	const static char g_strSyntaxError[] = "Syntax Error or Unexpected Entry";
+	const static char g_strUnknownMemoryRangeName[] = "Unknown Memory Range Name";
+	const static char g_strUnknownFuncAnalCommand[] = "Unknown FuncAnal Specific Command";
+	const static char g_strInvalidTrueFalse[] = "Invalid True/False Specifier";
+	const static char g_strInvalidOpcodeSymbolWidth[] = "Invalid Opcode Symbol Width";
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -838,7 +838,7 @@ void CFuncDesc::Add(std::shared_ptr<CFuncObject> pObj)
 bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstreamFuncDescFile &inFile, std::ostream *msgFile, std::ostream *errFile, int nStartLineCount)
 {
 	bool bRetVal = true;
-	TString strError = m_strUnexpectedError;
+	TString strError = g_strUnexpectedError;
 	int nLineCount = nStartLineCount;
 	TString strLine;
 	CStringArray argv;
@@ -877,14 +877,14 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 2) {
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
 
 				int nParseCmd = parseKeyword(g_mapParseFuncAnalCmds, argv.at(0));
 				if (nParseCmd == -1) {
-					strError = m_strUnknownFuncAnalCommand;
+					strError = g_strUnknownFuncAnalCommand;
 					bRetVal = false;
 					break;
 				}
@@ -894,12 +894,12 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				switch (static_cast<FUNC_ANAL_COMMANDS_ENUM>(nParseCmd)) {
 					case FACE_MemRangeOverlap:
 						if (argv.size() != 1) {
-							strError = m_strSyntaxError;
+							strError = g_strSyntaxError;
 							bRetVal = false;
 						} else {
 							int nParseTF = parseKeyword(g_mapParseTrueFalse, argv.at(0));
 							if (nParseTF == -1) {
-								strError = m_strInvalidTrueFalse;
+								strError = g_strInvalidTrueFalse;
 								bRetVal = false;
 							} else {
 								m_bAllowMemRangeOverlap = (nParseTF != TFE_False);
@@ -909,12 +909,12 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 					case FACE_OpcodeSymbolSize:
 						if (argv.size() != 1) {
-							strError = m_strSyntaxError;
+							strError = g_strSyntaxError;
 							bRetVal = false;
 						} else {
 							m_nOpcodeSymbolSize = strtoul(argv[0].c_str(), nullptr, 0);
 							if (m_nOpcodeSymbolSize == 0) {		// Width can't be zero
-								strError = m_strInvalidOpcodeSymbolWidth;
+								strError = g_strInvalidOpcodeSymbolWidth;
 								bRetVal = false;
 							}
 						}
@@ -930,14 +930,14 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 3) {
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
 
 				int nParseVal = parseKeyword(g_mapParseMemType, argv.at(0));
 				if (nParseVal == -1) {
-					strError = m_strUnknownMemoryRangeName;
+					strError = g_strUnknownMemoryRangeName;
 					bRetVal = false;
 					break;
 				}
@@ -971,14 +971,14 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 3) {
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
 
 				int nParseVal = parseKeyword(g_mapParseMemType, argv.at(0));
 				if (nParseVal == -1) {
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
@@ -996,7 +996,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 2) {
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
@@ -1011,7 +1011,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				// See if we are in the middle of a function declaration:
 				if (pCurrentFunction == nullptr) {
 					// If we aren't in a function, it's a syntax error:
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
@@ -1021,7 +1021,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 					ParseLine(strLine, '|', argv);
 					if ((argv.size() != 4) &&
 						(argv.size() != 10)) {
-						strError = m_strSyntaxError;
+						strError = g_strSyntaxError;
 						bRetVal = false;
 						break;
 					}
@@ -1032,7 +1032,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 						pCurrentFunction->Add(std::make_shared<CFuncAsmInstObject>(pThis, pCurrentFunction, argv));
 					}
 				} else {
-					strError = m_strSyntaxError;
+					strError = g_strSyntaxError;
 					bRetVal = false;
 				}
 				break;
