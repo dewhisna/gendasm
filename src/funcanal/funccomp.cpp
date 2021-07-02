@@ -687,9 +687,9 @@ TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
 	}
 
 
-	strRetVal += padString(padString(TString(), function1.GetMainName().size()/2) + function1.GetMainName(), nLeftMax);
+	strRetVal += padString(padString(TString(), (nLeftMax - function1.GetMainName().size())/2) + function1.GetMainName(), nLeftMax);
 	strRetVal += "      ";
-	strRetVal += padString(padString(TString(), function2.GetMainName().size()/2) + function2.GetMainName(), nRightMax);
+	strRetVal += padString(padString(TString(), (nRightMax - function2.GetMainName().size())/2) + function2.GetMainName(), nRightMax);
 	strRetVal += "\n";
 
 	strRetVal.append(nLeftMax, '-');
