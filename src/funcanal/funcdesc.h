@@ -97,7 +97,6 @@ public:
 	CMemoryArray::size_type GetByteCount() const { return m_Bytes.size(); }
 
 	virtual TString ExportToDiff() const = 0;
-	virtual void ExportToDiff(CStringArray &anArray) const = 0;
 
 	virtual TString CreateOutputLine(OUTPUT_OPTIONS nOutputOptions = OO_NONE) const = 0;
 
@@ -132,7 +131,6 @@ public:
 	CFuncAsmInstObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv);
 
 	virtual TString ExportToDiff() const override;
-	virtual void ExportToDiff(CStringArray &anArray) const override;
 
 	virtual TString CreateOutputLine(OUTPUT_OPTIONS nOutputOptions = OO_NONE) const override;
 
@@ -167,7 +165,6 @@ public:
 	{ }
 
 	virtual TString ExportToDiff() const override;
-	virtual void ExportToDiff(CStringArray &anArray) const override;
 
 	virtual TString CreateOutputLine(OUTPUT_OPTIONS nOutputOptions = OO_NONE) const override;
 };

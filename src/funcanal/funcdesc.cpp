@@ -546,11 +546,6 @@ TString CFuncAsmInstObject::ExportToDiff() const
 	return ssDiff.str();
 }
 
-void CFuncAsmInstObject::ExportToDiff(CStringArray &anArray) const
-{
-	anArray.push_back(ExportToDiff());
-}
-
 TString CFuncAsmInstObject::CreateOutputLine(OUTPUT_OPTIONS nOutputOptions) const
 {
 	TString strRetVal;
@@ -729,11 +724,6 @@ TString CFuncDataByteObject::ExportToDiff() const
 	return ssDiff.str();
 }
 
-void CFuncDataByteObject::ExportToDiff(CStringArray &anArray) const
-{
-	anArray.push_back(ExportToDiff());
-}
-
 TString CFuncDataByteObject::CreateOutputLine(OUTPUT_OPTIONS nOutputOptions) const
 {
 	TString strRetVal;
@@ -874,7 +864,7 @@ void CFuncDesc::ExportToDiff(CStringArray &anArray) const
 	anArray.clear();
 
 	for (auto const &itrObject : *this) {
-		itrObject->ExportToDiff(anArray);
+		anArray.push_back(itrObject->ExportToDiff());
 	}
 }
 

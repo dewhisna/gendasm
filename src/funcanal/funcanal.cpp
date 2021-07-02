@@ -246,6 +246,7 @@ int main(int argc, char* argv[])
 	CStringArray::size_type nMinReqInputFiles = 1;				// Must have at least one input filename
 	double nMinCompLimit = 0;
 	FUNC_COMPARE_METHOD nCompMethod = FCM_DYNPROG_XDROP;
+	bool bDFROWithCodeFlag = false;
 	bool bCompOESFlag = false;
 	bool bDeterministic = false;
 
@@ -285,12 +286,15 @@ int main(int argc, char* argv[])
 				continue;
 			}
 			nMinReqInputFiles = 2;		// Must have 2 input files
-		} else if (strArg.starts_with("-d")) {
+		} else if (strArg.starts_with("-do") ||			// Normal DFRO
+				   strArg.starts_with("-dc")) {			// DFRO with Assembly Code
 			if (!m_strDFROFilename.empty()) {
 				bNeedUsage = true;
 				continue;
-			} else if (strArg.size() > 2) {
-				m_strDFROFilename = strArg.substr(2);
+			}
+			if (strArg.starts_with("-dc")) bDFROWithCodeFlag = true;
+			if (strArg.size() > 3) {
+				m_strDFROFilename = strArg.substr(3);
 			} else if ((ndx+1) < argc) {
 				++ndx;
 				m_strDFROFilename = argv[ndx];
@@ -414,7 +418,7 @@ int main(int argc, char* argv[])
 
 	if (bNeedUsage) {
 		std::cerr <<"Usage:\n"
-					"funcanal [--deterministic] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [-d <dro-fn>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
+					"funcanal [--deterministic] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [-do <dro-fn> | -da <dro-fn>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
 					"\n"
 					"Where:\n\n"
 					"    <oes-fn>   = Output Optimal Edit Script Filename to generate\n\n"
@@ -434,7 +438,9 @@ int main(int argc, char* argv[])
 					"    -mo <mtx-fn> Perform cross comparison of files and output a matrix of\n"
 					"                 percent match (requires 2 input files). Cannot be used\n"
 					"                 with the -mi switch.\n\n"
-					"    -d <dro-fn>  Dump the functions definition file(s) in Diff-Ready notation\n\n"
+					"    -do <dro-fn> Dump the functions definition file(s) in Diff-Ready notation\n\n"
+					"    -dc <dro-fn> Dump the functions definition file(s) in Diff-Ready notation\n"
+					"                 with assembly code output side-by-side\n\n"
 					"    -cn <cmp-fn> Perform cross comparison of files and output a side-by-side\n"
 					"                 diff of most similar functions (Normal Output)\n\n"
 					"    -ce <cmp-fn> Perform cross comparison of files and output a side-by-side\n"
@@ -503,10 +509,33 @@ int main(int argc, char* argv[])
 			fileDFRO << "File \"" << pFuncDescFile->GetFuncFileName() << "\"\n";
 			fileDFRO << std::string(pFuncDescFile->GetFuncFileName().size()+7, '=') + "\n";
 			for (CFuncDescArray::size_type ndx = 0; ndx < pFuncDescFile->GetFuncCount(); ++ndx) {
-				TString strFuncHeader = "Function \"" + pFuncDescFile->GetFunc(ndx).GetMainName() + "\" ("
+				const CFuncDesc &zFunc = pFuncDescFile->GetFunc(ndx);
+
+				CStringArray arrDFRO;
+				CStringArray arrFuncLines;
+
+				std::string::size_type nDFROMax = 0;
+				std::string::size_type nFuncMax = 0;
+				for (auto const &funcObj : zFunc) {
+					TString strTemp = funcObj->ExportToDiff();
+					nDFROMax = std::max(nDFROMax, strTemp.size());
+					arrDFRO.push_back(strTemp);
+
+					strTemp = funcObj->CreateOutputLine(m_bOutputOptionAddAddress ? OO_ADD_ADDRESS : OO_NONE);
+					nFuncMax = std::max(nFuncMax, strTemp.size());
+					arrFuncLines.push_back(strTemp);
+				}
+
+				TString strFuncHeader = "Function \"" + zFunc.GetMainName() + "\" ("
 										+ std::to_string(ndx+1) + "):";
 				fileDFRO << strFuncHeader << "\n" << std::string(strFuncHeader.size(), '-') << "\n";
-				fileDFRO << pFuncDescFile->GetFunc(ndx).ExportToDiff();
+				if (!bDFROWithCodeFlag ) {
+					std::copy(arrDFRO.cbegin(), arrDFRO.cend(), std::ostream_iterator<TString>(fileDFRO, "\n"));
+				} else {
+					for (CStringArray::size_type ndx = 0; ndx < arrDFRO.size(); ++ndx) {
+						fileDFRO << padString(arrDFRO.at(ndx), nDFROMax) << "  ->  " << arrFuncLines.at(ndx) << "\n";
+					}
+				}
 				fileDFRO << "\n\n";
 			}
 		}
