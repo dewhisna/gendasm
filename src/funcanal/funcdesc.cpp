@@ -848,17 +848,6 @@ TSize CFuncDesc::GetFuncSize() const
 	return m_nFunctionSize;
 }
 
-TString CFuncDesc::ExportToDiff() const
-{
-	TString strRetVal;
-
-	for (auto const &itrObject : *this) {
-		strRetVal += itrObject->ExportToDiff() + "\n";
-	}
-
-	return strRetVal;
-}
-
 void CFuncDesc::ExportToDiff(CStringArray &anArray) const
 {
 	anArray.clear();

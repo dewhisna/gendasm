@@ -192,7 +192,6 @@ public:
 
 	virtual TSize GetFuncSize() const;		// Returns size of function in byte counts (used for address calculation)
 
-	virtual TString ExportToDiff() const;
 	virtual void ExportToDiff(CStringArray &anArray) const;
 
 	void Add(std::shared_ptr<CFuncObject>pObj);
