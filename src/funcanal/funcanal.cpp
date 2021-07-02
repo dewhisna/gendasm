@@ -499,10 +499,13 @@ int main(int argc, char* argv[])
 		fileFunc.close();
 
 		if (fileDFRO.is_open()) {
+			fileDFRO << std::string(pFuncDescFile->GetFuncFileName().size()+7, '=') + "\n";
+			fileDFRO << "File \"" << pFuncDescFile->GetFuncFileName() << "\"\n";
+			fileDFRO << std::string(pFuncDescFile->GetFuncFileName().size()+7, '=') + "\n";
 			for (CFuncDescArray::size_type ndx = 0; ndx < pFuncDescFile->GetFuncCount(); ++ndx) {
-				fileDFRO << "File \"" << pFuncDescFile->GetFuncFileName() <<
-							"\" Function \"" << pFuncDescFile->GetFunc(ndx).GetMainName() <<
-							"\" (" << ndx+1 << "):\n";
+				TString strFuncHeader = "Function \"" + pFuncDescFile->GetFunc(ndx).GetMainName() + "\" ("
+										+ std::to_string(ndx+1) + "):";
+				fileDFRO << strFuncHeader << "\n" << std::string(strFuncHeader.size(), '-') << "\n";
 				fileDFRO << pFuncDescFile->GetFunc(ndx).ExportToDiff();
 				fileDFRO << "\n\n";
 			}
