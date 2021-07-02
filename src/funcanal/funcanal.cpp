@@ -246,6 +246,7 @@ int main(int argc, char* argv[])
 	CStringArray::size_type nMinReqInputFiles = 1;				// Must have at least one input filename
 	double nMinCompLimit = 0;
 	FUNC_COMPARE_METHOD nCompMethod = FCM_DYNPROG_XDROP;
+	FUNC_DIFF_LEVEL nFDL = FDL_1;
 	bool bDFROWithCodeFlag = false;
 	bool bCompOESFlag = false;
 	bool bDeterministic = false;
@@ -301,6 +302,23 @@ int main(int argc, char* argv[])
 			} else {
 				bNeedUsage = true;
 				continue;
+			}
+		} else if (strArg.starts_with("-dl")) {			// Diff Level
+			int nDiffLevel = 0;
+			if (strArg.size() > 3) {
+				nDiffLevel = atol(&strArg.c_str()[3]);
+			} else if ((ndx+1) < argc) {
+				++ndx;
+				nDiffLevel = atol(argv[ndx]);
+			} else {
+				bNeedUsage = true;
+				continue;
+			}
+			if ((nDiffLevel < 1) || (nDiffLevel > NUM_FUNC_DIFF_LEVELS)) {
+				bNeedUsage = true;
+				continue;
+			} else {
+				nFDL = static_cast<FUNC_DIFF_LEVEL>(nDiffLevel-1);
 			}
 		} else if (strArg.starts_with("-cn") ||			// Normal Diff
 				   strArg.starts_with("-ce")) {			// Normal Diff with OES inline
@@ -418,7 +436,7 @@ int main(int argc, char* argv[])
 
 	if (bNeedUsage) {
 		std::cerr <<"Usage:\n"
-					"funcanal [--deterministic] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [-do <dro-fn> | -da <dro-fn>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
+					"funcanal [--deterministic] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [[-do <dro-fn> | -dc <dro-fn>] -dl <fdl>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
 					"\n"
 					"Where:\n\n"
 					"    <oes-fn>   = Output Optimal Edit Script Filename to generate\n\n"
@@ -432,6 +450,7 @@ int main(int argc, char* argv[])
 					"    <func-fn2> = Input Filename of the secondary functions-definition-file.\n"
 					"                 (Optional only if not using -mo, -cX, -e, or -s)\n\n"
 					"    <alg>      = Comparison algorithm to use (see below).\n\n"
+					"    <fdl>      = Function Diff Level (for diff-ready-output, see below).\n\n"
 					"    <limit>    = Lower-Match Limit Percentage.\n\n"
 					"\n"
 					"At least one of the following switches must be used:\n"
@@ -470,6 +489,8 @@ int main(int argc, char* argv[])
 					"                       0 = Dynamic Programming X-Drop Algorithm\n"
 					"                       1 = Dynamic Programming Greedy Algorithm\n"
 					"                 If not specified, the X-Drop algorithm will be used.\n\n"
+					"    -dl <fdl>    Function Diff Level when generating DRO.\n"
+					"                 <fdl> Levels 1-" << NUM_FUNC_DIFF_LEVELS << "\n\n"
 					"    -ooa         Output-Option Add Address to diff create line output.\n\n"
 					"\n";
 		return -1;
@@ -517,7 +538,7 @@ int main(int argc, char* argv[])
 				std::string::size_type nDFROMax = 0;
 				std::string::size_type nFuncMax = 0;
 				for (auto const &funcObj : zFunc) {
-					TString strTemp = funcObj->ExportToDiff();
+					TString strTemp = funcObj->ExportToDiff(nFDL);
 					nDFROMax = std::max(nDFROMax, strTemp.size());
 					arrDFRO.push_back(strTemp);
 

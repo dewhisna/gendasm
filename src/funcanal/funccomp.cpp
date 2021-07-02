@@ -52,8 +52,10 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 											bool bBuildEditScript)
 {
 	double nRetVal = 0;
-	CStringArray zFunc1;
-	CStringArray zFunc2;
+	CStringArray zFunc1[NUM_FUNC_DIFF_LEVELS];
+	CStringArray::size_type nFunc1Size = 0;
+	CStringArray zFunc2[NUM_FUNC_DIFF_LEVELS];
+	CStringArray::size_type nFunc2Size = 0;
 	char arrTemp[30];
 
 	g_bEditScriptValid = false;
@@ -64,9 +66,33 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 	assert(nFile2FuncNdx < file2.GetFuncCount());
 	const CFuncDesc &function2 = file2.GetFunc(nFile2FuncNdx);
 
-	function1.ExportToDiff(zFunc1);
-	function2.ExportToDiff(zFunc2);
-	if (zFunc1.empty() || zFunc2.empty())return nRetVal;
+	for (int nLevel = 0; nLevel < NUM_FUNC_DIFF_LEVELS; ++nLevel) {
+		function1.ExportToDiff(static_cast<FUNC_DIFF_LEVEL>(nLevel), zFunc1[nLevel]);
+		function2.ExportToDiff(static_cast<FUNC_DIFF_LEVEL>(nLevel), zFunc2[nLevel]);
+		if (nLevel == 0) {
+			nFunc1Size = zFunc1[nLevel].size();
+			nFunc2Size = zFunc2[nLevel].size();
+		} else {
+			assert(nFunc1Size == zFunc1[nLevel].size());
+			assert(nFunc2Size == zFunc2[nLevel].size());
+		}
+	}
+	if ((nFunc1Size == 0) || (nFunc2Size == 0)) return nRetVal;
+	assert(nFunc1Size == function1.size());
+	assert(nFunc2Size == function2.size());
+
+	// TODO : Improve A/B Comparison:
+	// A/B Comparison function:
+	auto &&fnCompareMatch = [&function1, &function2, &zFunc1, &zFunc2](int i, int j)->bool {
+		// Check if exact bytes are the same:
+		if (function1.at(i)->isExactMatch(*function2.at(j))) return true;
+
+		// Do fuzzy match at all levels:
+		for (int nLevel = 0; nLevel < NUM_FUNC_DIFF_LEVELS; ++nLevel) {
+			if (compareNoCase(zFunc1[nLevel].at(i), zFunc2[nLevel].at(j)) == 0) return true;
+		}
+		return false;
+	};
 
 	if ((bBuildEditScript) && (nMethod == FCM_DYNPROG_XDROP)) {
 		// Note: XDROP Method currently doesn't support building
@@ -145,14 +171,12 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			//		ind = mis - mat/2
 			//
 
-			CStringArray &a = zFunc1;
-			CStringArray &b = zFunc2;
 			double Tp, T;
 			double **S;
 			int i, j, k, L, U;
 			double nTemp;
-			int M = a.size();
-			int N = b.size();
+			int M = nFunc1Size;
+			int N = nFunc2Size;
 			const double mat = 2;
 			const double mis = -2;
 			const double ind = -3;
@@ -192,8 +216,7 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 						nTemp = -DBL_MAX;
 						if ((L <= (i-1)) &&
 							((i-1) <= U)) {
-							// TODO : Improve A/B Comparison:
-							if (compareNoCase(a.at((i/2)-1), b.at((j/2)-1)) == 0) {
+							if (fnCompareMatch((i/2)-1, (j/2)-1)) {
 								nTemp = std::max(nTemp, S[i-1][j-1] + mat/2);
 							} else {
 								nTemp = std::max(nTemp, S[i-1][j-1] + mis/2);
@@ -207,8 +230,7 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 						}
 						S[i][j] = nTemp;
 					} else {
-						// TODO : Improve A/B Comparison:
-						if (compareNoCase(a.at(((i+1)/2)-1), b.at(((j+1)/2)-1)) == 0) {
+						if (fnCompareMatch(((i+1)/2)-1, ((j+1)/2)-1)) {
 							S[i][j] = S[i-1][j-1] + mat/2;
 						} else {
 							S[i][j] = S[i-1][j-1] + mis/2;
@@ -348,8 +370,6 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			//		we have this 'should be' change to the algorithm.
 			//
 
-			CStringArray &a = zFunc1;
-			CStringArray &b = zFunc2;
 			double Tp;				// T' = Overall max for entire comparison
 			double Tpp;				// T'' = Overall max for current d value
 			double *T;
@@ -360,8 +380,8 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 			int i, j, k, L, U;
 			int d, dp;
 			int dbest, kbest;
-			const int M = a.size();
-			const int N = b.size();
+			const int M = nFunc1Size;
+			const int N = nFunc2Size;
 			const int dmax = ((M+N)*2)+1;
 			const int kmax = (M+N+1);
 			const int rksize = (kmax*2)+1;
@@ -419,8 +439,7 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 
 			// Algorithm:
 			i=0;
-			// TODO : Improve A/B Comparison:
-			while ((i<std::min(M, N)) && (compareNoCase(a.at(i), b.at(i)) == 0)) i++;
+			while ((i<std::min(M, N)) && fnCompareMatch(i, i)) i++;
 			R(0, 0) = i;
 			dbest = kbest = 0;
 			Tp = T[0] = Sp(i+i, 0);
@@ -448,8 +467,7 @@ printf("\n");
 						if (k < U)			i = std::max(i, R(d-1, k+1));
 						j = i - k;
 						if ((i >= 0) && (j >= 0) && ((X<0) || (Sp(i+j, d) >= (((dp >= 0) ? T[dp] : 0) - X)))) {
-							// TODO : Improve A/B Comparison:
-							while ((i<M) && (j<N) && (compareNoCase(a.at(i), b.at(j)) == 0)) {
+							while ((i<M) && (j<N) && fnCompareMatch(i, j)) {
 								i++; j++;
 							}
 

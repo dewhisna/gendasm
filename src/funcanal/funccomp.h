@@ -24,6 +24,13 @@ enum FUNC_COMPARE_METHOD {
 	FCM_COUNT
 };
 
+enum FUNC_DIFF_LEVEL {
+	FDL_1 = 0,				// Function Diff Level #1 -- Most generic
+	FDL_2 = 1,				// Function Diff Level #2
+	// ----					//                        -- Least generic
+	NUM_FUNC_DIFF_LEVELS,
+};
+
 // Output Options:
 //		These are OR'd bit fields of output-options used
 //		in diff and CreateOutputLine methods

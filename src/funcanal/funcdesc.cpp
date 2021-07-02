@@ -99,6 +99,9 @@
 
 #define CALC_FIELD_WIDTH(x) x
 
+#ifndef UNUSED
+	#define UNUSED(x) ((void)(x))
+#endif
 
 // ============================================================================
 
@@ -317,7 +320,7 @@ CFuncAsmInstObject::CFuncAsmInstObject(std::shared_ptr<const CFuncDescFile> pPar
 	if (argv.size() >= 10) m_strOperandText = argv.at(9);
 }
 
-TString CFuncAsmInstObject::ExportToDiff() const
+TString CFuncAsmInstObject::ExportToDiff(FUNC_DIFF_LEVEL nLevel) const
 {
 	// TString strRetVal;
 	std::ostringstream ssDiff;
@@ -369,7 +372,18 @@ TString CFuncAsmInstObject::ExportToDiff() const
 								ssDiff << arrTemp;
 							} else {
 								// Otherwise, it is an outside reference to something unknown:
-								ssDiff << "C?";
+								if (nLevel == FDL_1) {
+									// Level 1 : Keep unknown
+									ssDiff << "C?";
+								} else {
+									// Level 2 : Synthesize label
+									if (!m_pParentFuncFile->allowMemRangeOverlap()) {
+										std::sprintf(arrTemp, "C=L%04X", nAddrTemp);
+									} else {
+										std::sprintf(arrTemp, "C=CL%04X", nAddrTemp);
+									}
+									ssDiff << arrTemp;
+								}
 							}
 						}
 						// If there is a mask (or other appendage) add it:
@@ -406,7 +420,18 @@ TString CFuncAsmInstObject::ExportToDiff() const
 								ssDiff << arrTemp;
 							} else {
 								// Otherwise, it is an outside reference to something unknown:
-								ssDiff << "C?";
+								if (nLevel == FDL_1) {
+									// Level 1 : Keep unknown
+									ssDiff << "C?";
+								} else {
+									// Level 2 : Synthesize label
+									if (!m_pParentFuncFile->allowMemRangeOverlap()) {
+										std::sprintf(arrTemp, "C=L%04X", nAddrTemp);
+									} else {
+										std::sprintf(arrTemp, "C=CL%04X", nAddrTemp);
+									}
+									ssDiff << arrTemp;
+								}
 							}
 						}
 						// If there is a mask (or other appendage) add it:
@@ -442,8 +467,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 												labs(nAddrOffsetTemp));
 									ssDiff << arrTemp;
 								} else {
-									// See if it is an I/O or NON-ROM/RAM location:
-									if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+									// See if it is an I/O or NON-ROM/RAM location (or at >Level_1):
+									if ((nLevel > FDL_1) ||
+										(m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
 										(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
 										 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
 										// If so, create a label to reference it as it is significant:
@@ -465,8 +491,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 								// If the address has a user-defined file-level label, use it instead:
 								ssDiff << "D=" << strLabel;
 							} else {
-								// See if it is an I/O or NON-ROM/RAM location:
-								if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+								// See if it is an I/O or NON-ROM/RAM location (or at >Level_1):
+								if ((nLevel > FDL_1) ||
+									(m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
 									(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
 									 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
 									// If so, create a label to reference it as it is significant:
@@ -513,8 +540,9 @@ TString CFuncAsmInstObject::ExportToDiff() const
 											labs(nAddrOffsetTemp));
 								ssDiff << arrTemp;
 							} else {
-								// See if it is an I/O or NON-ROM/RAM location:
-								if ((m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
+								// See if it is an I/O or NON-ROM/RAM location (or at >Level_1):
+								if ((nLevel > FDL_1) ||
+									(m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_IO, nAddrTemp)) ||
 									(!m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_ROM, nAddrTemp) &&
 									 !m_pParentFuncFile->isMemAddr(CFuncDescFile::MEMORY_TYPE::MT_RAM, nAddrTemp))) {
 									// If so, treat create a label to reference it as it is significant:
@@ -716,8 +744,10 @@ TString CFuncAsmInstObject::GetOperandBytes() const
 //////////////////////////////////////////////////////////////////////
 // CFuncDataByteObject Class
 //////////////////////////////////////////////////////////////////////
-TString CFuncDataByteObject::ExportToDiff() const
+TString CFuncDataByteObject::ExportToDiff(FUNC_DIFF_LEVEL nLevel) const
 {
+	UNUSED(nLevel);
+
 	std::ostringstream ssDiff;
 
 	ssDiff << "D|" << GetByteCount() << "|" << GetBytes();
@@ -848,12 +878,12 @@ TSize CFuncDesc::GetFuncSize() const
 	return m_nFunctionSize;
 }
 
-void CFuncDesc::ExportToDiff(CStringArray &anArray) const
+void CFuncDesc::ExportToDiff(FUNC_DIFF_LEVEL nLevel, CStringArray &anArray) const
 {
 	anArray.clear();
 
 	for (auto const &itrObject : *this) {
-		anArray.push_back(itrObject->ExportToDiff());
+		anArray.push_back(itrObject->ExportToDiff(nLevel));
 	}
 }
 

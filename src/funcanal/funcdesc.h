@@ -96,7 +96,7 @@ public:
 	TString GetBytes() const;
 	CMemoryArray::size_type GetByteCount() const { return m_Bytes.size(); }
 
-	virtual TString ExportToDiff() const = 0;
+	virtual TString ExportToDiff(FUNC_DIFF_LEVEL nLevel) const = 0;
 
 	virtual TString CreateOutputLine(OUTPUT_OPTIONS nOutputOptions = OO_NONE) const = 0;
 
@@ -130,7 +130,7 @@ class CFuncAsmInstObject : public CFuncObject
 public:
 	CFuncAsmInstObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, std::shared_ptr<const CFuncDesc> pParentFunc, CStringArray &argv);
 
-	virtual TString ExportToDiff() const override;
+	virtual TString ExportToDiff(FUNC_DIFF_LEVEL nLevel) const override;
 
 	virtual TString CreateOutputLine(OUTPUT_OPTIONS nOutputOptions = OO_NONE) const override;
 
@@ -164,7 +164,7 @@ public:
 		:	CFuncObject(pParentFuncFile, pParentFunc, argv)
 	{ }
 
-	virtual TString ExportToDiff() const override;
+	virtual TString ExportToDiff(FUNC_DIFF_LEVEL nLevel) const override;
 
 	virtual TString CreateOutputLine(OUTPUT_OPTIONS nOutputOptions = OO_NONE) const override;
 };
@@ -192,7 +192,7 @@ public:
 
 	virtual TSize GetFuncSize() const;		// Returns size of function in byte counts (used for address calculation)
 
-	virtual void ExportToDiff(CStringArray &anArray) const;
+	virtual void ExportToDiff(FUNC_DIFF_LEVEL nLevel, CStringArray &anArray) const;
 
 	void Add(std::shared_ptr<CFuncObject>pObj);
 
