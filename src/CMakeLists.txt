@@ -9,3 +9,6 @@ project(gendasm LANGUAGES CXX VERSION 1.0 DESCRIPTION "Generic Code-Seeking Disa
 
 add_subdirectory(gendasm)
 add_subdirectory(funcanal)
+
+enable_testing()
+add_subdirectory(test)

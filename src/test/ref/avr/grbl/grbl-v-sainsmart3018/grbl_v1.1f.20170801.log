@@ -1,0 +1,442 @@
+GenDasm - Generic Code-Seeking Disassembler
+
+Using: AVR Disassembler
+
+Reading and Parsing Control File: "grbl_v1.1f.20170801.ctl"...
+Selected MCU and predefined labels and entry points for: m328p
+Loading "grbl_v1.1f.20170801.hex" at offset 0x0000 using intel library...
+
+        1 Source File: grbl_v1.1f.20170801.hex
+
+        Disassembly Output File: grbl_v1.1f.20170801.dis
+
+        Functions Output File: grbl_v1.1f.20170801.fnc
+
+        Memory Mappings:
+            ROM Memory Map:
+                0x0000 - 0x7FFF  (Size: 0x8000)
+            RAM Memory Map:
+                0x0000 - 0x00FF  (Size: 0x0100)
+                0x0100 - 0x08FF  (Size: 0x0800)
+             IO Memory Map:
+                0x0000 - 0x003F  (Size: 0x0040)
+
+        26 Entry Points:
+                0x0000
+                0x0004
+                0x0008
+                0x000C
+                0x0010
+                0x0014
+                0x0018
+                0x001C
+                0x0020
+                0x0024
+                0x0028
+                0x002C
+                0x0030
+                0x0034
+                0x0038
+                0x003C
+                0x0040
+                0x0044
+                0x0048
+                0x004C
+                0x0050
+                0x0054
+                0x0058
+                0x005C
+                0x0060
+                0x0064
+
+        0 Exit Functions Defined
+
+        26 Unique ROM Labels Defined:
+                0x0000=RESET_vect
+                0x0004=INT0_vect
+                0x0008=INT1_vect
+                0x000C=PCINT0_vect
+                0x0010=PCINT1_vect
+                0x0014=PCINT2_vect
+                0x0018=WDT_vect
+                0x001C=TIMER2_COMPA_vect
+                0x0020=TIMER2_COMPB_vect
+                0x0024=TIMER2_OVF_vect
+                0x0028=TIMER1_CAPT_vect
+                0x002C=TIMER1_COMPA_vect
+                0x0030=TIMER1_COMPB_vect
+                0x0034=TIMER1_OVF_vect
+                0x0038=TIMER0_COMPA_vect
+                0x003C=TIMER0_COMPB_vect
+                0x0040=TIMER0_OVF_vect
+                0x0044=SPI0_STC_vect
+                0x0048=USART0_RX_vect
+                0x004C=USART0_UDRE_vect
+                0x0050=USART0_TX_vect
+                0x0054=ADC_vect
+                0x0058=EE_READY_vect
+                0x005C=ANALOG_COMP_vect
+                0x0060=TWI0_vect
+                0x0064=SPM_Ready_vect
+
+        119 Unique RAM Labels Defined:
+                0x0000=R0
+                0x0001=R1
+                0x0002=R2
+                0x0003=R3
+                0x0004=R4
+                0x0005=R5
+                0x0006=R6
+                0x0007=R7
+                0x0008=R8
+                0x0009=R9
+                0x000A=R10
+                0x000B=R11
+                0x000C=R12
+                0x000D=R13
+                0x000E=R14
+                0x000F=R15
+                0x0010=R16
+                0x0011=R17
+                0x0012=R18
+                0x0013=R19
+                0x0014=R20
+                0x0015=R21
+                0x0016=R22
+                0x0017=R23
+                0x0018=R24
+                0x0019=R25
+                0x001A=R26
+                0x001B=R27
+                0x001C=R28
+                0x001D=R29
+                0x001E=R30
+                0x001F=R31
+                0x0023=PINB
+                0x0024=DDRB
+                0x0025=PORTB
+                0x0026=PINC
+                0x0027=DDRC
+                0x0028=PORTC
+                0x0029=PIND
+                0x002A=DDRD
+                0x002B=PORTD
+                0x0035=TIFR0
+                0x0036=TIFR1
+                0x0037=TIFR2
+                0x003B=PCIFR
+                0x003C=EIFR
+                0x003D=EIMSK
+                0x003E=GPIOR0
+                0x003F=EECR
+                0x0040=EEDR
+                0x0041=EEADL
+                0x0042=EEADH
+                0x0043=GTCCR
+                0x0044=TCCR0A
+                0x0045=TCCR0B
+                0x0046=TCNT0
+                0x0047=OCRA0
+                0x0048=OCRB0
+                0x004A=GPIOR1
+                0x004B=GPIOR2
+                0x004C=SPCR0
+                0x004D=SPSR0
+                0x004E=SPDR0
+                0x0050=ACSR
+                0x0053=SMCR
+                0x0054=MCUSR
+                0x0055=MCUCR
+                0x0057=SPMCSR
+                0x005D=SPL
+                0x005E=SPH
+                0x005F=SREG
+                0x0060=WDTCSR
+                0x0061=CLKPR
+                0x0064=PRR0
+                0x0066=OSCCAL
+                0x0068=PCICR
+                0x0069=EICRA
+                0x006B=PCMSK0
+                0x006C=PCMSK1
+                0x006D=PCMSK2
+                0x006E=TIMSK0
+                0x006F=TIMSK1
+                0x0070=TIMSK2
+                0x0078=ADCL
+                0x0079=ADCH
+                0x007A=ADCSRA
+                0x007B=ADCSRB
+                0x007C=ADMUX
+                0x007E=DIDR0
+                0x007F=DIDR1
+                0x0080=TCCR1A
+                0x0081=TCCR1B
+                0x0082=TCCR1C
+                0x0084=TCNT1L
+                0x0085=TCNT1H
+                0x0086=ICR1L
+                0x0087=ICR1H
+                0x0088=OCR1AL
+                0x0089=OCR1AH
+                0x008A=OCR1BL
+                0x008B=OCR1BH
+                0x00B0=TCCR2A
+                0x00B1=TCCR2B
+                0x00B2=TCNT2
+                0x00B3=OCR2A
+                0x00B4=OCR2B
+                0x00B6=ASSR
+                0x00B8=TWBR0
+                0x00B9=TWSR0
+                0x00BA=TWAR0
+                0x00BB=TWDR0
+                0x00BC=TWCR0
+                0x00BD=TWAMR0
+                0x00C0=UCSR0A
+                0x00C1=UCSR0B
+                0x00C2=UCSR0C
+                0x00C4=UBRR0L
+                0x00C5=UBRR0H
+                0x00C6=UDR0
+
+        39 Unique IO Labels Defined:
+                0x0003=PINB_
+                0x0004=DDRB_
+                0x0005=PORTB_
+                0x0006=PINC_
+                0x0007=DDRC_
+                0x0008=PORTC_
+                0x0009=PIND_
+                0x000A=DDRD_
+                0x000B=PORTD_
+                0x0015=TIFR0_
+                0x0016=TIFR1_
+                0x0017=TIFR2_
+                0x001B=PCIFR_
+                0x001C=EIFR_
+                0x001D=EIMSK_
+                0x001E=GPIOR0_
+                0x001F=EECR_
+                0x0020=EEDR_
+                0x0021=EEADL_
+                0x0022=EEADH_
+                0x0023=GTCCR_
+                0x0024=TCCR0A_
+                0x0025=TCCR0B_
+                0x0026=TCNT0_
+                0x0027=OCRA0_
+                0x0028=OCRB0_
+                0x002A=GPIOR1_
+                0x002B=GPIOR2_
+                0x002C=SPCR0_
+                0x002D=SPSR0_
+                0x002E=SPDR0_
+                0x0030=ACSR_
+                0x0033=SMCR_
+                0x0034=MCUSR_
+                0x0035=MCUCR_
+                0x0037=SPMCSR_
+                0x003D=SPL_
+                0x003E=SPH_
+                0x003F=SREG_
+
+Writing program counter addresses to disassembly file.
+Writing opcode byte values to disassembly file.
+Writing printable data as ASCII in disassembly file.
+Writing byte value comments for ASCII data in disassembly file.
+Writing OpBytes for data in disassembly file
+
+Compiling Indirect Code (branch) Table as specified in Control File...
+        83 Indirect Code Vectors:
+                [0x0068] -> 0x0C12
+                [0x006A] -> 0x0C1E
+                [0x006C] -> 0x0C24
+                [0x006E] -> 0x0C2A
+                [0x0070] -> 0x0C34
+                [0x0072] -> 0x0C44
+                [0x0074] -> 0x0C54
+                [0x0076] -> 0x0D8A
+                [0x0078] -> 0x0D8A
+                [0x007A] -> 0x0D8A
+                [0x007C] -> 0x0C6E
+                [0x007E] -> 0x0C74
+                [0x0080] -> 0x0C86
+                [0x0082] -> 0x0C98
+                [0x0084] -> 0x0D8A
+                [0x0086] -> 0x0D8A
+                [0x0088] -> 0x0D8A
+                [0x008A] -> 0x0D8A
+                [0x008C] -> 0x0D8A
+                [0x008E] -> 0x0D8A
+                [0x0090] -> 0x0CB0
+                [0x0092] -> 0x0CC4
+                [0x0094] -> 0x0CDC
+                [0x0096] -> 0x0CEC
+                [0x0098] -> 0x0CF2
+                [0x009A] -> 0x0D04
+                [0x009C] -> 0x0D16
+                [0x009E] -> 0x0D22
+                [0x00A0] -> 0x0D8A
+                [0x00A2] -> 0x0D8A
+                [0x00A4] -> 0x0D34
+                [0x00A6] -> 0x0D46
+                [0x00A8] -> 0x0D5C
+                [0x00AA] -> 0x11C0
+                [0x00AC] -> 0x2904
+                [0x00AE] -> 0x2904
+                [0x00B0] -> 0x11D4
+                [0x00B2] -> 0x11EE
+                [0x00B4] -> 0x1208
+                [0x00B6] -> 0x1222
+                [0x00B8] -> 0x2904
+                [0x00BA] -> 0x122A
+                [0x00BC] -> 0x2904
+                [0x00BE] -> 0x1246
+                [0x00C0] -> 0x2904
+                [0x00C2] -> 0x125A
+                [0x00C4] -> 0x126E
+                [0x00C6] -> 0x1282
+                [0x00C8] -> 0x2904
+                [0x00CA] -> 0x2904
+                [0x00CC] -> 0x2904
+                [0x00CE] -> 0x12A2
+                [0x00D0] -> 0x12BC
+                [0x00D2] -> 0x12D6
+                [0x00D4] -> 0x6AA6
+                [0x00D6] -> 0x6AAA
+                [0x00D8] -> 0x6B1C
+                [0x00DA] -> 0x6B1C
+                [0x00DC] -> 0x6B1C
+                [0x00DE] -> 0x6B1C
+                [0x00E0] -> 0x6B1C
+                [0x00E2] -> 0x6B1C
+                [0x00E4] -> 0x6B1C
+                [0x00E6] -> 0x6B1C
+                [0x00E8] -> 0x6B1C
+                [0x00EA] -> 0x6B1C
+                [0x00EC] -> 0x6AB6
+                [0x00EE] -> 0x6ABA
+                [0x00F0] -> 0x6ABE
+                [0x00F2] -> 0x6AC2
+                [0x00F4] -> 0x6AC6
+                [0x00F6] -> 0x6ACA
+                [0x00F8] -> 0x6ACE
+                [0x00FA] -> 0x6AD2
+                [0x00FC] -> 0x6B1C
+                [0x00FE] -> 0x6ADA
+                [0x0100] -> 0x6ADE
+                [0x0102] -> 0x6AE2
+                [0x0104] -> 0x6AE6
+                [0x0106] -> 0x6AEA
+                [0x0108] -> 0x6AEE
+                [0x010A] -> 0x6B1C
+                [0x010C] -> 0x6AF2
+
+Compiling Indirect Data Table as specified in Control File...
+        0 Indirect Data Vectors
+
+
+Pass 1 - Finding Code, Data, and Labels...
+CL0322 CL0346 CL4138 CL3AF4 CL2A54 CL29BC CL6A3A CL649A CL0338 CL0336
+CL034A CL7718 CL50D4 CL038A CL0E04 CL50E4 CL03A0 CL0416 DL011A DL0170
+CL0430 CL0446 DL0121 DL0122 DL0123 CL0462 DL0119 DL053B DL053C DL053D
+DL053E DL01FA DL01FB CL048A CL5170 CL04A4 CL6980 CL41D6 CL3B64 CL4D94
+CL6424 CL4266 CL69E6 CL3D86 CL04FC CL052C CL40DA CL057E CL3DD4 CL051E
+CL0536 CL0548 CL058A CL059C CL66F6 DL011B CL043C CL648A CL05A2 CL0DB4
+CL0554 CL0C18 CL0D90 DL015B CL0D6E DL015E DL015C CL0C2E DL015D CL2988
+CL0C40 CL0D6A CL0C50 CL0C60 CL0C62 DL015F DL0160 DL0161 DL0162 DL0163
+DL0164 DL0165 DL0166 DL0167 CL0CA4 CL0CA6 CL3ACC CL0CC0 CL0D96 CL0CD0
+CL0CD2 CL0CE8 DL0171 DL0172 DL0173 DL0174 DL0175 DL0176 DL0177 DL0178
+DL0179 DL017B DL017A DL017C DL017D DL017E DL017F DL0168 DL0169 DL016A
+DL016B CL0D56 DL016C DL016D DL016E DL016F CL0D68 CL4E34 CL0D9A CL0DAE
+CL3DC4 CL057A CL0DC2 CL0DBE CL0DC8 CL0DCE CL0DF8 CL0DFC CL0E00 CL0DF2
+CL3DAC CL4E86 CL3EB6 DL01CC DL01CD DL01CE DL01CF CL12EE DL01D0 DL01D1
+DL01D2 DL01D3 DL01D4 DL01D5 DL01D6 DL01D7 DL01D8 DL01D9 DL01DA DL01DB
+DL01DC CL705C DL01DD DL01DE DL01DF DL01E0 DL01E1 DL01E2 DL01E3 DL01E4
+DL01E5 DL01E6 DL01E7 DL01E8 DL01E9 DL01EA DL01EB DL01EC CL73A8 CL129A
+CL28F0 DL01ED DL01EE DL01EF DL01F0 DL01F1 DL01F2 DL01F3 DL01F4 DL01F5
+DL01F6 DL01F7 DL01F8 DL01F9 CL12FC CL12F8 CL130E CL28F4 CL1316 CL1312
+CL1334 CL0EAC CL0EBE CL133A CL0ECA CL28E4 CL6C16 CL0EE4 CL28E8 CL75EE
+CL706A CL70CC CL6D78 CL7428 CL7502 CL0F36 CL0F34 CL1108 CL119E CL0F3C
+CL10C6 CL0F86 CL0F5C CL0F48 CL105C CL0F4E CL0FF2 CL0F52 CL101A CL0F58
+CL0FE2 CL0F62 CL0F78 CL0F6C DL01C3 CL10D0 CL0F82 CL0F8C CL10BA CL0FB8
+CL0FA4 CL0F9A CL108E CL0FA0 CL0FAC DL01C7 CL0FCA CL0FC2 CL1068 CL1026
+CL0FD6 DL01C2 CL28EC DL01C0 CL1004 CL10CA CL1010 CL10DA DL01C1 CL1030
+CL10CE CL104C CL7652 DL01C5 CL1078 DL01C4 CL1082 CL108A CL10C2 CL2954
+CL10E4 CL10E0 CL10FA CL10D4 CL1116 CL112A CL1142 CL111E CL115E CL113C
+CL1134 CL1172 DL01C8 CL114E CL1156 CL1150 DL01CA CL115A CL1174 CL116A
+DL01C9 CL116E CL117E CL117A CL1190 CL10F4 CL11B8 CL76BE CL134A CL136C
+CL13B2 CL137A CL1384 CL1402 CL13D6 CL13D4 DL0181 CL1426 CL143C CL1438
+CL145E CL1452 CL1468 CL1478 CL14E0 CL14CE CL1494 CL1490 CL14BC CL148A
+CL1470 DL01C6 CL2900 CL14EA CL150C CL151A DL0186 CL14FA CL1534 CL292C
+CL1536 CL150A CL1668 CL172C CL1542 CL154E CL1432 CL1514 CL1582 CL157A
+CL1590 CL1596 CL15A8 DL01BC DL01BD DL01BE DL01BF CL15DC CL15D8 CL164C
+CL1666 CL15D2 CL18C6 CL1670 CL153C CL16A0 CL169C CL16FE CL172A CL1690
+CL18C4 CL174E CL173A CL1850 CL1740 CL18B8 CL1746 CL1856 CL1732 CL1792
+CL178E CL17B0 CL182E CL180C CL6D7A CL184E CL1786 CL1862 CL186E CL1886
+CL1882 CL18AA CL187C CL2908 CL18DA CL290C CL18E2 CL1DC2 CL18F0 CL6F64
+CL1912 CL2910 CL191A CL1D96 CL192C CL194A CL1950 CL192A CL1940 CL1934
+CL1938 CL1D90 CL193E CL1958 CL1976 CL1972 CL1980 CL197C CL1996 CL2914
+CL1BF0 CL1BFC CL291C CL1C0A CL1D02 CL7566 CL1D56 CL1D14 CL1D10 CL1D40
+CL1D0A CL1D6C CL1A2A CL1D8E CL1DA4 CL1DAC CL76FE CL1DD2 CL1DE2 CL2920
+CL1DEC CL1DF8 CL1E8E CL1E04 CL2924 CL1E10 DL018B DL018C DL018D DL018E
+DL0189 DL0188 CL1E62 CL6B3E CL2930 CL1EE6 DL0194 DL0195 DL0196 DL0197
+CL1F16 DL018F DL0190 DL0191 DL0192 CL1F76 CL1F96 CL1FD2 DL0193 CL1FFA
+CL6930 CL2044 CL202C CL690E CL6526 CL203A CL20A8 CL4204 DL0184 DL0182
+CL211A DL0185 CL20DA CL2140 CL2134 DL0183 CL21CC CL2160 CL2198 CL2178
+CL21FE CL21D8 CL216A CL21EC CL2170 CL21D2 CL4E4E CL21AE CL21C2 CL21E2
+CL21FA CL21F4 DL0180 CL220C CL2848 CL2214 CL2220 CL222C CL2236 CL2836
+CL223E CL2768 CL6E78 CL23CE CL23F6 CL6F78 CL7142 CL246C CL2218 CL249C
+CL70C8 CL258C CL2594 CL261C CL26E6 CL6F6E CL754A CL2778 CL2840 DL0187
+CL2856 CL2876 CL28DE CL39B4 CL28CA CL66A0 CL2942 CL293A DL053F DL0540
+DL0541 CL2EC2 DL0126 CL3AD6 CL3B42 CL3B28 CL3AF0 CL3AF2 CL3B34 DL0100
+CL3B76 CL3B86 CL3D9E CL64EE CL3D8C CL3D3A CL3DA4 CL3D4E CL763A CL3D54
+CL3D60 CL3D62 CL3D72 CL3D80 CL3DD0 CL392C CL3E00 CL3968 DL0711 CL4DB6
+CL396A CL3E24 CL0E16 CL3912 CL3E2C CL3DDA CL0E54 CL0E64 CL0E78 CL294C
+CL0E8A CL3926 CL391A CL3E80 CL3E32 CL408A CL40A6 CL407E CL40B2 CL3B88
+CL3BD2 CL3BF0 CL3BD4 CL3C08 CL3C56 CL767A CL3C28 CL3C6E CL3C58 CL3C9A
+CL3C82 CL3C8C CL4060 CL4174 CL4200 CL41C0 CL6F36 CL425E CL4D9C DL01FD
+DL051E DL01FC DL061B CL4E12 CL4E00 CL4D30 CL4DE0 CL4D32 CL4E54 CL5052
+CL5076 CL50A2 CL50BA CL5140 CL5132 CL510E CL5156 CL51A8 CL5196 CL51AA
+CL29E8 CL6434 CL6442 DL0620 DL061F DL0565 DL0590 DL061C CL2A1C CL2A3A
+CL2A36 CL2A2A CL2A30 CL2A22 CL2A3C CL2A48 CL2A50 CL4D74 CL6498 CL4D8E
+DL0710 CL64C6 DL06A6 CL64DC CL6506 CL64FE CL6524 CL653E CL66F4 CL2F14
+DL011C CL6712 CL68FE CL2FB2 CL2F7C CL2F72 CL2F78 CL2F6A CL2F8E CL39A0
+CL2FA8 CL2FBC CL3538 CL2FC8 CL334C CL3354 CL3426 CL3360 CL3404 CL338C
+CL6150 DL011E CL339A CL33AC CL33BA CL3420 CL34B2 CL3542 CL3698 CL3558
+CL3570 CL3576 CL3582 CL3596 DL0125 CL35C2 CL3670 CL42AA CL3608 CL3618
+CL3660 CL3668 CL35BC DL0537 DL0538 DL0539 DL053A CL6198 CL36A2 CL3732
+CL36B8 CL36D0 CL36D6 CL36EC CL370E CL371A CL3726 CL373E CL51B2 CL42FE
+CL4330 CL4358 CL4376 CL611E CL6192 DL05EC DL0602 DL0603 DL0604 DL0605
+CL61C6 CL61D2 CL63FE CL6222 CL6244 CL6258 CL628C CL629A CL6318 CL6310
+CL6270 CL6736 CL6742 CL6750 CL6762 CL692E CL6936 CL6938 CL6970 DL06A2
+DL06A3 DL06A4 DL06A5 CL3A3C CL3A52 CL3A54 CL3A6C CL6A80 CL6A70 CL6A88
+CL69F2 CL6A38 CL6A7C CL6A82 CL6AFA CL6AD4 CL3982 CL6AF4 CL3970 CL6B08
+CL6BA8 CL6C06 CL6C4C CL6C5A CL6C54 CL6C58 CL6CA4 CL6C9C CL76CA CL6CB0
+CL6CB8 CL6C66 CL6CBE CL6D5C CL6D2A CL6CF4 CL6CD8 CL6D0E CL6D42 CL6D4E
+CL6D5E CL6DA8 CL72DC CL7326 CL6D86 CL6DC4 CL6DDC CL6E28 CL739A CL726A
+CL6D9A CL7278 CL6DA2 CL6D9E CL7216 CL71B8 CL6DC8 CL6E08 CL6DFA CL6E44
+CL6DE0 CL6E42 CL6E16 CL6E4A CL6E52 CL6E74 CL6EA0 CL6EB4 CL6E70 CL6E60
+CL6E88 CL6FA6 CL6ED8 CL6ED6 CL6EF4 CL73B2 CL75E6 CL721C CL744E CL6F30
+CL736A CL6F60 CL6F52 CL6F48 CL739C CL6F5C CL71C4 CL71FA CL7170 CL6F6C
+CL728A CL72FE CL6FA0 CL6F80 CL6F96 CL6F92 CL6FCC CL6FB6 CL7038 CL6FE0
+CL703A CL6FD2 CL6FFC CL7016 CL702C CL6F9C CL6F98 CL7012 CL701E CL7054
+CL7336 CL7092 CL709A CL70A8 CL70B6 CL708E CL707E CL709E CL70AC CL70C6
+CL70DE CL710C CL70E8 CL7114 CL7136 CL7120 CL712A CL7140 CL7138 CL712E
+CL716C CL715E CL7154 CL7168 CL71B6 CL71A8 CL71AE CL71E4 CL71D4 CL71E2
+CL71DC CL71F6 CL71F0 CL71E6 CL720A CL723E CL7232 CL7234 CL7286 CL72D6
+CL72AE CL72C2 CL72A2 CL72CA CL71FE CL72B8 CL72E8 CL72FC CL72F4 CL7312
+CL7612 CL7346 CL7350 CL7356 CL7360 CL7334 CL7366 CL7342 CL7398 CL7394
+CL7378 CL738A CL73B0 CL7430 CL7448 CL74DC CL74F4 CL74CE CL74B8 CL7444
+CL74D8 CL74E4 CL7542 CL7546 CL753E CL7526 CL7510 CL751E CL755A CL7562
+CL755E CL7604 CL7596 CL759E CL75AA CL758E CL75C8 CL75D4 CL75B8 CL7600
+CL75FC CL7648 CL7640 CL7668 CL765A CL76A0 CL7686 CL76E0 CL770C CL7704
+CL7714 CL771A 
+
+Pass 2 - Disassembling to Output File...
+
+
+Pass 3 - Creating Functions Output File...
+
+Disassembly Complete
