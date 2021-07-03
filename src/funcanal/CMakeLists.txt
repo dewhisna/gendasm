@@ -56,3 +56,6 @@ add_executable(funcanal
 target_include_directories(funcanal
 	PRIVATE ../gendasm/
 )
+
+install(TARGETS funcanal DESTINATION bin)
+

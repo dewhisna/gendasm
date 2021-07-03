@@ -134,3 +134,6 @@ if(FUNC_FLAG_COMMENT)
 		FUNC_FLAG_COMMENT
 	)
 endif()
+
+install(TARGETS gendasm DESTINATION bin)
+
