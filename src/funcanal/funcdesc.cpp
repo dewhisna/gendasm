@@ -915,10 +915,10 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 	constexpr int BUSY_CALLBACK_RATE = 50;
 
 	if (msgFile) {
-		(*msgFile) << "Reading Function Definition File \"" + inFile.getFilename() + "\"...\n";
+		(*msgFile) << "Reading Function Definition File " << std::filesystem::relative(inFile.getFilename()) << "...\n";
 	}
 
-	m_strFilePathName = inFile.getFilename();
+	m_strFilePathName = std::filesystem::path(inFile.getFilename()).relative_path();
 	m_strFileName = std::filesystem::path(inFile.getFilename()).filename();
 
 	while (bRetVal && inFile.good() && !inFile.eof()) {
@@ -1179,7 +1179,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 	if (!bRetVal && errFile) {
 		(*errFile) << "*** Error: " << strError << " : on line " << nLineCount << " of file\n"
-					  "           \"" << inFile.getFilename() << "\"\n";
+					  "           \"" << std::filesystem::relative(inFile.getFilename()) << "\"\n";
 	}
 
 	return bRetVal;

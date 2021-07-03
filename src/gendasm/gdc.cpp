@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <iterator>
 #include <regex>
+#include <filesystem>
 
 #define VERSION 0x300				// GDC Version number 3.00
 
@@ -288,10 +289,10 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 	//		Typically, the last control file processed should be called with a "true"
 	//		and all prior control files processed should be called with a "false".
 
-	m_sControlFileList.push_back(inFile.getFilename());
+	m_sControlFileList.push_back(std::filesystem::relative(inFile.getFilename()));
 
 	if (msgFile) {
-		(*msgFile) << "Reading and Parsing Control File: \"" << inFile.getFilename() << "\"...\n";
+		(*msgFile) << "Reading and Parsing Control File: " << std::filesystem::relative(inFile.getFilename()) << "...\n";
 	}
 
 	m_nBase = m_nDefaultBase;			// Reset the default base before starting new file.. Therefore, each file has same default!
@@ -312,7 +313,7 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 		if (ParseControlLine(aLine, args, msgFile, errFile) == false) {		// Go parse it -- either internal or overrides
 			if (errFile) {
 				(*errFile) << m_ParseError;
-				(*errFile) << " in Control File \"" << inFile.getFilename() << "\" line " << m_nCtrlLine << "\n";
+				(*errFile) << " in Control File " << std::filesystem::relative(inFile.getFilename()) << " line " << m_nCtrlLine << "\n";
 			}
 		}
 	}
