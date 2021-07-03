@@ -1,3 +1,5 @@
+![m6811dis logo](./docs/6811chip.png)  ![AVR logo](./docs/avr1.webp)
+
 Description
 -----------
 
@@ -27,11 +29,11 @@ If you disassemble code on this disassembler for one of these platforms, you wil
 History:
 --------
 
-The first version of m6809dis was written in 1992 in Borland Pascal in Windows and targeted the 6809.  That version was reworked for the 6811 in 1996 to create m6811dis, but still in Borland Pascal 7.0, with minor updates through 1999.  In May 2002, m6811dis was rewritten to C++ using MSVC++ 5.0, but still in Windows (the original m6809dis got abandoned).
+The first version of m6809dis was written in 1992 in Borland Pascal in Windows and targeted the 6809.  That version was reworked for the 6811 in April 1996 to create m6811dis, but still in Borland Pascal 7.0, with minor updates to v1.2 through June 1999.  In July 1999 through January 2000, m6811dis was rewritten to C++ using MSVC++ 5.0, but still in Windows (the original m6809dis got abandoned, but the 6809 processor is close enough to the 6811 that it wouldn't be too difficult to revive).
 
-The Fuzzy Function Analyzer was first invented in mid-2002, following the m6811dis port to C++, and was proven functional for several projects in February 2003.  In June 2014, I decided to finally open-source m6811dis and created [the first public version](https://github.com/dewhisna/m6811dis), after cleaning it up a bit, and making it work for Linux, but without the Fuzzy Function Analyzer (apart from legacy source code fragments) due to lack of time.
+The Fuzzy Function Analyzer was first invented in May 2002, following the m6811dis port to C++, and was proven functional for several code-recovery projects in February 2003.  In June 2014, I decided to finally open-source m6811dis and created [the first public version](https://github.com/dewhisna/m6811dis), after cleaning it up a bit, and making it work for Linux, but without the Fuzzy Function Analyzer (apart from legacy source code fragments) due to lack of time.
 
-I had always intended m6811dis to get morphed into a generic-disassembly platform.  In June 2021, I found that I needed a Disassembler and Fuzzy-Function Analyzer for the AVR series micros.  So, I reworked the code again to modernize it to C++20 and bring the Fuzzy-Function Analyzer back from the dead.  I added AVR support.  Fixed numerous bugs.  Made things more generic in the support of big-endian vs. little-endian, Harvard vs Von Neumann architecture, RISC vs CISC, byte-opcodes vs word-opcodes, etc.  And thus [gendasm](https://github.com/dewhisna/gendasm) was born.
+I had always intended m6811dis to get morphed into a more generic-disassembly platform, but never got around to it.  Then, in June 2021, I found that I needed a Disassembler and Fuzzy-Function Analyzer for the AVR series micros.  So, I reworked the code again to modernize it to C++20 and bring the Fuzzy-Function Analyzer back from the dead.  I added AVR support, fixed numerous bugs, made things more generic in the support of big-endian vs. little-endian, Harvard vs Von Neumann architecture, RISC vs CISC, byte-opcodes vs word-opcodes, etc.  And thus [gendasm](https://github.com/dewhisna/gendasm) was born.
 
 
 License
@@ -42,4 +44,23 @@ GenDasm - Generic Code-Seeking Disassembler Engine
 Copyright (c) 2021 Donna Whisnant, a.k.a. Dewtronics.
 
 Contact: <http://www.dewtronics.com/>
+
+GNU General Public License Usage
+
+This content may be used under the terms of the GNU General Public License
+version 3.0 as published by the Free Software Foundation and appearing
+in the file gpl-3.0.txt included in the packaging of this app. Please
+review the following information to ensure the GNU General Public License
+version 3.0 requirements will be met:
+
+<http://www.gnu.org/copyleft/gpl.html>
+
+
+Other Usage:
+
+Alternatively, this repository may be used in accordance with the terms
+and conditions contained in a signed written agreement between you and
+Dewtronics, a.k.a. Donna Whisnant.
+
+See '[LICENSE](./LICENSE.txt)' for the full content of the license.
 
