@@ -1,0 +1,18 @@
+#!/bin/sh
+
+DIR=$(dirname "$0")
+
+mkdir -p "${DIR}/build-hex2bin"
+cd "${DIR}/build-hex2bin"
+
+wget -O Hex2bin-2.1.tar.bz2  https://sourceforge.net/projects/hex2bin/files/hex2bin/Hex2bin-2.1.tar.bz2/download
+tar -jxvf Hex2bin-2.1.tar.bz2
+cd Hex2bin-2.1
+patch -p1 < ../../Hex2bin-2.1.patch
+make clean
+make
+mv hex2bin ..
+mv mot2bin ..
+cd ..
+rm -r Hex2bin-2.1
+rm Hex2bin-2.1.tar.bz2

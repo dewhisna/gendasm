@@ -1,0 +1,12 @@
+diff -rupN original/asxv5pxx/as6811/m11adr.c patched/asxv5pxx/as6811/m11adr.c
+--- original/asxv5pxx/as6811/m11adr.c	2021-02-22 16:03:17.000000000 -0600
++++ patched/asxv5pxx/as6811/m11adr.c	2021-07-03 10:05:13.041846364 -0500
+@@ -87,7 +87,7 @@ struct expr *esp;
+ 			if ((!esp->e_flag)
+ 			    && (esp->e_base.e_ap == NULL)
+ 			    && !(esp->e_addr & ~0xFF)) {
+-				esp->e_mode = S_DIR;
++				esp->e_mode = S_EXT;
+ 			}
+ 			if ((!esp->e_flag)
+ 				&& (zpg != NULL)

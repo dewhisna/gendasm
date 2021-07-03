@@ -1,0 +1,27 @@
+diff -rupN Hex2bin-2.1-orig/common.c Hex2bin-2.1-patched/common.c
+--- Hex2bin-2.1-orig/common.c	2015-08-05 12:44:22.000000000 -0500
++++ Hex2bin-2.1-patched/common.c	2015-11-23 21:27:52.726627485 -0600
+@@ -326,7 +326,7 @@ void WriteMemBlock32(uint32_t Value)
+ 
+ void WriteMemory(void)
+ {
+-    if ((Cks_Addr >= Lowest_Address) || (Cks_Addr < Highest_Address))
++    if ((Cks_Addr >= Lowest_Address) && (Cks_Addr < Highest_Address))
+     {
+         if(Force_Value)
+         {
+@@ -563,10 +563,10 @@ void Allocate_Memory_And_Rewind(void)
+     else
+         Highest_Address = Lowest_Address + Max_Length - 1;
+ 
+-	fprintf(stdout,"Lowest address:   %d\n",Lowest_Address);
+-	fprintf(stdout,"Highest address:  %d\n",Highest_Address);
+-	fprintf(stdout,"Starting address: %d\n",Starting_Address);
+-	fprintf(stdout,"Max Length:       %d\n\n",Max_Length);
++	fprintf(stdout,"Lowest address:   %08X\n",Lowest_Address);
++	fprintf(stdout,"Highest address:  %08X\n",Highest_Address);
++	fprintf(stdout,"Starting address: %08X\n",Starting_Address);
++	fprintf(stdout,"Max Length:       %u\n\n",Max_Length);
+ 
+     /* Now that we know the buffer size, we can allocate it. */
+     /* allocate a buffer */
