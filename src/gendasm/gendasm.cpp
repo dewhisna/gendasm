@@ -16,6 +16,9 @@
 #include <dfc/binary/binarydfc.h>
 #include <dfc/intel/inteldfc.h>
 #include <dfc/srec/srecdfc.h>
+#ifdef ELF_SUPPORT
+#include <dfc/elf/elfdfc.h>
+#endif
 
 #include <cpu/m6811/m6811gdc.h>
 #include <cpu/avr/avrgdc.h>
@@ -49,6 +52,10 @@ int main(int argc, char *argv[])
 	CDataFileConverters::registerDataFileConverter(&dfcIntel);
 	CSrecDataFileConverter dfcSrec;
 	CDataFileConverters::registerDataFileConverter(&dfcSrec);
+#ifdef ELF_SUPPORT
+	CELFDataFileConverter dfcELF;
+	CDataFileConverters::registerDataFileConverter(&dfcELF);
+#endif
 
 	// Disassemblers:
 	CDisassemblers disassemblers;

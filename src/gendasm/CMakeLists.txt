@@ -17,6 +17,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Compile Options
 
 option(FUNC_FLAG_COMMENT "Add Function Flags to Comment Field" OFF)
+option(ELF_SUPPORT "Use ELF Support (only with GCC)" ON)
+
+# -----------------------------------------------------------------------------
+
+if(ELF_SUPPORT)
+	set(CMAKE_CXX_EXTENSIONS ON)		# require gnu extensions for __gnu_cxx::stdio_filebuf to get file descriptor for iostream
+
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(LIBELF REQUIRED IMPORTED_TARGET libelf)
+endif()
 
 # -----------------------------------------------------------------------------
 
@@ -82,6 +92,22 @@ set(dfc_srec_Headers
 # -----------------------------------------------------------------------------
 
 #
+# ELF Data File Converter
+#
+
+if(ELF_SUPPORT)
+	set(dfc_elf_Sources
+		dfc/elf/elfdfc.cpp
+	)
+
+	set(dfc_elf_Headers
+		dfc/elf/elfdfc.h
+	)
+endif()
+
+# -----------------------------------------------------------------------------
+
+#
 # M6811 Disassembler
 #
 
@@ -122,6 +148,9 @@ add_executable(gendasm
 	${dfc_srec_Sources}
 	${dfc_srec_Headers}
 	# ----
+	${dfc_elf_Sources}
+	${dfc_elf_Headers}
+	# ----
 	${cpu_m6811_Sources}
 	${cpu_m6811_Headers}
 	# ----
@@ -129,9 +158,21 @@ add_executable(gendasm
 	${cpu_avr_Headers}
 )
 
+if(ELF_SUPPORT)
+	target_link_libraries(gendasm PRIVATE
+		PkgConfig::LIBELF
+	)
+endif()
+
 if(FUNC_FLAG_COMMENT)
 	target_compile_definitions(gendasm PRIVATE
 		FUNC_FLAG_COMMENT
+	)
+endif()
+
+if(ELF_SUPPORT)
+	target_compile_definitions(gendasm PRIVATE
+		ELF_SUPPORT
 	)
 endif()
 
