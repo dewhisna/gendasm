@@ -27,6 +27,9 @@ const std::string &EXCEPTION_ERROR::errorMessage(ERR_CODE nErrorCode)
 		"Error: Write Failed",					//		ERR_WRITEFAILED
 		"Error: Read Failed",					//		ERR_READFAILED
 		"Error: Invalid Record",				//		ERR_INVALID_RECORD
+		"Error: Unknown File Type",				//		ERR_UNKNOWN_FILE_TYPE
+		"Error: Library Initialization Failed",	//		ERR_LIBRARY_INIT_FAILED
+		"Error: Not Implemented",				//		ERR_NOT_IMPLEMENTED
 	};
 	static const std::string strUnknownError = "Error: Unknown error encountered";
 

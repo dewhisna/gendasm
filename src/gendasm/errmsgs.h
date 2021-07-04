@@ -40,6 +40,9 @@ public:
 		ERR_WRITEFAILED,
 		ERR_READFAILED,
 		ERR_INVALID_RECORD,				// DFC file record invalid (such as too short or wrong syntax)
+		ERR_UNKNOWN_FILE_TYPE,			// Can't identify file type (such as elf not being an elf)
+		ERR_LIBRARY_INIT_FAILED,		// Library initialization Error
+		ERR_NOT_IMPLEMENTED,			// Operation not implemented
 		ERR_CODE_COUNT
 	};
 
