@@ -25,14 +25,17 @@ public:
 
 	virtual const char *DefaultExtension() const override { return "bin"; }
 
-	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const override;
+	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
+										std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
 
 	virtual bool ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
-													TDescElement nDesc) const override;
+													TDescElement nDesc,
+													std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
 
 	virtual bool WriteDataFile(std::ostream &aFile, const CMemRanges &aRange, TAddress nNewBase,
 													const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
-													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const override;
+													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
+													std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
 };
 
 #endif   // BINDFC_H

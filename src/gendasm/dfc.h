@@ -54,6 +54,9 @@ public:
 		return strDefaultExtension;
 	}
 
+	// TODO : Change these function signatures to enable a better way to handle posix file descriptors
+	//		compatible with libelf, etc., without requiring __gnu_cxx shenanigans...
+
 	// RetrieveFileMapping
 	//    This is a pure virtual function that must be overriden in child Data File Converter
 	//    classes.  Overriding functions are to read the open BINARY file specified
@@ -78,7 +81,7 @@ public:
 	//       ERR_UNEXPECTED_EOF if end_of_file is encountered before it was expected.
 	//       ERR_OUT_OF_MEMORY if an allocation of a new MemRange entry fails.
 	//
-	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const = 0;
+	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const = 0;
 
 	// ReadDataFile:
 	//    This is a pure virtual function that must be overriden in child Data File Converter
@@ -106,7 +109,7 @@ public:
 	//       ERR_OVERFLOW if an attempt is made to load an address outside the memory bounds.
 	//
 	virtual bool ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
-													TDescElement nDesc) const = 0;
+													TDescElement nDesc, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const = 0;
 
 	// WriteDataFile:
 	//    This is a pure virutal function that must be overriden in child Data File Converter
@@ -150,7 +153,7 @@ public:
 	//       ERR_OVERFLOW if a write to a address included file yielded an oversized address.
 	virtual bool WriteDataFile(std::ostream &aFile, const CMemRanges &aRange, TAddress nNewBase,
 													const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
-													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const = 0;
+													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const = 0;
 };
 
 

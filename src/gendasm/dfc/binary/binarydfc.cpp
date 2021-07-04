@@ -13,14 +13,22 @@
 
 #include <assert.h>
 
+#ifndef UNUSED
+	#define UNUSED(x) ((void)(x))
+#endif
+
 // RetrieveFileMapping:
 //
 //    This function reads in an already opened BINARY file referenced by
 //    'aFile' and fills in the CMemRanges object that encapsulates the file's
 //    contents, offsetted by 'NewBase' (allowing loading of different files
 //    to different base addresses).
-bool CBinaryDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const
+bool CBinaryDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
+													std::ostream *msgFile, std::ostream *errFile) const
 {
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
 	aRange.clear();
 	aFile.seekg(0L, std::ios_base::end);
 	std::istream::pos_type nSize = aFile.tellg();
@@ -42,8 +50,12 @@ bool CBinaryDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress
 //    on the CMemBlocks to initialize it.  This function will only read
 //    and populate the data on it
 bool CBinaryDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
-												TDescElement nDesc) const
+												TDescElement nDesc,
+												std::ostream *msgFile, std::ostream *errFile) const
 {
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
 	bool bRetVal = true;
 	TAddress nCurrAddr = nNewBase;
 	TMemoryElement nByte;
@@ -75,8 +87,12 @@ bool CBinaryDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBa
 //    computes out as false, then the data is filled according to the FillMode.
 bool CBinaryDataFileConverter::WriteDataFile(std::ostream &aFile, const CMemRanges &aRange, TAddress nNewBase,
 												const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
-												DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const
+												DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
+												std::ostream *msgFile, std::ostream *errFile) const
 {
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
 	bool bRetVal = true;
 	TSize nBytesLeft;				// Remaining number of bytes to check/write
 	TAddress nCurrAddr;				// Current Logical Memory Address

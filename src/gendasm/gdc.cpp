@@ -1106,7 +1106,7 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 			m_sInputFileList.push_back(strFilename);
 			try {
 				CMemRanges ranges;
-				if (!pDFC->RetrieveFileMapping(theFile, nLoadAddress, ranges)) {
+				if (!pDFC->RetrieveFileMapping(theFile, nLoadAddress, ranges, msgFile, errFile)) {
 					if (errFile) {
 						(*errFile) << "*** Unable to completely retrieve the file mapping for \"" << strFilename << "\"\n";
 					}
@@ -1116,7 +1116,7 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 				// TODO : Allow different physical/logical range offsets and different fill values:
 				m_Memory[MT_ROM].initFromRanges(ranges, 0, true, 0, DMEM_NOTLOADED);
 
-				bStatus = pDFC->ReadDataFile(theFile, nLoadAddress, m_Memory[MT_ROM], DMEM_LOADED);
+				bStatus = pDFC->ReadDataFile(theFile, nLoadAddress, m_Memory[MT_ROM], DMEM_LOADED, msgFile, errFile);
 			}
 			catch (const EXCEPTION_ERROR &aErr) {
 				bRetVal = false;

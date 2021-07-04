@@ -16,6 +16,10 @@
 
 #include <assert.h>
 
+#ifndef UNUSED
+	#define UNUSED(x) ((void)(x))
+#endif
+
 // Intel format:
 //    :ccaaaammdd....kk
 //    where: cc=byte count
@@ -38,8 +42,12 @@
 //    'aFile' and fills in the CMemRanges object that encapsulates the file's
 //    contents, offsetted by 'NewBase' (allowing loading of different files
 //    to different base addresses).
-bool CIntelDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange) const
+bool CIntelDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
+													std::ostream *msgFile, std::ostream *errFile) const
 {
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
 	return _ReadDataFile(aFile, nNewBase, nullptr, &aRange, 0);
 }
 
@@ -56,8 +64,12 @@ bool CIntelDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress 
 //    on the CMemBlocks to initialize it.  This function will only read
 //    and populate the data on it
 bool CIntelDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
-												TDescElement nDesc) const
+												TDescElement nDesc,
+												std::ostream *msgFile, std::ostream *errFile) const
 {
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
 	return _ReadDataFile(aFile, nNewBase, &aMemory, nullptr, nDesc);
 }
 
@@ -231,8 +243,12 @@ bool CIntelDataFileConverter::_ReadDataFile(std::istream &aFile, TAddress nNewBa
 //    computes out as false, then the data is filled according to the FillMode.
 bool CIntelDataFileConverter::WriteDataFile(std::ostream &aFile, const CMemRanges &aRange, TAddress nNewBase,
 												const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
-												DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue) const
+												DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
+												std::ostream *msgFile, std::ostream *errFile) const
 {
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
 	bool bRetVal = true;
 	int nLineCount = 0;				// Line Counter
 	std::string strBuffer;			// Line Buffer
