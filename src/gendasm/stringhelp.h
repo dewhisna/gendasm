@@ -79,11 +79,15 @@ static bool starts_with(std::string_view s, std::string_view prefix) {
 }
 
 // padString : Pads a string with spaces up to the specified length.
-static TString padString(const TString &s, TString::size_type nWidth)
+static TString padString(const TString &s, TString::size_type nWidth, TString::value_type chrPadChar = ' ', bool bPrepend = false)
 {
 	TString strRetVal = s;
 
-	if (strRetVal.size() < nWidth) strRetVal.append(nWidth-strRetVal.size() , ' ');
+	if (!bPrepend) {
+		if (strRetVal.size() < nWidth) strRetVal.append(nWidth-strRetVal.size(), chrPadChar);
+	} else {
+		if (strRetVal.size() < nWidth) strRetVal = std::string().append(nWidth-strRetVal.size(), chrPadChar) + strRetVal;
+	}
 	return strRetVal;
 }
 
