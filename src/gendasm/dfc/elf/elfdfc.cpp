@@ -21,6 +21,7 @@
 #include <cstring>
 
 #include "elfdfc.h"
+#include "gdc.h"
 
 #include <stringhelp.h>
 
@@ -169,6 +170,55 @@ namespace {
 
 // ----------------------------------------------------------------------------
 
+static void printField(std::ostream &outFile, const TString &strName, int nFieldSize, uint64_t nVal, bool bDecimal = false)
+{
+	std::string strPrefix = (!strName.empty() ? ("    " + strName + " : ") : "");
+	if (!bDecimal) {
+		outFile << strPrefix << "0x" << std::uppercase << std::setfill('0') << std::setw(nFieldSize*2) << std::setbase(16)
+					<< nVal << std::nouppercase << std::setbase(0);
+	} else {
+		outFile << strPrefix << nVal;
+	}
+	if (!strPrefix.empty()) outFile << "\n";
+};
+
+static TString getPHdrType(GElf_Word nValue)
+{
+	CELFInfoMap::const_iterator itrPT = g_mapPHdrType.find(nValue);
+	if (itrPT == g_mapPHdrType.cend()) return "unknown";
+	return itrPT->second;
+};
+
+static TString getSHdrType(GElf_Word nValue)
+{
+	CELFInfoMap::const_iterator itrST = g_mapSHdrType.find(nValue);
+	if (itrST == g_mapSHdrType.cend()) return "unknown";
+	return itrST->second;
+};
+
+static TString getSymType(unsigned char info)
+{
+	CELFInfoMap::const_iterator itrST = g_mapSymType.find(GELF_ST_TYPE(info));
+	if (itrST == g_mapSymType.cend()) return "unknown";
+	return itrST->second;
+};
+
+static TString getSymBind(unsigned char info)
+{
+	CELFInfoMap::const_iterator itrSB = g_mapSymBind.find(GELF_ST_BIND(info));
+	if (itrSB == g_mapSymBind.cend()) return "unknown";
+	return itrSB->second;
+};
+
+static TString getSymVis(unsigned char other)
+{
+	CELFInfoMap::const_iterator itrSV = g_mapSymVis.find(GELF_ST_VISIBILITY(other));
+	if (itrSV == g_mapSymVis.cend()) return "unknown";
+	return itrSV->second;
+};
+
+// ----------------------------------------------------------------------------
+
 size_t getStrTabSectionIndex(Elf *pElf)
 {
 	size_t nSHdrNum = 0;
@@ -210,444 +260,293 @@ std::string CELFDataFileConverter::GetShortDescription() const
 	return "ELF Data File Converter (libelf " + std::to_string(_ELFUTILS_VERSION/1000) + "." + padString(strVersion, 3, '0', true) + ")";
 }
 
-// RetrieveFileMapping:
-//
-//    This function reads in an already opened text BINARY file referenced by
-//    'aFile' and fills in the CMemRanges object that encapsulates the file's
-//    contents, offsetted by 'NewBase' (allowing loading of different files
-//    to different base addresses).
-bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
-													std::ostream *msgFile, std::ostream *errFile) const
+// ============================================================================
+
+bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisassembler *pDisassembler, struct Elf *pElf, TAddress nNewBase,
+					CMemBlocks *pMemory, CMemRanges *pRange, TDescElement nDesc,
+					std::ostream *msgFile, std::ostream *errFile) const
 {
 	UNUSED(errFile);
 
-	auto &&fnPrintField = [msgFile](const TString &strName, int nFieldSize, uint64_t nVal, bool bDecimal = false)->void {
-		assert(msgFile != nullptr);
-		std::string strPrefix = (!strName.empty() ? ("    " + strName + " : ") : "");
-		if (!bDecimal) {
-			(*msgFile) << strPrefix << "0x" << std::uppercase << std::setfill('0') << std::setw(nFieldSize*2) << std::setbase(16)
-						<< nVal << std::nouppercase << std::setbase(0);
-		} else {
-			(*msgFile) << strPrefix << nVal;
-		}
-		if (!strPrefix.empty()) (*msgFile) << "\n";
-	};
-
-	auto &&fnPHdrType = [](GElf_Word nValue)->TString {
-		CELFInfoMap::const_iterator itrPT = g_mapPHdrType.find(nValue);
-		if (itrPT == g_mapPHdrType.cend()) return "unknown";
-		return itrPT->second;
-	};
-
-	auto &&fnSHdrType = [](GElf_Word nValue)->TString {
-		CELFInfoMap::const_iterator itrST = g_mapSHdrType.find(nValue);
-		if (itrST == g_mapSHdrType.cend()) return "unknown";
-		return itrST->second;
-	};
-
-	auto &&fnSymType = [](unsigned char info)->TString {
-		CELFInfoMap::const_iterator itrST = g_mapSymType.find(GELF_ST_TYPE(info));
-		if (itrST == g_mapSymType.cend()) return "unknown";
-		return itrST->second;
-	};
-
-	auto &&fnSymBind = [](unsigned char info)->TString {
-		CELFInfoMap::const_iterator itrSB = g_mapSymBind.find(GELF_ST_BIND(info));
-		if (itrSB == g_mapSymBind.cend()) return "unknown";
-		return itrSB->second;
-	};
-
-	auto &&fnSymVis = [](unsigned char other)->TString {
-		CELFInfoMap::const_iterator itrSV = g_mapSymVis.find(GELF_ST_VISIBILITY(other));
-		if (itrSV == g_mapSymVis.cend()) return "unknown";
-		return itrSV->second;
-	};
-
 	// ------------------------------------------------------------------------
 
-	Elf *pElf;
+	bool bRetVal = true;
 
-	aRange.clear();
-	aFile.seekg(0L, std::ios_base::beg);
+	if (pRange) pRange->clear();
 
-	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
-												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
+	// Basic ELF Header Verification:
+	// ------------------------------
+	if (elf_kind(pElf) != ELF_K_ELF) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_UNKNOWN_FILE_TYPE, 0, "Not an ELF object file");
 
-	// Note: We can't use elf_memory() since it wants an actual uncompressed and padded
-	//		memory image of the file
+	GElf_Ehdr ehdr;
 
-	int fd = static_cast< __gnu_cxx::stdio_filebuf< char > * const >(aFile.rdbuf())->fd();
+	if (gelf_getehdr(pElf, &ehdr) == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getehdr() failed: ") + std::string(elf_errmsg(-1)));
 
-	pElf = elf_begin(fd, ELF_C_READ, nullptr);
-	if (pElf == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-												std::string("elf_begin() failed: ") + std::string(elf_errmsg(-1)));
-
-	try {
-		// Basic ELF Header Verification:
-		// ------------------------------
-		if (elf_kind(pElf) != ELF_K_ELF) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_UNKNOWN_FILE_TYPE, 0, "Not an ELF object file");
-
-		GElf_Ehdr ehdr;
-
-		if (gelf_getehdr(pElf, &ehdr) == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getehdr() failed: ") + std::string(elf_errmsg(-1)));
-
-		int nClass = gelf_getclass(pElf);
-		if (nClass == ELFCLASSNONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getclass() failed: ") + std::string(elf_errmsg(-1)));
-		if (msgFile) (*msgFile) << ((nClass == ELFCLASS32) ? "32-bit" : "64-bit") << " ELF object\n";
+	int nClass = gelf_getclass(pElf);
+	if (nClass == ELFCLASSNONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getclass() failed: ") + std::string(elf_errmsg(-1)));
+	if (msgFile) (*msgFile) << ((nClass == ELFCLASS32) ? "32-bit" : "64-bit") << " ELF object\n";
 
 #if DEBUG_ELF_FILE
-		if (msgFile) {
-			(*msgFile) << "Elf Header:\n";
+	if (msgFile) {
+		(*msgFile) << "Elf Header:\n";
 
-			(*msgFile) << "    e_ident: ";
-			for (auto const & byte : std::vector<unsigned char>(ehdr.e_ident, &ehdr.e_ident[std::min(static_cast<size_t>(EI_ABIVERSION), sizeof(ehdr.e_ident))])) {
-				(*msgFile) << " " << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16)
-							<< static_cast<unsigned int>(byte) << std::nouppercase << std::setbase(0);
-			}
-			(*msgFile) << "\n";
-
-			fnPrintField("Object File Type", sizeof(ehdr.e_type), ehdr.e_type);
-			fnPrintField("Machine", sizeof(ehdr.e_machine), ehdr.e_machine);
-			fnPrintField("Object File Version:", sizeof(ehdr.e_version), ehdr.e_version);
-			fnPrintField("Entry Point Virtual Address", std::min(4ul, sizeof(ehdr.e_entry)), ehdr.e_entry);
-			fnPrintField("Program Header Table File Offset", std::min(4ul, sizeof(ehdr.e_phoff)), ehdr.e_phoff);
-			fnPrintField("Section Header Table File Offset", std::min(4ul, sizeof(ehdr.e_shoff)), ehdr.e_shoff);
-			fnPrintField("Processor-Specific Flags", sizeof(ehdr.e_flags), ehdr.e_flags);
-			fnPrintField("ELF Header Size in Bytes", sizeof(ehdr.e_ehsize), ehdr.e_ehsize, true);
-			fnPrintField("Program Header Table Entry Size", sizeof(ehdr.e_phentsize), ehdr.e_phentsize, true);
-			fnPrintField("Program Header Table Entry Count", sizeof(ehdr.e_phnum), ehdr.e_phnum, true);
-			fnPrintField("Section Header Table Entry Size", sizeof(ehdr.e_shentsize), ehdr.e_shentsize, true);
-			fnPrintField("Section Header Table Entry Count", sizeof(ehdr.e_shnum), ehdr.e_shnum, true);
-			fnPrintField("Section Header String Table Index", sizeof(ehdr.e_shstrndx), ehdr.e_shstrndx, true);
+		(*msgFile) << "    e_ident: ";
+		for (auto const & byte : std::vector<unsigned char>(ehdr.e_ident, &ehdr.e_ident[std::min(static_cast<size_t>(EI_ABIVERSION), sizeof(ehdr.e_ident))])) {
+			(*msgFile) << " " << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16)
+						<< static_cast<unsigned int>(byte) << std::nouppercase << std::setbase(0);
 		}
+		(*msgFile) << "\n";
+
+		printField(*msgFile, "Object File Type", sizeof(ehdr.e_type), ehdr.e_type);
+		printField(*msgFile, "Machine", sizeof(ehdr.e_machine), ehdr.e_machine);
+		printField(*msgFile, "Object File Version:", sizeof(ehdr.e_version), ehdr.e_version);
+		printField(*msgFile, "Entry Point Virtual Address", std::min(4ul, sizeof(ehdr.e_entry)), ehdr.e_entry);
+		printField(*msgFile, "Program Header Table File Offset", std::min(4ul, sizeof(ehdr.e_phoff)), ehdr.e_phoff);
+		printField(*msgFile, "Section Header Table File Offset", std::min(4ul, sizeof(ehdr.e_shoff)), ehdr.e_shoff);
+		printField(*msgFile, "Processor-Specific Flags", sizeof(ehdr.e_flags), ehdr.e_flags);
+		printField(*msgFile, "ELF Header Size in Bytes", sizeof(ehdr.e_ehsize), ehdr.e_ehsize, true);
+		printField(*msgFile, "Program Header Table Entry Size", sizeof(ehdr.e_phentsize), ehdr.e_phentsize, true);
+		printField(*msgFile, "Program Header Table Entry Count", sizeof(ehdr.e_phnum), ehdr.e_phnum, true);
+		printField(*msgFile, "Section Header Table Entry Size", sizeof(ehdr.e_shentsize), ehdr.e_shentsize, true);
+		printField(*msgFile, "Section Header Table Entry Count", sizeof(ehdr.e_shnum), ehdr.e_shnum, true);
+		printField(*msgFile, "Section Header String Table Index", sizeof(ehdr.e_shstrndx), ehdr.e_shstrndx, true);
+	}
 #endif
 
-		// Identify Machine Type:
-		// ----------------------
-		if (msgFile) {
-			CELFInfoMap::const_iterator itrMachine = g_mapMachineType.find(ehdr.e_machine);
-			if (itrMachine == g_mapMachineType.cend()) {
-				(*msgFile) << "ELF Machine Type: Unknown/Unsupported ELF Machine Type\n";
-			} else {
-				(*msgFile) << "ELF Machine Type: " << itrMachine->second << "\n";
+	// Identify Machine Type:
+	// ----------------------
+	if (msgFile) {
+		CELFInfoMap::const_iterator itrMachine = g_mapMachineType.find(ehdr.e_machine);
+		if (itrMachine == g_mapMachineType.cend()) {
+			(*msgFile) << "ELF Machine Type: Unknown/Unsupported ELF Machine Type\n";
+		} else {
+			(*msgFile) << "ELF Machine Type: " << itrMachine->second << "\n";
 
-				// TODO : Keep this list updated with the processors/machines that we
-				//		have GDC support for:
-				switch (ehdr.e_machine) {
-					case EM_68HC11:
-						// There are subtypes for 68HC12, but no other distinguishing features
-						break;
+			// TODO : Keep this list updated with the processors/machines that we
+			//		have GDC support for:
+			switch (ehdr.e_machine) {
+				case EM_68HC11:
+					// There are subtypes for 68HC12, but no other distinguishing features
+					break;
 
-					case EM_AVR:
-					{
-						CELFInfoMap::const_iterator itrSubmachine = g_mapAVRType.find(ehdr.e_flags & EF_AVR_MACH);
-						if (itrSubmachine == g_mapAVRType.cend()) {
-							(*msgFile) << "AVR Type: Unknown/Unsupported\n";
-						} else {
-							(*msgFile) << "AVR Type: " << itrSubmachine->second << "\n";
-						}
-						break;
-					}
-				}
-			}
-		}
-
-		// Get Header Counts:
-		// ------------------
-		size_t nPHdrNum = 0;
-		size_t nSHdrNum = 0;
-		size_t nSHdrStrNdx = 0;
-
-		if (elf_getphdrnum(pElf, &nPHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getphdrnum() failed: ") + std::string(elf_errmsg(-1)));
-		if (elf_getshdrnum(pElf, &nSHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getshdrnum() failed: ") + std::string(elf_errmsg(-1)));
-		if (elf_getshdrstrndx(pElf, &nSHdrStrNdx) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getshdrstrndx() failed: ") + std::string(elf_errmsg(-1)));
-
-#if DEBUG_ELF_FILE
-		if (msgFile) {
-			(*msgFile) << "    Program Header Table Entry Count: " << nPHdrNum << "\n";
-			(*msgFile) << "    Section Header Table Entry Count: " << nSHdrNum << "\n";
-			(*msgFile) << "    Section Header String Table Index: " << nSHdrStrNdx << "\n";
-		}
-#endif
-
-		// Get Program Headers:
-		// --------------------
-		if (msgFile) {
-			(*msgFile) << "Program Headers:\n";
-			(*msgFile) << "    Type           Offset   VirtAddr   PhysAddr   FileSize MemSize  Flg Align  Section\n";
-		}
-
-		for (size_t ndxP = 0; ndxP < nPHdrNum; ++ndxP) {
-			GElf_Phdr phdr;
-			if (gelf_getphdr(pElf, ndxP, &phdr) != &phdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getphdr() failed on index ") + std::to_string(ndxP) +
-																": " + std::string(elf_errmsg(-1)));
-
-			// Allocate ranges for "LOAD" and Read/Execute sections:
-			if ((phdr.p_type == PT_LOAD) &&
-				(phdr.p_flags & PF_R) &&
-				(phdr.p_flags & PF_X)) {
-				aRange.push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
-			}
-
-			// Print Header Detail:
-			if (msgFile) {
-				(*msgFile) << "    ";
-				(*msgFile) << padString(fnPHdrType(phdr.p_type), 15);
-				fnPrintField(TString(), 3, phdr.p_offset); (*msgFile) << " ";
-				fnPrintField(TString(), 4, phdr.p_vaddr); (*msgFile) << " ";
-				fnPrintField(TString(), 4, phdr.p_paddr); (*msgFile) << " ";
-				fnPrintField(TString(), 3, phdr.p_filesz); (*msgFile) << " ";
-				fnPrintField(TString(), 3, phdr.p_memsz); (*msgFile) << " ";
-				(*msgFile) << ((phdr.p_flags & PF_R) ? "R" : " ");
-				(*msgFile) << ((phdr.p_flags & PF_W) ? "W" : " ");
-				(*msgFile) << ((phdr.p_flags & PF_X) ? "X" : " ");
-				(*msgFile) << " ";
-				fnPrintField(TString(), 1, phdr.p_align);(*msgFile) << " ";
-			}
-
-			for (size_t ndxS = 0; ndxS < nSHdrNum; ++ndxS) {
-				Elf_Scn *pScn = nullptr;
-				GElf_Shdr shdr;
-				pScn = elf_getscn(pElf, ndxS);
-				if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-															std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
-				if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-															std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
-				if ((shdr.sh_offset == phdr.p_offset) &&
-					(shdr.sh_addr == phdr.p_vaddr)) {
-					char *pName;
-					pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
-					if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-												std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
-					if (msgFile) {
-						(*msgFile) << " " << pName;
+				case EM_AVR:
+				{
+					CELFInfoMap::const_iterator itrSubmachine = g_mapAVRType.find(ehdr.e_flags & EF_AVR_MACH);
+					if (itrSubmachine == g_mapAVRType.cend()) {
+						(*msgFile) << "AVR Type: Unknown/Unsupported\n";
+					} else {
+						(*msgFile) << "AVR Type: " << itrSubmachine->second << "\n";
 					}
 					break;
 				}
 			}
-
-			if (msgFile) (*msgFile) << "\n";
 		}
-
-		if (msgFile) (*msgFile) << "\n";
-
-
-		// Section Headers:
-		// ----------------
-		if (msgFile) {
-			(*msgFile) << "Section Headers:\n";
-			(*msgFile) << "  [Nr]  Name                     Type            Addr       Off      Size     EntS Flg Lk Inf Al\n";
-		}
-
-		for (size_t ndx = 0; ndx < nSHdrNum; ++ndx) {
-			Elf_Scn *pScn = nullptr;
-			GElf_Shdr shdr;
-			char *pName;
-			pScn = elf_getscn(pElf, ndx);
-			if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-														std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
-			if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-														std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
-			pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
-			if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-										std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
-
-			if (msgFile) {
-				(*msgFile) << "  ";
-				TString strTemp = "[" + padString(std::to_string(elf_ndxscn(pScn)), 2, ' ', true) + "]";
-				(*msgFile) << padString(strTemp, 5) << " ";
-				(*msgFile) << padString(pName, 24).substr(0, 24) << " ";
-				(*msgFile) << padString(fnSHdrType(shdr.sh_type), 15) << " ";
-				fnPrintField(TString(), 4, shdr.sh_addr); (*msgFile) << " ";
-				fnPrintField(TString(), 3, shdr.sh_offset); (*msgFile) << " ";
-				fnPrintField(TString(), 3, shdr.sh_size); (*msgFile) << " ";
-				fnPrintField(TString(), 1, shdr.sh_entsize); (*msgFile) << " ";
-				TString strFlags;
-				if (shdr.sh_flags & SHF_WRITE) strFlags += 'W';
-				if (shdr.sh_flags & SHF_ALLOC) strFlags += 'A';
-				if (shdr.sh_flags & SHF_EXECINSTR) strFlags += 'X';
-				if (shdr.sh_flags & SHF_MERGE) strFlags += 'M';
-				if (shdr.sh_flags & SHF_STRINGS) strFlags += 'S';
-				if (shdr.sh_flags & SHF_INFO_LINK) strFlags += 'I';
-				if (shdr.sh_flags & SHF_LINK_ORDER) strFlags += 'L';
-				if (shdr.sh_flags & SHF_OS_NONCONFORMING) strFlags += 'O';
-				if (shdr.sh_flags & SHF_GROUP) strFlags += 'G';
-				if (shdr.sh_flags & SHF_TLS) strFlags += 'T';
-				if (shdr.sh_flags & SHF_EXCLUDE) strFlags += 'E';
-				if (shdr.sh_flags & SHF_COMPRESSED) strFlags += 'C';
-				(*msgFile) << padString(strFlags, 3) << " ";
-				(*msgFile) << padString(std::to_string(shdr.sh_link), 2, ' ' , true); (*msgFile) << " ";
-				(*msgFile) << padString(std::to_string(shdr.sh_info), 3, ' ', true); (*msgFile) << " ";
-				(*msgFile) << padString(std::to_string(shdr.sh_addralign), 2, ' ', true);
-
-				(*msgFile) << "\n";
-			}
-		}
-
-		if (msgFile) (*msgFile) << "\n";
-
-#if REPORT_SYMTABLE
-		// Symbol Tables:
-		// --------------
-		size_t nStrTabNdx = getStrTabSectionIndex(pElf);		// String table section index
-		if (nStrTabNdx == 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0, "Can't find .strtab");
-
-		for (size_t ndx = 0; ndx < nSHdrNum; ++ndx) {
-			Elf_Scn *pScn = nullptr;
-			GElf_Shdr shdr;
-			char *pName;
-			pScn = elf_getscn(pElf, ndx);
-			if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-														std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
-			if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-														std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
-			pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
-			if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-										std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
-
-			if (shdr.sh_type != SHT_SYMTAB) continue;
-			if (shdr.sh_size == 0) continue;
-
-			size_t nNumSyms = (shdr.sh_entsize ? shdr.sh_size/shdr.sh_entsize : 0);
-
-			if (msgFile) {
-				(*msgFile) << "Symbol table '" << pName << "' contains " << nNumSyms << " entries:\n";
-				(*msgFile) << "   Num: Value      Size  Type    Bind    Vis       Ndx Name\n";
-			}
-
-			Elf_Data *pData = nullptr;
-			size_t nIndex = 0;
-			while (nIndex < shdr.sh_size) {
-				pData = elf_getdata(pScn, pData);
-				if (pData == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-											std::string("getdata() failed for vaddr ") + std::to_string(shdr.sh_addr) +
-											": " + std::string(elf_errmsg(-1)));
-
-				for (size_t ndxSym = 0; ndxSym < nNumSyms; ++ndxSym) {
-					char *pSymName;
-					GElf_Sym sym;
-					if (gelf_getsym(pData, ndxSym, &sym) == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-																			std::string("getsym() failed for symbol ") + std::to_string(ndxSym) +
-																			": " + std::string(elf_errmsg(-1)));
-
-					if (msgFile) {
-						(*msgFile) << padString(std::to_string(ndxSym), 6, ' ', true) << ": ";
-						fnPrintField(TString(), 4, sym.st_value); (*msgFile) << " ";
-						(*msgFile) << padString(std::to_string(sym.st_size), 5, ' ', true) << " ";
-						(*msgFile) << padString(fnSymType(sym.st_info), 7) << " ";
-						(*msgFile) << padString(fnSymBind(sym.st_info), 7) << " ";
-						(*msgFile) << padString(fnSymVis(sym.st_other), 9) << " ";
-						if (sym.st_shndx == SHN_UNDEF) {
-							(*msgFile) << "UND ";
-						} else if (sym.st_shndx == SHN_ABS) {
-							(*msgFile) << "ABS ";
-						} else if (sym.st_shndx == SHN_COMMON) {
-							(*msgFile) << "COM ";
-						} else if (sym.st_shndx == SHN_XINDEX) {
-							(*msgFile) << "XTD ";
-						} else {
-							(*msgFile) << padString(std::to_string(sym.st_shndx), 3, ' ', true) << " ";
-						}
-						pSymName = elf_strptr(pElf, nStrTabNdx, sym.st_name);
-						if (pSymName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("strptr() failed for string index ") + std::to_string(sym.st_name) + ": " + std::string(elf_errmsg(-1)));
-						(*msgFile) << pSymName;
-
-						(*msgFile) << "\n";
-					}
-				}
-
-				nIndex += pData->d_size;
-			}
-
-			if (msgFile) (*msgFile) << "\n";
-		}
-#endif
-
-		elf_end(pElf);
-	} catch (...) {
-		elf_end(pElf);
-		throw;
 	}
 
-	return true;
-}
+	// Get Header Counts:
+	// ------------------
+	size_t nPHdrNum = 0;
+	size_t nSHdrNum = 0;
+	size_t nSHdrStrNdx = 0;
+
+	if (elf_getphdrnum(pElf, &nPHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getphdrnum() failed: ") + std::string(elf_errmsg(-1)));
+	if (elf_getshdrnum(pElf, &nSHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getshdrnum() failed: ") + std::string(elf_errmsg(-1)));
+	if (elf_getshdrstrndx(pElf, &nSHdrStrNdx) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getshdrstrndx() failed: ") + std::string(elf_errmsg(-1)));
+
+#if DEBUG_ELF_FILE
+	if (msgFile) {
+		(*msgFile) << "    Program Header Table Entry Count: " << nPHdrNum << "\n";
+		(*msgFile) << "    Section Header Table Entry Count: " << nSHdrNum << "\n";
+		(*msgFile) << "    Section Header String Table Index: " << nSHdrStrNdx << "\n";
+	}
+#endif
+
+	// Get Program Headers:
+	// --------------------
+	if (msgFile) {
+		(*msgFile) << "Program Headers:\n";
+		(*msgFile) << "    Type           Offset   VirtAddr   PhysAddr   FileSize MemSize  Flg Align  Section\n";
+	}
+
+	CMemRanges ranges[CDisassembler::NUM_MEMORY_TYPES];
+
+	for (size_t ndxP = 0; ndxP < nPHdrNum; ++ndxP) {
+		GElf_Phdr phdr;
+		if (gelf_getphdr(pElf, ndxP, &phdr) != &phdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getphdr() failed on index ") + std::to_string(ndxP) +
+															": " + std::string(elf_errmsg(-1)));
+
+		// Allocate ranges:
+		if (nReadMode == ERM_Mapping) {
+			// Get mapping for all marked "LOAD":
+			if (phdr.p_type == PT_LOAD) {
+				// Handle Read/Execute sections as CODE:
+				if ((phdr.p_flags & PF_R) &&
+					(phdr.p_flags & PF_X)) {
+					if (pRange) {
+						// If only a single range is given, it's taken to be
+						//	the MT_ROM range:
+						pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+					}
+
+					ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+				} else // Handle Read/Write sections as RAM (DATA):
+					if ((phdr.p_flags & PF_R) &&
+						(phdr.p_flags & PF_W) &&
+						((phdr.p_flags & PF_X) == 0)) {
+					// Note: nNewBase is for ROM-area only
+					if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
+						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBase, phdr.p_memsz));
+					} else {
+						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr, phdr.p_memsz));
+					}
+				} else // Handle Read-only sections as ROM (DATA):
+					if ((phdr.p_flags & PF_R) &&
+						((phdr.p_flags & PF_W) == 0) &&
+						((phdr.p_flags & PF_X) == 0)) {
+					if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
+						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBase, phdr.p_memsz));
+						if (pRange) {
+							// If only a single range is given, it's taken to be
+							//	the MT_ROM range:
+							pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBase, phdr.p_memsz));
+						}
+					} else {
+						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+						if (pRange) {
+							// If only a single range is given, it's taken to be
+							//	the MT_ROM range:
+							pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+						}
+					}
+				}
+			}
+		}
+
+		// Print Header Detail:
+		if (msgFile) {
+			(*msgFile) << "    ";
+			(*msgFile) << padString(getPHdrType(phdr.p_type), 15);
+			printField(*msgFile, TString(), 3, phdr.p_offset); (*msgFile) << " ";
+			printField(*msgFile, TString(), 4, phdr.p_vaddr); (*msgFile) << " ";
+			printField(*msgFile, TString(), 4, phdr.p_paddr); (*msgFile) << " ";
+			printField(*msgFile, TString(), 3, phdr.p_filesz); (*msgFile) << " ";
+			printField(*msgFile, TString(), 3, phdr.p_memsz); (*msgFile) << " ";
+			(*msgFile) << ((phdr.p_flags & PF_R) ? "R" : " ");
+			(*msgFile) << ((phdr.p_flags & PF_W) ? "W" : " ");
+			(*msgFile) << ((phdr.p_flags & PF_X) ? "X" : " ");
+			(*msgFile) << " ";
+			printField(*msgFile, TString(), 1, phdr.p_align);(*msgFile) << " ";
+		}
+
+		for (size_t ndxS = 0; ndxS < nSHdrNum; ++ndxS) {
+			Elf_Scn *pScn = nullptr;
+			GElf_Shdr shdr;
+			pScn = elf_getscn(pElf, ndxS);
+			if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+														std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
+			if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+														std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
+			if ((shdr.sh_offset == phdr.p_offset) &&
+				(shdr.sh_addr == phdr.p_vaddr)) {
+				char *pName;
+				pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
+				if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+											std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
+				if (msgFile) {
+					(*msgFile) << " " << pName;
+				}
+				break;
+			}
+		}
+
+		if (msgFile) (*msgFile) << "\n";
+	}
+
+	if (msgFile) (*msgFile) << "\n";
 
 
-// ReadDataFile:
-//
-//    This function reads in an already opened text BINARY file referenced by
-//    'aFile' into the CMemBlocks referenced by 'aMemory' offsetted by
-//    'NewBase' (allowing loading of different files to different base
-//    address) and setting the corresponding Memory Descriptors to 'nDesc'...
-//
-//    NOTE: The ranges in aMemory block must already be set, such as
-//    from a call to RetrieveFileMapping() here and calling initFromRanges()
-//    on the CMemBlocks to initialize it.  This function will only read
-//    and populate the data on it
-bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
-												TDescElement nDesc,
-												std::ostream *msgFile, std::ostream *errFile) const
-{
-	UNUSED(msgFile);
-	UNUSED(errFile);
+	// Allocate Memory if mapping:
+	if (pDisassembler && (nReadMode == ERM_Mapping)) {
+		for (int nMemType = 0; nMemType < CDisassembler::NUM_MEMORY_TYPES; ++nMemType) {
+			if (!ranges[nMemType].isNullRange()) {
+				pDisassembler->memory(static_cast<CDisassembler::MEMORY_TYPE>(nMemType)).initFromRanges(ranges[nMemType], 0, true, 0, nDesc);
+			}
+		}
+	}
 
-	bool bRetVal = true;
-	Elf *pElf;
 
-	aFile.seekg(0L, std::ios_base::beg);
+	// Section Headers:
+	// ----------------
+	if (msgFile) {
+		(*msgFile) << "Section Headers:\n";
+		(*msgFile) << "  [Nr]  Name                     Type            Addr       Off      Size     EntS Flg Lk Inf Al\n";
+	}
 
-	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
-												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
+	for (size_t ndx = 0; ndx < nSHdrNum; ++ndx) {
+		Elf_Scn *pScn = nullptr;
+		GElf_Shdr shdr;
+		char *pName;
+		pScn = elf_getscn(pElf, ndx);
+		if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+													std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
+		if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+													std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
+		pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
+		if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+									std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
 
-	// Note: We can't use elf_memory() since it wants an actual uncompressed and padded
-	//		memory image of the file
+		if (msgFile) {
+			(*msgFile) << "  ";
+			TString strTemp = "[" + padString(std::to_string(elf_ndxscn(pScn)), 2, ' ', true) + "]";
+			(*msgFile) << padString(strTemp, 5) << " ";
+			(*msgFile) << padString(pName, 24).substr(0, 24) << " ";
+			(*msgFile) << padString(getSHdrType(shdr.sh_type), 15) << " ";
+			printField(*msgFile, TString(), 4, shdr.sh_addr); (*msgFile) << " ";
+			printField(*msgFile, TString(), 3, shdr.sh_offset); (*msgFile) << " ";
+			printField(*msgFile, TString(), 3, shdr.sh_size); (*msgFile) << " ";
+			printField(*msgFile, TString(), 1, shdr.sh_entsize); (*msgFile) << " ";
+			TString strFlags;
+			if (shdr.sh_flags & SHF_WRITE) strFlags += 'W';
+			if (shdr.sh_flags & SHF_ALLOC) strFlags += 'A';
+			if (shdr.sh_flags & SHF_EXECINSTR) strFlags += 'X';
+			if (shdr.sh_flags & SHF_MERGE) strFlags += 'M';
+			if (shdr.sh_flags & SHF_STRINGS) strFlags += 'S';
+			if (shdr.sh_flags & SHF_INFO_LINK) strFlags += 'I';
+			if (shdr.sh_flags & SHF_LINK_ORDER) strFlags += 'L';
+			if (shdr.sh_flags & SHF_OS_NONCONFORMING) strFlags += 'O';
+			if (shdr.sh_flags & SHF_GROUP) strFlags += 'G';
+			if (shdr.sh_flags & SHF_TLS) strFlags += 'T';
+			if (shdr.sh_flags & SHF_EXCLUDE) strFlags += 'E';
+			if (shdr.sh_flags & SHF_COMPRESSED) strFlags += 'C';
+			(*msgFile) << padString(strFlags, 3) << " ";
+			(*msgFile) << padString(std::to_string(shdr.sh_link), 2, ' ' , true); (*msgFile) << " ";
+			(*msgFile) << padString(std::to_string(shdr.sh_info), 3, ' ', true); (*msgFile) << " ";
+			(*msgFile) << padString(std::to_string(shdr.sh_addralign), 2, ' ', true);
 
-	int fd = static_cast< __gnu_cxx::stdio_filebuf< char > * const >(aFile.rdbuf())->fd();
+			(*msgFile) << "\n";
+		}
+	}
 
-	pElf = elf_begin(fd, ELF_C_READ, nullptr);
-	if (pElf == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-												std::string("elf_begin() failed: ") + std::string(elf_errmsg(-1)));
+	if (msgFile) (*msgFile) << "\n";
 
-	try {
-		// Basic ELF Header Verification:
-		// ------------------------------
-		if (elf_kind(pElf) != ELF_K_ELF) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_UNKNOWN_FILE_TYPE, 0, "Not an ELF object file");
-		if (gelf_getclass(pElf) == ELFCLASSNONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getclass() failed: ") + std::string(elf_errmsg(-1)));
 
-		// Get Header Counts:
-		// ------------------
-		size_t nPHdrNum = 0;
-		size_t nSHdrNum = 0;
-		size_t nSHdrStrNdx = 0;
-
-		if (elf_getphdrnum(pElf, &nPHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getphdrnum() failed: ") + std::string(elf_errmsg(-1)));
-		if (elf_getshdrnum(pElf, &nSHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getshdrnum() failed: ") + std::string(elf_errmsg(-1)));
-		if (elf_getshdrstrndx(pElf, &nSHdrStrNdx) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getshdrstrndx() failed: ") + std::string(elf_errmsg(-1)));
-
-		// Read File Code:
-		// ---------------
+	// Read File Code:
+	// ---------------
+	if (nReadMode == ERM_Data ){
 		for (size_t ndxP = 0; ndxP < nPHdrNum; ++ndxP) {
 			GElf_Phdr phdr;
 			if (gelf_getphdr(pElf, ndxP, &phdr) != &phdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
 													std::string("getphdr() failed on index ") + std::to_string(ndxP) +
 																": " + std::string(elf_errmsg(-1)));
 
-			// Allocate ranges for "LOAD" and Read/Execute sections:
-			if ((phdr.p_type == PT_LOAD) &&
-				(phdr.p_flags & PF_R) &&
-				(phdr.p_flags & PF_X)) {
-
+			// Read ones marked as "LOAD":
+			if (phdr.p_type == PT_LOAD) {
 				for (size_t ndxS = 0; ndxS < nSHdrNum; ++ndxS) {
 					Elf_Scn *pScn = nullptr;
 					GElf_Shdr shdr;
@@ -669,10 +568,58 @@ bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase,
 							if (pData->d_type == ELF_T_BYTE) {
 								if (pData->d_buf && pData->d_size) {
 									for (size_t nDataIndex = 0; nDataIndex < pData->d_size; ++nDataIndex, ++nIndex) {
-										TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
-										aMemory.setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
-										if (aMemory.descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
-										aMemory.setDescriptor(nAddress, nDesc);
+										// Handle Read/Execute sections as CODE:
+										if ((phdr.p_flags & PF_R) &&
+											(phdr.p_flags & PF_X)) {
+											TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
+
+											if (pMemory) {
+												// If only a single memory object is given, it's taken to be
+												//	the MT_ROM range:
+												pMemory->setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												if (pMemory->descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+												pMemory->setDescriptor(nAddress, nDesc);
+											}
+											if (pDisassembler) {
+												pDisassembler->memory(CDisassembler::MT_ROM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+												pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nAddress, nDesc);
+											}
+										} else // Handle Read/Write sections as RAM (DATA):
+											if ((phdr.p_flags & PF_R) &&
+												(phdr.p_flags & PF_W) &&
+												((phdr.p_flags & PF_X) == 0)) {
+											// Note: nNewBase is for ROM-area only
+											TAddress nAddress = shdr.sh_addr + nIndex;
+											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+												nAddress -= E_AVR_RAM_VirtualBase;
+											}
+											if (pDisassembler) {
+												pDisassembler->memory(CDisassembler::MT_RAM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												if (pDisassembler->memory(CDisassembler::MT_RAM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+												pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, nDesc);
+											}
+										} else // Handle Read-only sections as ROM (DATA):
+											if ((phdr.p_flags & PF_R) &&
+												((phdr.p_flags & PF_W) == 0) &&
+												((phdr.p_flags & PF_X) == 0)) {
+											TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
+											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+												nAddress -= E_AVR_RAM_VirtualBase;
+											}
+											if (pMemory) {
+												// If only a single memory object is given, it's taken to be
+												//	the MT_ROM range:
+												pMemory->setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												if (pMemory->descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+												pMemory->setDescriptor(nAddress, nDesc);
+											}
+											if (pDisassembler) {
+												pDisassembler->memory(CDisassembler::MT_ROM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+												pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nAddress, nDesc);
+											}
+										}
 									}
 								}
 							} else {
@@ -682,16 +629,249 @@ bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase,
 						break;
 					}
 				}
-
 			}
 		}
+	}
 
 
+#if REPORT_SYMTABLE
+	// Symbol Tables:
+	// --------------
+	size_t nStrTabNdx = getStrTabSectionIndex(pElf);		// String table section index
+	if (nStrTabNdx == 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0, "Can't find .strtab");
+
+	for (size_t ndx = 0; ndx < nSHdrNum; ++ndx) {
+		Elf_Scn *pScn = nullptr;
+		GElf_Shdr shdr;
+		char *pName;
+		pScn = elf_getscn(pElf, ndx);
+		if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+													std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
+		if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+													std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
+		pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
+		if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+									std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
+
+		if (shdr.sh_type != SHT_SYMTAB) continue;
+		if (shdr.sh_size == 0) continue;
+
+		size_t nNumSyms = (shdr.sh_entsize ? shdr.sh_size/shdr.sh_entsize : 0);
+
+		if (msgFile) {
+			(*msgFile) << "Symbol table '" << pName << "' contains " << nNumSyms << " entries:\n";
+			(*msgFile) << "   Num: Value      Size  Type    Bind    Vis       Ndx Name\n";
+		}
+
+		Elf_Data *pData = nullptr;
+		size_t nIndex = 0;
+		while (nIndex < shdr.sh_size) {
+			pData = elf_getdata(pScn, pData);
+			if (pData == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+										std::string("getdata() failed for vaddr ") + std::to_string(shdr.sh_addr) +
+										": " + std::string(elf_errmsg(-1)));
+
+			for (size_t ndxSym = 0; ndxSym < nNumSyms; ++ndxSym) {
+				char *pSymName;
+				GElf_Sym sym;
+				if (gelf_getsym(pData, ndxSym, &sym) == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+																		std::string("getsym() failed for symbol ") + std::to_string(ndxSym) +
+																		": " + std::string(elf_errmsg(-1)));
+
+				if (msgFile) {
+					(*msgFile) << padString(std::to_string(ndxSym), 6, ' ', true) << ": ";
+					printField(*msgFile, TString(), 4, sym.st_value); (*msgFile) << " ";
+					(*msgFile) << padString(std::to_string(sym.st_size), 5, ' ', true) << " ";
+					(*msgFile) << padString(getSymType(sym.st_info), 7) << " ";
+					(*msgFile) << padString(getSymBind(sym.st_info), 7) << " ";
+					(*msgFile) << padString(getSymVis(sym.st_other), 9) << " ";
+					if (sym.st_shndx == SHN_UNDEF) {
+						(*msgFile) << "UND ";
+					} else if (sym.st_shndx == SHN_ABS) {
+						(*msgFile) << "ABS ";
+					} else if (sym.st_shndx == SHN_COMMON) {
+						(*msgFile) << "COM ";
+					} else if (sym.st_shndx == SHN_XINDEX) {
+						(*msgFile) << "XTD ";
+					} else {
+						(*msgFile) << padString(std::to_string(sym.st_shndx), 3, ' ', true) << " ";
+					}
+					pSymName = elf_strptr(pElf, nStrTabNdx, sym.st_name);
+					if (pSymName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("strptr() failed for string index ") + std::to_string(sym.st_name) + ": " + std::string(elf_errmsg(-1)));
+					(*msgFile) << pSymName;
+
+					(*msgFile) << "\n";
+				}
+			}
+
+			nIndex += pData->d_size;
+		}
+
+		if (msgFile) (*msgFile) << "\n";
+	}
+#endif
+
+	return bRetVal;
+}
+
+// ============================================================================
+
+bool CELFDataFileConverter::RetrieveFileMapping(CDisassembler &disassembler,
+		const std::string &strFilePathName, TAddress nNewBase,
+		std::ostream *msgFile, std::ostream *errFile) const
+{
+	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
+												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
+
+	int fd = open(strFilePathName.c_str(), O_RDONLY);
+	if (fd < 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_OPENREAD);
+
+	bool bRetVal = false;
+	Elf *pElf = elf_begin(fd, ELF_C_READ, nullptr);
+	if (pElf == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("elf_begin() failed: ") + std::string(elf_errmsg(-1)));
+
+	try {
+		bRetVal = _ReadDataFile(ERM_Mapping, &disassembler, pElf,
+								nNewBase, nullptr, nullptr, CDisassembler::DMEM_NOTLOADED, msgFile, errFile);
+	} catch (...) {
 		elf_end(pElf);
+		close(fd);
+		throw;
+	}
+
+	elf_end(pElf);
+	close(fd);
+
+	return bRetVal;
+}
+
+bool CELFDataFileConverter::ReadDataFile(CDisassembler &disassembler,
+		const std::string &strFilePathName, TAddress nNewBase, TDescElement nDesc,
+		std::ostream *msgFile, std::ostream *errFile) const
+{
+	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
+												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
+
+	int fd = open(strFilePathName.c_str(), O_RDONLY);
+	if (fd < 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_OPENREAD);
+
+	bool bRetVal = false;
+	Elf *pElf = elf_begin(fd, ELF_C_READ, nullptr);
+	if (pElf == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("elf_begin() failed: ") + std::string(elf_errmsg(-1)));
+
+	try {
+		bRetVal = _ReadDataFile(ERM_Data, &disassembler, pElf,
+								nNewBase, nullptr, nullptr, nDesc, msgFile, errFile);
+	} catch (...) {
+		elf_end(pElf);
+		close(fd);
+		throw;
+	}
+
+	elf_end(pElf);
+	close(fd);
+
+	return bRetVal;
+}
+
+bool CELFDataFileConverter::WriteDataFile(CDisassembler &disassembler,
+		const std::string &strFilePathName, const CMemRanges &aRange, TAddress nNewBase,
+		const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
+		DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
+		std::ostream *msgFile, std::ostream *errFile) const
+{
+	UNUSED(disassembler);
+	UNUSED(strFilePathName);
+	UNUSED(aRange);
+	UNUSED(nNewBase);
+	UNUSED(aMemory);
+	UNUSED(nDesc);
+	UNUSED(bUsePhysicalAddr);
+	UNUSED(nFillMode);
+	UNUSED(nFillValue);
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
+	THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_NOT_IMPLEMENTED, 0, "ELF Writing not implemented");
+	return false;
+}
+
+// ============================================================================
+
+// RetrieveFileMapping:
+//
+//    This function reads in an already opened text BINARY file referenced by
+//    'aFile' and fills in the CMemRanges object that encapsulates the file's
+//    contents, offsetted by 'NewBase' (allowing loading of different files
+//    to different base addresses).
+bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
+													std::ostream *msgFile, std::ostream *errFile) const
+{
+	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
+												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
+
+	aFile.seekg(0L, std::ios_base::beg);
+
+	int fd = static_cast< __gnu_cxx::stdio_filebuf< char > * const >(aFile.rdbuf())->fd();
+
+	bool bRetVal = false;
+	Elf *pElf = elf_begin(fd, ELF_C_READ, nullptr);
+	if (pElf == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("elf_begin() failed: ") + std::string(elf_errmsg(-1)));
+
+	try {
+		bRetVal = _ReadDataFile(ERM_Mapping, nullptr, pElf,
+								nNewBase, nullptr, &aRange, CDisassembler::DMEM_NOTLOADED, msgFile, errFile);
 	} catch (...) {
 		elf_end(pElf);
 		throw;
 	}
+
+	elf_end(pElf);
+
+	return bRetVal;
+}
+
+
+// ReadDataFile:
+//
+//    This function reads in an already opened text BINARY file referenced by
+//    'aFile' into the CMemBlocks referenced by 'aMemory' offsetted by
+//    'NewBase' (allowing loading of different files to different base
+//    address) and setting the corresponding Memory Descriptors to 'nDesc'...
+//
+//    NOTE: The ranges in aMemory block must already be set, such as
+//    from a call to RetrieveFileMapping() here and calling initFromRanges()
+//    on the CMemBlocks to initialize it.  This function will only read
+//    and populate the data on it
+bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase, CMemBlocks &aMemory,
+												TDescElement nDesc,
+												std::ostream *msgFile, std::ostream *errFile) const
+{
+	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
+												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
+
+	aFile.seekg(0L, std::ios_base::beg);
+
+	int fd = static_cast< __gnu_cxx::stdio_filebuf< char > * const >(aFile.rdbuf())->fd();
+
+	bool bRetVal = true;
+	Elf *pElf = elf_begin(fd, ELF_C_READ, nullptr);
+	if (pElf == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("elf_begin() failed: ") + std::string(elf_errmsg(-1)));
+
+	try {
+		bRetVal = _ReadDataFile(ERM_Data, nullptr, pElf,
+								nNewBase, &aMemory, nullptr, nDesc, msgFile, errFile);
+	} catch (...) {
+		elf_end(pElf);
+		throw;
+	}
+
+	elf_end(pElf);
 
 	return bRetVal;
 }

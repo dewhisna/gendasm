@@ -259,6 +259,9 @@ TAddress CMemRanges::highestAddress() const
 void CMemBlocks::initFromRanges(const CMemRanges &ranges, TAddressOffset nPhysicalAddrOffset,
 					bool bUseDescriptors, TMemoryElement nFillValue, TDescElement nDescValue)
 {
+	// TODO : Allow these ranges to merge with existing ranges/data so
+	//	that it will be possible to load multiple source files
+
 	CMemRanges tempRanges = ranges;		// Copy so we can remove overlaps and sort it for efficiency
 	tempRanges.removeOverlaps(true);
 	tempRanges.sort();

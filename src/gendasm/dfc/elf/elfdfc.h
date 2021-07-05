@@ -24,6 +24,24 @@ public:
 
 	const char *DefaultExtension() const override { return "elf"; }
 
+	// ------------------------------------------------------------------------
+
+	virtual bool RetrieveFileMapping(CDisassembler &disassembler,
+			const std::string &strFilePathName, TAddress nNewBase,
+			std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
+
+	virtual bool ReadDataFile(CDisassembler &disassembler,
+			const std::string &strFilePathName, TAddress nNewBase, TDescElement nDesc,
+			std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
+
+	virtual bool WriteDataFile(CDisassembler &disassembler,
+			const std::string &strFilePathName, const CMemRanges &aRange, TAddress nNewBase,
+			const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
+			DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
+			std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
+
+	// ------------------------------------------------------------------------
+
 	virtual bool RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
 										std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
 
@@ -35,6 +53,17 @@ public:
 													const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
 													DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
 													std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const override;
+
+private:
+	enum ELF_READ_MODE_ENUM {
+		ERM_Mapping = 0,		// Read only the mapping (and output messages)
+		ERM_Data = 1,			// Read only the data
+	};
+
+	bool _ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisassembler *pDisassembler, struct Elf *pElf, TAddress nNewBase,
+						CMemBlocks *pMemory, CMemRanges *pRange, TDescElement nDesc,
+						std::ostream *msgFile, std::ostream *errFile) const;
+
 };
 
 #endif   // ELFDFC_H
