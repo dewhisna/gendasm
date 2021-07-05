@@ -901,9 +901,8 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 		// Entry Points:
 		for (auto const & entry : g_arrCodeEntryPoints_m328p) {
 			assert(ValidateLabelName(entry.m_strLabel));
-			if (!m_EntryTable.contains(entry.m_nAddress)) {
-				m_EntryTable.insert(entry.m_nAddress);
-				m_FunctionEntryTable[entry.m_nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
+			if (!HaveEntry(entry.m_nAddress)) {
+				AddEntry(entry.m_nAddress);
 				AddLabel(MT_ROM, entry.m_nAddress, false, 0, entry.m_strLabel);
 				if (!entry.m_strComment.empty()) {
 					AddComment(MT_ROM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));
@@ -943,8 +942,8 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 		// Entry Points:
 		for (auto const & entry : g_arrCodeEntryPoints_m328pb) {
 			assert(ValidateLabelName(entry.m_strLabel));
-			if (!m_EntryTable.contains(entry.m_nAddress)) {
-				m_EntryTable.insert(entry.m_nAddress);
+			if (!HaveEntry(entry.m_nAddress)) {
+				AddEntry(entry.m_nAddress);
 				AddLabel(MT_ROM, entry.m_nAddress, false, 0, entry.m_strLabel);
 				if (!entry.m_strComment.empty()) {
 					AddComment(MT_ROM, entry.m_nAddress, CComment(entry.m_ctf, entry.m_strComment));

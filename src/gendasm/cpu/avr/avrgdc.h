@@ -125,8 +125,10 @@ public:
 
 	virtual bool WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
+public:
 	virtual bool ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;
 
+protected:
 	virtual TLabel GenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress) override;
 
 	virtual std::string GetExcludedPrintChars() const override;

@@ -523,6 +523,7 @@ protected:
 	virtual bool WriteIntraFunctionSep(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Writes a function's intra code separation.  The default simply writes a separator line "---".  Override as needed
 	virtual bool WritePostFunction(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Writes any info needed after a function -- such as "endp".  The default simply writes a separator line "===".  Override as needed
 
+public:
 	virtual bool ValidateLabelName(const TLabel & aName);		// Parses a specified label to make sure it meets label rules
 
 	virtual bool ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) = 0;	// Pure Virtual that Resolves the indirect address specified by nAddress of type nType where nType is the reference type (i.e. Code locations vs. Data locations).  It returns the resolved address in nResAddress and T/F for mem load status
@@ -548,6 +549,14 @@ protected:
 	virtual bool AddBranch(TAddress nAddress, bool bAddRef = false, TAddress nRefAddress = 0);	// (Always MT_ROM) Adds nAddress to the branch table with nRefAddress as the referring address.  Returns T if all ok, F if branch address is outside of loaded space.  If nAddRef is false, a branch is added without a reference
 	virtual bool AddComment(MEMORY_TYPE nMemoryType, TAddress nAddress, const CComment &strComment);
 
+	virtual bool HaveEntry(TAddress nAddress) const { return m_EntryTable.contains(nAddress); }
+	virtual bool AddEntry(TAddress nAddress);
+	virtual bool HaveCodeIndirect(TAddress nAddress) const { return m_CodeIndirectTable.contains(nAddress); }
+	virtual bool AddCodeIndirect(TAddress nAddress, const TLabel &strLabel = TLabel());
+	virtual bool HaveDataIndirect(TAddress nAddress) const { return m_DataIndirectTable.contains(nAddress); }
+	virtual bool AddDataIndirect(TAddress nAddress, const TLabel &strLabel = TLabel());
+
+protected:
 	virtual void GenDataLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress -- unlike calling direct, this function outputs the new label to msgFile if specified...
 	virtual void GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// (Always MT_ROM) Calls AddLabel to create a label for nAddress, then calls AddBranch to add a branch address -- unlike calling direct, this function outputs the new label to msgFile if specified and displays "out of source" errors for the branches to errFile...
 	virtual void OutputGenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, std::ostream *msgFile);		// Outputs a generated label to the msgFile -- called by GenAddrLabel and GenDataLabel

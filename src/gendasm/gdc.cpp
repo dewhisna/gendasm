@@ -614,12 +614,11 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			if (!m_MemoryRanges[MT_ROM].empty() && !m_MemoryRanges[MT_ROM].addressInRange(nAddress)) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Entry address outside of ROM memory range";
-			} else if (m_EntryTable.contains(nAddress)) {
+			} else if (HaveEntry(nAddress)) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate entry address";
 			}
-			m_EntryTable.insert(nAddress);				// Add an entry to the entry table
-			m_FunctionEntryTable[nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
+			AddEntry(nAddress);
 			if (argv.size() == 3) {
 				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2))) {
 					bRetVal = false;
@@ -783,18 +782,18 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 
 			switch (nType) {
 				case RT_CODE:
-					if (m_CodeIndirectTable.contains(nAddress) || m_DataIndirectTable.contains(nAddress)) {
+					if (HaveCodeIndirect(nAddress) || HaveDataIndirect(nAddress)) {
 						bRetVal = false;
 						m_ParseError = "*** Warning: Duplicate indirect";
 					}
-					m_CodeIndirectTable[nAddress] = strName;	// Add a label to the code indirect table
+					AddCodeIndirect(nAddress, strName);			// Add a label to the code indirect table
 					break;
 				case RT_DATA:
-					if (m_DataIndirectTable.contains(nAddress) || m_CodeIndirectTable.contains(nAddress)) {
+					if (HaveDataIndirect(nAddress) || HaveCodeIndirect(nAddress)) {
 						bRetVal = false;
 						m_ParseError = "*** Warning: Duplicate indirect";
 					}
-					m_DataIndirectTable[nAddress] = strName;	// Add a label to the data indirect table
+					AddDataIndirect(nAddress, strName);			// Add a label to the data indirect table
 					break;
 				default:
 					assert(false);
@@ -2972,6 +2971,27 @@ bool CDisassembler::AddComment(MEMORY_TYPE nMemoryType, TAddress nAddress, const
 		assert(itrComments != m_CommentTable[nMemoryType].end());
 	}
 	itrComments->second.push_back(strComment);
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+
+bool CDisassembler::AddEntry(TAddress nAddress)
+{
+	m_EntryTable.insert(nAddress);					// Add an entry to the entry table
+	m_FunctionEntryTable[nAddress] = FUNCF_ENTRY;	// Entries are also considered start-of functions
+	return true;
+}
+
+bool CDisassembler::AddCodeIndirect(TAddress nAddress, const TLabel &strLabel)
+{
+	m_CodeIndirectTable[nAddress] = strLabel;
+	return true;
+}
+
+bool CDisassembler::AddDataIndirect(TAddress nAddress, const TLabel &strLabel)
+{
+	m_DataIndirectTable[nAddress] = strLabel;
 	return true;
 }
 

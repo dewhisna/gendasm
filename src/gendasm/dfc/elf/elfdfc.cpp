@@ -11,6 +11,8 @@
 #include <time.h>
 #include <cstdio>
 #include <iterator>
+#include <algorithm>
+#include <utility>
 #include <sstream>
 #include <iomanip>
 #include <vector>
@@ -121,6 +123,7 @@ namespace {
 	// =============================
 
 	static constexpr TAddress E_AVR_RAM_VirtualBase = 0x00800100ul;		// Virtual Starting Address in ELF files for AVR RAM
+	static constexpr TAddress E_AVR_RAM_VirtualBaseAdj = 0x00800000ul;	// Adjustment value for AVR RAM (amount to subtract from E_AVR_RAM_VirtualBase)
 
 	/* Processor specific flags for the ELF header e_flags field.  */
 	#define EF_AVR_MACH 0x7F
@@ -269,10 +272,6 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 					CMemBlocks *pMemory, CMemRanges *pRange, TDescElement nDesc,
 					std::ostream *msgFile, std::ostream *errFile) const
 {
-	UNUSED(errFile);
-
-	// ------------------------------------------------------------------------
-
 	bool bRetVal = true;
 
 	if (pRange) pRange->clear();
@@ -404,7 +403,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 						((phdr.p_flags & PF_X) == 0)) {
 					// Note: nNewBase is for ROM-area only
 					if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
-						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBase, phdr.p_memsz));
+						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
 					} else {
 						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr, phdr.p_memsz));
 					}
@@ -413,11 +412,11 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 						((phdr.p_flags & PF_W) == 0) &&
 						((phdr.p_flags & PF_X) == 0)) {
 					if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
-						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBase, phdr.p_memsz));
+						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
 						if (pRange) {
 							// If only a single range is given, it's taken to be
 							//	the MT_ROM range:
-							pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBase, phdr.p_memsz));
+							pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
 						}
 					} else {
 						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
@@ -595,7 +594,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 											// Note: nNewBase is for ROM-area only
 											TAddress nAddress = shdr.sh_addr + nIndex;
 											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
-												nAddress -= E_AVR_RAM_VirtualBase;
+												nAddress -= E_AVR_RAM_VirtualBaseAdj;
 											}
 											if (pDisassembler) {
 												pDisassembler->memory(CDisassembler::MT_RAM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
@@ -608,7 +607,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 												((phdr.p_flags & PF_X) == 0)) {
 											TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
 											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
-												nAddress -= E_AVR_RAM_VirtualBase;
+												nAddress -= E_AVR_RAM_VirtualBaseAdj;
 											}
 											if (pMemory) {
 												// If only a single memory object is given, it's taken to be
@@ -637,7 +636,6 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 	}
 
 
-#if REPORT_SYMTABLE
 	// Symbol Tables:
 	// --------------
 	size_t nStrTabNdx = getStrTabSectionIndex(pElf);		// String table section index
@@ -661,10 +659,12 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 
 		size_t nNumSyms = (shdr.sh_entsize ? shdr.sh_size/shdr.sh_entsize : 0);
 
+#if REPORT_SYMTABLE
 		if (msgFile) {
 			(*msgFile) << "Symbol table '" << pName << "' contains " << nNumSyms << " entries:\n";
 			(*msgFile) << "   Num: Value      Size  Type    Bind    Vis       Ndx Name\n";
 		}
+#endif
 
 		Elf_Data *pData = nullptr;
 		size_t nIndex = 0;
@@ -681,6 +681,11 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 																		std::string("getsym() failed for symbol ") + std::to_string(ndxSym) +
 																		": " + std::string(elf_errmsg(-1)));
 
+				pSymName = elf_strptr(pElf, nStrTabNdx, sym.st_name);
+				if (pSymName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+											std::string("strptr() failed for string index ") + std::to_string(sym.st_name) + ": " + std::string(elf_errmsg(-1)));
+
+#if REPORT_SYMTABLE
 				if (msgFile) {
 					(*msgFile) << padString(std::to_string(ndxSym), 6, ' ', true) << ": ";
 					printField(*msgFile, TString(), 4, sym.st_value); (*msgFile) << " ";
@@ -699,21 +704,105 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 					} else {
 						(*msgFile) << padString(std::to_string(sym.st_shndx), 3, ' ', true) << " ";
 					}
-					pSymName = elf_strptr(pElf, nStrTabNdx, sym.st_name);
-					if (pSymName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-												std::string("strptr() failed for string index ") + std::to_string(sym.st_name) + ": " + std::string(elf_errmsg(-1)));
 					(*msgFile) << pSymName;
 
 					(*msgFile) << "\n";
+				}
+#endif
+
+				// Add symbols to Disassembler:
+				unsigned char nSymType = GELF_ST_TYPE(sym.st_info);
+				TLabel strLabel = pSymName;
+				if (pDisassembler &&
+					!strLabel.empty() &&				// Must have a label
+					((nSymType == STT_NOTYPE) ||		// NOTYPE can be data, function, or something else
+					(nSymType == STT_OBJECT) ||			// OBJECT is data (either RAM or ROM)
+					(nSymType == STT_FUNC) ||			// FUNC is a function (Note: we cannot use the size to label memory as "code" because this area could contain indirect vectors and such that isn't "code")
+					(nSymType == STT_TLS) ||			// TLS Thread Local Storage (RAM data)
+					(nSymType == STT_GNU_IFUNC)) &&		// GNU_IFUNC is indirect function pointer
+														// Ignore: SECTION, FILE, and COMMON types
+					((sym.st_shndx != SHN_UNDEF) &&		// Ignore undefined sections
+					 (sym.st_shndx < SHN_LORESERVE))) {	// Ignore reserved sections
+
+					// Get the referenced section for the symbol:
+					Elf_Scn *pScnRef = nullptr;
+					GElf_Shdr shdrRef;
+					pScnRef = elf_getscn(pElf, sym.st_shndx);
+					if (pScnRef == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+																std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
+					if (gelf_getshdr(pScnRef, &shdrRef) != &shdrRef) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+																std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
+
+					TAddress nAddress = sym.st_value;
+					if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+						nAddress -= E_AVR_RAM_VirtualBaseAdj;
+					}
+
+					// Keep label valid:
+					std::replace(strLabel.begin(), strLabel.end(), '.', '_');	// GCC uses "." in some labels, which isn't valid for most assemblers
+					if (!pDisassembler->ValidateLabelName(strLabel)) {
+						if (errFile) {
+							(*errFile) << "    *** Symbol Name '" << strLabel << "' from ELF file is Invalid for Disassembler Labels.  Can't add it.\n";
+						}
+					} else {
+						switch (nSymType) {
+							case STT_NOTYPE:
+								if (shdrRef.sh_flags & SHF_EXECINSTR) {
+									pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+									// TODO : See if there's a way to distinguish Code and Data here to possibly
+									//		set an entry point?
+								} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
+									pDisassembler->AddLabel(CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+								}
+								break;
+							case STT_OBJECT:
+								if (shdrRef.sh_flags & SHF_EXECINSTR) {
+									pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+								} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
+									pDisassembler->AddLabel(CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+								}
+								break;
+							case STT_FUNC:
+								if (shdrRef.sh_flags & SHF_EXECINSTR) {
+									pDisassembler->AddEntry(nAddress + nNewBase);
+									pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+								}
+								break;
+							case STT_TLS:
+								if (shdrRef.sh_flags & SHF_ALLOC) {
+									if (shdrRef.sh_flags & SHF_WRITE) {
+										pDisassembler->AddLabel((shdrRef.sh_flags & SHF_EXECINSTR) ?
+																	CDisassembler::MT_ROM : CDisassembler::MT_RAM,
+																(shdrRef.sh_flags & SHF_EXECINSTR) ?
+																	nAddress + nNewBase : nAddress,
+																false, 0, strLabel);
+									} else if (shdrRef.sh_flags & SHF_EXECINSTR) {
+										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+									}
+								}
+								break;
+							case STT_GNU_IFUNC:
+								if ((shdrRef.sh_flags & SHF_EXECINSTR) &&
+									!pDisassembler->HaveCodeIndirect(nAddress + nNewBase) &&
+									!pDisassembler->HaveDataIndirect(nAddress + nNewBase)) {
+									pDisassembler->AddCodeIndirect(nAddress + nNewBase, strLabel);
+								}
+								break;
+							default:
+								assert(false);
+								break;
+						}
+					}
 				}
 			}
 
 			nIndex += pData->d_size;
 		}
 
+#if REPORT_SYMTABLE
 		if (msgFile) (*msgFile) << "\n";
-	}
 #endif
+	}
 
 	return bRetVal;
 }
