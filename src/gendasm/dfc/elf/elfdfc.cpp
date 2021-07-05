@@ -38,6 +38,7 @@
 #endif
 
 #define DEBUG_ELF_FILE 0			// Set to '1' (or non-zero) to debug ELF header reading
+#define REPORT_SYMTABLE 1			// Set to '1' (or non-zero) to output symbol tables in output stream
 
 // ============================================================================
 
@@ -74,6 +75,32 @@ namespace {
 		{ SHT_GROUP, "GROUP" },
 		{ SHT_SYMTAB_SHNDX, "SYMTAB_SHNDX" },
 	};
+
+	static const CELFInfoMap g_mapSymType = {
+		{ STT_NOTYPE, "NOTYPE" },
+		{ STT_OBJECT, "OBJECT" },
+		{ STT_FUNC, "FUNC" },
+		{ STT_SECTION, "SECTION" },
+		{ STT_FILE, "FILE" },
+		{ STT_COMMON, "COMMON" },
+		{ STT_TLS, "TLS" },
+		{ STT_GNU_IFUNC, "IFUNC" },
+	};
+
+	static const CELFInfoMap g_mapSymBind = {
+		{ STB_LOCAL, "LOCAL" },
+		{ STB_GLOBAL, "GLOBAL" },
+		{ STB_WEAK, "WEAK" },
+		{ STB_GNU_UNIQUE, "UNIQUE" },
+	};
+
+	static const CELFInfoMap g_mapSymVis = {
+		{ STV_DEFAULT, "DEFAULT" },
+		{ STV_INTERNAL, "INTERNAL" },
+		{ STV_HIDDEN, "HIDDEN" },
+		{ STV_PROTECTED, "PROTECTED" },
+	};
+
 
 	// Main Machine Types:
 	// ===================
@@ -142,6 +169,41 @@ namespace {
 
 // ----------------------------------------------------------------------------
 
+size_t getStrTabSectionIndex(Elf *pElf)
+{
+	size_t nSHdrNum = 0;
+	size_t nSHdrStrNdx = 0;
+
+	if (elf_getshdrnum(pElf, &nSHdrNum) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getshdrnum() failed: ") + std::string(elf_errmsg(-1)));
+	if (elf_getshdrstrndx(pElf, &nSHdrStrNdx) != 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getshdrstrndx() failed: ") + std::string(elf_errmsg(-1)));
+
+	size_t nStrTabNdx = 0;		// String table section index
+	for (size_t ndx = 0; ndx < nSHdrNum; ++ndx) {
+		Elf_Scn *pScn = nullptr;
+		GElf_Shdr shdr;
+		char *pName;
+		pScn = elf_getscn(pElf, ndx);
+		if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+									std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
+		if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+									std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
+		pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
+		if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+									std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
+		if (compareNoCase(pName, ".strtab") != 0) continue;		// ??? necessary
+		if (shdr.sh_type != SHT_STRTAB) continue;
+		if (ndx == nSHdrStrNdx) continue;			// Not the .shstrtab
+		nStrTabNdx = ndx;
+		break;
+	}
+
+	return nStrTabNdx;
+}
+
+// ----------------------------------------------------------------------------
+
 std::string CELFDataFileConverter::GetShortDescription() const
 {
 	TString strVersion = std::to_string(_ELFUTILS_VERSION%1000);
@@ -160,6 +222,7 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 	UNUSED(errFile);
 
 	auto &&fnPrintField = [msgFile](const TString &strName, int nFieldSize, uint64_t nVal, bool bDecimal = false)->void {
+		assert(msgFile != nullptr);
 		std::string strPrefix = (!strName.empty() ? ("    " + strName + " : ") : "");
 		if (!bDecimal) {
 			(*msgFile) << strPrefix << "0x" << std::uppercase << std::setfill('0') << std::setw(nFieldSize*2) << std::setbase(16)
@@ -180,6 +243,24 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 		CELFInfoMap::const_iterator itrST = g_mapSHdrType.find(nValue);
 		if (itrST == g_mapSHdrType.cend()) return "unknown";
 		return itrST->second;
+	};
+
+	auto &&fnSymType = [](unsigned char info)->TString {
+		CELFInfoMap::const_iterator itrST = g_mapSymType.find(GELF_ST_TYPE(info));
+		if (itrST == g_mapSymType.cend()) return "unknown";
+		return itrST->second;
+	};
+
+	auto &&fnSymBind = [](unsigned char info)->TString {
+		CELFInfoMap::const_iterator itrSB = g_mapSymBind.find(GELF_ST_BIND(info));
+		if (itrSB == g_mapSymBind.cend()) return "unknown";
+		return itrSB->second;
+	};
+
+	auto &&fnSymVis = [](unsigned char other)->TString {
+		CELFInfoMap::const_iterator itrSV = g_mapSymVis.find(GELF_ST_VISIBILITY(other));
+		if (itrSV == g_mapSymVis.cend()) return "unknown";
+		return itrSV->second;
 	};
 
 	// ------------------------------------------------------------------------
@@ -245,28 +326,30 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 
 		// Identify Machine Type:
 		// ----------------------
-		CELFInfoMap::const_iterator itrMachine = g_mapMachineType.find(ehdr.e_machine);
-		if (msgFile && (itrMachine == g_mapMachineType.cend())) {
-			(*msgFile) << "ELF Machine Type: Unknown/Unsupported ELF Machine Type\n";
-		} else {
-			(*msgFile) << "ELF Machine Type: " << itrMachine->second << "\n";
+		if (msgFile) {
+			CELFInfoMap::const_iterator itrMachine = g_mapMachineType.find(ehdr.e_machine);
+			if (itrMachine == g_mapMachineType.cend()) {
+				(*msgFile) << "ELF Machine Type: Unknown/Unsupported ELF Machine Type\n";
+			} else {
+				(*msgFile) << "ELF Machine Type: " << itrMachine->second << "\n";
 
-			// TODO : Keep this list updated with the processors/machines that we
-			//		have GDC support for:
-			switch (ehdr.e_machine) {
-				case EM_68HC11:
-					// There are subtypes for 68HC12, but no other distinguishing features
-					break;
+				// TODO : Keep this list updated with the processors/machines that we
+				//		have GDC support for:
+				switch (ehdr.e_machine) {
+					case EM_68HC11:
+						// There are subtypes for 68HC12, but no other distinguishing features
+						break;
 
-				case EM_AVR:
-				{
-					CELFInfoMap::const_iterator itrSubmachine = g_mapAVRType.find(ehdr.e_flags & EF_AVR_MACH);
-					if (itrSubmachine == g_mapAVRType.cend()) {
-						(*msgFile) << "AVR Type: Unknown/Unsupported\n";
-					} else {
-						(*msgFile) << "AVR Type: " << itrSubmachine->second << "\n";
+					case EM_AVR:
+					{
+						CELFInfoMap::const_iterator itrSubmachine = g_mapAVRType.find(ehdr.e_flags & EF_AVR_MACH);
+						if (itrSubmachine == g_mapAVRType.cend()) {
+							(*msgFile) << "AVR Type: Unknown/Unsupported\n";
+						} else {
+							(*msgFile) << "AVR Type: " << itrSubmachine->second << "\n";
+						}
+						break;
 					}
-					break;
 				}
 			}
 		}
@@ -341,7 +424,7 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 					char *pName;
 					pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
 					if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-												std::string("elf_strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
+												std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
 					if (msgFile) {
 						(*msgFile) << " " << pName;
 					}
@@ -349,12 +432,10 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 				}
 			}
 
-			if (msgFile) {
-				(*msgFile) << "\n";
-			}
+			if (msgFile) (*msgFile) << "\n";
 		}
 
-		(*msgFile) << "\n";
+		if (msgFile) (*msgFile) << "\n";
 
 
 		// Section Headers:
@@ -375,7 +456,7 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 														std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
 			pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
 			if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-										std::string("elf_strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
+										std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
 
 			if (msgFile) {
 				(*msgFile) << "  ";
@@ -409,7 +490,85 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 			}
 		}
 
-		(*msgFile) << "\n";
+		if (msgFile) (*msgFile) << "\n";
+
+#if REPORT_SYMTABLE
+		// Symbol Tables:
+		// --------------
+		size_t nStrTabNdx = getStrTabSectionIndex(pElf);		// String table section index
+		if (nStrTabNdx == 0) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0, "Can't find .strtab");
+
+		for (size_t ndx = 0; ndx < nSHdrNum; ++ndx) {
+			Elf_Scn *pScn = nullptr;
+			GElf_Shdr shdr;
+			char *pName;
+			pScn = elf_getscn(pElf, ndx);
+			if (pScn == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+														std::string("getscn() failed: ") + std::string(elf_errmsg(-1)));
+			if (gelf_getshdr(pScn, &shdr) != &shdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+														std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
+			pName = elf_strptr(pElf, nSHdrStrNdx, shdr.sh_name);
+			if (pName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+										std::string("strptr() failed for string index ") + std::to_string(shdr.sh_name) + ": " + std::string(elf_errmsg(-1)));
+
+			if (shdr.sh_type != SHT_SYMTAB) continue;
+			if (shdr.sh_size == 0) continue;
+
+			size_t nNumSyms = (shdr.sh_entsize ? shdr.sh_size/shdr.sh_entsize : 0);
+
+			if (msgFile) {
+				(*msgFile) << "Symbol table '" << pName << "' contains " << nNumSyms << " entries:\n";
+				(*msgFile) << "   Num: Value      Size  Type    Bind    Vis       Ndx Name\n";
+			}
+
+			Elf_Data *pData = nullptr;
+			size_t nIndex = 0;
+			while (nIndex < shdr.sh_size) {
+				pData = elf_getdata(pScn, pData);
+				if (pData == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+											std::string("getdata() failed for vaddr ") + std::to_string(shdr.sh_addr) +
+											": " + std::string(elf_errmsg(-1)));
+
+				for (size_t ndxSym = 0; ndxSym < nNumSyms; ++ndxSym) {
+					char *pSymName;
+					GElf_Sym sym;
+					if (gelf_getsym(pData, ndxSym, &sym) == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+																			std::string("getsym() failed for symbol ") + std::to_string(ndxSym) +
+																			": " + std::string(elf_errmsg(-1)));
+
+					if (msgFile) {
+						(*msgFile) << padString(std::to_string(ndxSym), 6, ' ', true) << ": ";
+						fnPrintField(TString(), 4, sym.st_value); (*msgFile) << " ";
+						(*msgFile) << padString(std::to_string(sym.st_size), 5, ' ', true) << " ";
+						(*msgFile) << padString(fnSymType(sym.st_info), 7) << " ";
+						(*msgFile) << padString(fnSymBind(sym.st_info), 7) << " ";
+						(*msgFile) << padString(fnSymVis(sym.st_other), 9) << " ";
+						if (sym.st_shndx == SHN_UNDEF) {
+							(*msgFile) << "UND ";
+						} else if (sym.st_shndx == SHN_ABS) {
+							(*msgFile) << "ABS ";
+						} else if (sym.st_shndx == SHN_COMMON) {
+							(*msgFile) << "COM ";
+						} else if (sym.st_shndx == SHN_XINDEX) {
+							(*msgFile) << "XTD ";
+						} else {
+							(*msgFile) << padString(std::to_string(sym.st_shndx), 3, ' ', true) << " ";
+						}
+						pSymName = elf_strptr(pElf, nStrTabNdx, sym.st_name);
+						if (pSymName == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+													std::string("strptr() failed for string index ") + std::to_string(sym.st_name) + ": " + std::string(elf_errmsg(-1)));
+						(*msgFile) << pSymName;
+
+						(*msgFile) << "\n";
+					}
+				}
+
+				nIndex += pData->d_size;
+			}
+
+			if (msgFile) (*msgFile) << "\n";
+		}
+#endif
 
 		elf_end(pElf);
 	} catch (...) {
@@ -507,13 +666,17 @@ bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase,
 							if (pData == nullptr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
 														std::string("getdata() failed for vaddr ") + std::to_string(phdr.p_vaddr) +
 														": " + std::string(elf_errmsg(-1)));
-							if (pData->d_buf && (pData->d_type == ELF_T_BYTE) && pData->d_size) {
-								for (size_t nDataIndex = 0; nDataIndex < pData->d_size; ++nDataIndex, ++nIndex) {
-									TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
-									aMemory.setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
-									if (aMemory.descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
-									aMemory.setDescriptor(nAddress, nDesc);
+							if (pData->d_type == ELF_T_BYTE) {
+								if (pData->d_buf && pData->d_size) {
+									for (size_t nDataIndex = 0; nDataIndex < pData->d_size; ++nDataIndex, ++nIndex) {
+										TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
+										aMemory.setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+										if (aMemory.descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+										aMemory.setDescriptor(nAddress, nDesc);
+									}
 								}
+							} else {
+								nIndex += pData->d_size;
 							}
 						}
 						break;
