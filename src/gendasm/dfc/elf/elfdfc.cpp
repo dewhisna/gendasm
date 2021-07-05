@@ -27,7 +27,10 @@
 
 #include <assert.h>
 
+#ifdef __GLIBCXX__
+// GCC extension to get file descripter from i/o stream:
 #include <ext/stdio_filebuf.h>
+#endif
 
 #include <libelf.h>
 #include <gelf.h>
@@ -810,6 +813,7 @@ bool CELFDataFileConverter::WriteDataFile(CDisassembler &disassembler,
 bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nNewBase, CMemRanges &aRange,
 													std::ostream *msgFile, std::ostream *errFile) const
 {
+#ifdef __GLIBCXX__
 	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
 												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
 
@@ -833,6 +837,9 @@ bool CELFDataFileConverter::RetrieveFileMapping(std::istream &aFile, TAddress nN
 	elf_end(pElf);
 
 	return bRetVal;
+#else
+	THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_NOT_IMPLEMENTED, 0, "ELF I/O Stream Reading only implemented on GCC builds");
+#endif
 }
 
 
@@ -851,6 +858,7 @@ bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase,
 												TDescElement nDesc,
 												std::ostream *msgFile, std::ostream *errFile) const
 {
+#ifdef __GLIBCXX__
 	if (elf_version(EV_CURRENT) == EV_NONE) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_LIBRARY_INIT_FAILED, 0,
 												std::string("ELF Initialization Failed: ") + std::string(elf_errmsg(-1)));
 
@@ -874,6 +882,9 @@ bool CELFDataFileConverter::ReadDataFile(std::istream &aFile, TAddress nNewBase,
 	elf_end(pElf);
 
 	return bRetVal;
+#else
+	THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_NOT_IMPLEMENTED, 0, "ELF I/O Stream Reading only implemented on GCC builds");
+#endif
 }
 
 

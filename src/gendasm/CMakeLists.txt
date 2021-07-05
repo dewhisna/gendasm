@@ -17,12 +17,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Compile Options
 
 option(FUNC_FLAG_COMMENT "Add Function Flags to Comment Field" OFF)
-option(ELF_SUPPORT "Use ELF Support (only with GCC)" ON)
+option(ELF_SUPPORT "Use ELF Support" ON)
 
 # -----------------------------------------------------------------------------
 
 if(ELF_SUPPORT)
-	set(CMAKE_CXX_EXTENSIONS ON)		# require gnu extensions for __gnu_cxx::stdio_filebuf to get file descriptor for iostream
+	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+		set(CMAKE_CXX_EXTENSIONS ON)		# require gnu extensions for __gnu_cxx::stdio_filebuf to get file descriptor for iostream
+	endif()
 
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(LIBELF REQUIRED IMPORTED_TARGET libelf)
