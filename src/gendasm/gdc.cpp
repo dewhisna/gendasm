@@ -1079,7 +1079,6 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 	if (strDFCLibrary.empty()) return false;
 	if (strFilename.empty()) return false;
 
-	std::fstream theFile;
 	const CDataFileConverter *pDFC = CDataFileConverters::instance()->locateDFC(strDFCLibrary);
 	bool bRetVal = true;
 
@@ -1094,52 +1093,39 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 		}
 		bRetVal = false;
 	} else {
-		theFile.open(strFilename.c_str(), std::ios_base::in | std::ios_base::binary);
-		if (theFile.is_open() == 0) {
-			if (errFile) {
-				(*errFile) << "*** Error: Can't open file \"" << strFilename << "\" for reading\n";
+		bool bStatus = true;
+		++m_nFilesLoaded;
+		m_sInputFileList.push_back(strFilename);
+
+		try {
+			if (!pDFC->RetrieveFileMapping(*this, strFilename, nLoadAddress, msgFile, errFile)) {
+				if (errFile) {
+					(*errFile) << "*** Unable to completely retrieve the file mapping for \"" << strFilename << "\"\n";
+				}
 			}
+
+			bStatus = pDFC->ReadDataFile(*this, strFilename, nLoadAddress, DMEM_LOADED, msgFile, errFile);
+		}
+		catch (const EXCEPTION_ERROR &aErr) {
 			bRetVal = false;
-		} else {
-			bool bStatus = true;
-			++m_nFilesLoaded;
-			m_sInputFileList.push_back(strFilename);
-			try {
-				CMemRanges ranges;
-				if (!pDFC->RetrieveFileMapping(theFile, nLoadAddress, ranges, msgFile, errFile)) {
-					if (errFile) {
-						(*errFile) << "*** Unable to completely retrieve the file mapping for \"" << strFilename << "\"\n";
-					}
+			--m_nFilesLoaded;
+			m_sInputFileList.erase(m_sInputFileList.end()-1);
+			if (errFile) {
+				(*errFile) << "*** " << aErr.errorMessage();
+				if (aErr.m_nData) {
+					(*errFile) << " on Line " << aErr.m_nData;
 				}
-
-				// TODO : Allow reading of other memory types?
-				// TODO : Allow different physical/logical range offsets and different fill values:
-				m_Memory[MT_ROM].initFromRanges(ranges, 0, true, 0, DMEM_NOTLOADED);
-
-				bStatus = pDFC->ReadDataFile(theFile, nLoadAddress, m_Memory[MT_ROM], DMEM_LOADED, msgFile, errFile);
-			}
-			catch (const EXCEPTION_ERROR &aErr) {
-				bRetVal = false;
-				--m_nFilesLoaded;
-				m_sInputFileList.erase(m_sInputFileList.end()-1);
-				if (errFile) {
-					(*errFile) << "*** " << aErr.errorMessage();
-					if (aErr.m_nData) {
-						(*errFile) << " on Line " << aErr.m_nData;
-					}
-					if (!aErr.m_strDetail.empty()) {
-						(*errFile) << " (" << aErr.m_strDetail << ")";
-					}
-					(*errFile) << " reading file \"" << strFilename << "\"\n";
+				if (!aErr.m_strDetail.empty()) {
+					(*errFile) << " (" << aErr.m_strDetail << ")";
 				}
+				(*errFile) << ", reading file \"" << strFilename << "\"\n";
 			}
-			if (!bStatus) {
-				bRetVal = false;
-				if (errFile) {
-					(*errFile) << "*** Warning: Reading file \"" << strFilename << "\", overlaps previously loaded files\n";
-				}
+		}
+		if (!bStatus) {
+			bRetVal = false;
+			if (errFile) {
+				(*errFile) << "*** Warning: Reading file \"" << strFilename << "\", overlaps previously loaded files\n";
 			}
-			theFile.close();
 		}
 	}
 

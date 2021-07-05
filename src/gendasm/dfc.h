@@ -30,6 +30,9 @@ enum DFC_FILL_MODE_ENUM {
 
 /////////////////////////////////////////////////////////////////////////////
 
+// Forward Declarations
+class CDisassembler;
+
 
 class CDataFileConverter
 {
@@ -54,8 +57,23 @@ public:
 		return strDefaultExtension;
 	}
 
-	// TODO : Change these function signatures to enable a better way to handle posix file descriptors
-	//		compatible with libelf, etc., without requiring __gnu_cxx shenanigans...
+	// ------------------------------------------------------------------------
+
+	virtual bool RetrieveFileMapping(CDisassembler &disassembler,
+			const std::string &strFilePathName, TAddress nNewBase,
+			std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const;
+
+	virtual bool ReadDataFile(CDisassembler &disassembler,
+			const std::string &strFilePathName, TAddress nNewBase, TDescElement nDesc,
+			std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const;
+
+	virtual bool WriteDataFile(CDisassembler &disassembler,
+			const std::string &strFilePathName, const CMemRanges &aRange, TAddress nNewBase,
+			const CMemBlocks &aMemory, TDescElement nDesc, bool bUsePhysicalAddr,
+			DFC_FILL_MODE_ENUM nFillMode, TMemoryElement nFillValue,
+			std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) const;
+
+	// ------------------------------------------------------------------------
 
 	// RetrieveFileMapping
 	//    This is a pure virtual function that must be overriden in child Data File Converter

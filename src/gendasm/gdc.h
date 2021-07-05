@@ -454,6 +454,14 @@ public:
 
 	virtual bool allowMemRangeOverlap() const { return m_bAllowMemRangeOverlap; }
 
+	// ------------------------------------------------------------------------
+
+	virtual size_t memoryTypeCount() const { return NUM_MEMORY_TYPES; }
+	virtual CMemBlocks &memory(MEMORY_TYPE nMemoryType) { return m_Memory[nMemoryType]; }
+	virtual CMemRanges &memoryRanges(MEMORY_TYPE nMemoryType) { return m_MemoryRanges[nMemoryType]; }
+
+	// ------------------------------------------------------------------------
+
 protected:
 	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
 
