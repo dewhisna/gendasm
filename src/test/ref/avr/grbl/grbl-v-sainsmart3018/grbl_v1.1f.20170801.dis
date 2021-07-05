@@ -17,9 +17,9 @@
 0000                ;
 0000
 0000
-                                  .device ATmega328P
-
-
+0000                              .device ATmega328P
+0000
+0000
 0003                ; Equates for IO:
 0003                .equ PINB_    =       0x0003
 0004                .equ DDRB_    =       0x0004                                      ; DRef: 0x03A6,0x41D6,0x41DA,0x6984,0x6994

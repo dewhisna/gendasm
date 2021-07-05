@@ -1498,11 +1498,13 @@ bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile,
 		CStringArray saOutLine;
 
 		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
 		saOutLine[FC_MNEMONIC] = ".device";
 		saOutLine[FC_OPERANDS] = m_strDevice;
 		outFile << MakeOutputLine(saOutLine) << "\n";
 
 		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
 		outFile << MakeOutputLine(saOutLine) << "\n";
 		outFile << MakeOutputLine(saOutLine) << "\n";
 	}
