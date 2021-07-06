@@ -871,7 +871,7 @@ CAVRDisassembler::CAVRDisassembler()
 
 	m_bAllowMemRangeOverlap = true;
 
-	m_bVBreakEquateLabels = true;
+	m_bVBreakEquateLabels = false;
 	m_bVBreakCodeLabels = true;
 	m_bVBreakDataLabels = true;
 

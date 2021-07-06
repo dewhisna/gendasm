@@ -452,6 +452,7 @@ CM6811Disassembler::CM6811Disassembler()
 	m_Opcodes.AddOpcode({ { 0xFE }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "ldx" });
 	m_Opcodes.AddOpcode({ { 0xFF }, { 0xFF }, MAKEOGRP(0x0, 0x2), MAKEOCTL(0x0, 0x1), "stx" });
 
+	m_bVBreakEquateLabels = false;
 	m_bVBreakCodeLabels = true;
 	m_bVBreakDataLabels = true;
 }
