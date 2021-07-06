@@ -2453,6 +2453,20 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 	//	TOpcodeSymbol type that doesn't match TMemoryElement.  Not a major problem since this
 	//	is the 'data' section and specifically working on bytes.
 
+	auto const &&fnWriteLabels = [&](TAddress nAddress)->void {
+		CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(nAddress);
+		if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+			for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), nAddress);
+				outFile << MakeOutputLine(saOutLine) << "\n";
+			}
+			if (itrLabels->second.size()) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), nAddress);
+				if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+			}
+		}
+	};
+
 	ClearOutputLine(saOutLine);
 
 	bRetVal = WritePreDataSection(nMemoryType, outFile, msgFile, errFile);
@@ -2461,23 +2475,13 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
-			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
-				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
-					outFile << MakeOutputLine(saOutLine) << "\n";
-				}
-				if (itrLabels->second.size()) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
-					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
-				}
-			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
 			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 			if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 			switch (nDesc) {
 				case DMEM_DATA:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					nCount = 0;
 					clearOpMemory();
 					bFlag = false;
@@ -2500,6 +2504,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_PRINTDATA:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					nCount = 0;
 					maTempOpMemory.clear();
 					bFlag = false;
@@ -2550,6 +2555,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 					break;
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					// If the following call returns false, that means that the user (or
 					//	special indirect detection logic) erroneously specified (or detected)
 					//	the indirect.  So instead of throwing an error or causing problems,
@@ -2610,6 +2616,20 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 	bool bInFunc;
 	bool bLastFlag;
 	bool bBranchOutFlag;
+
+	auto const &&fnWriteLabels = [&](TAddress nAddress)->void {
+		CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(nAddress);
+		if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+			for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(i), nAddress);
+				outFile << MakeOutputLine(saOutLine) << "\n";
+			}
+			if (itrLabels->second.size()) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(0), nAddress);
+				if (m_bVBreakCodeLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+			}
+		}
+	};
 
 	ClearOutputLine(saOutLine);
 
@@ -2674,21 +2694,10 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
-			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
-				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(i), m_PC);
-					outFile << MakeOutputLine(saOutLine) << "\n";
-				}
-				if (itrLabels->second.size()) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(0), m_PC);
-					if (m_bVBreakCodeLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
-				}
-			}
-
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
 			switch (m_Memory[nMemoryType].descriptor(m_PC)) {
 				case DMEM_ILLEGALCODE:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					clearOpMemory();
 					for (size_t ndx = 0; ndx < opcodeSymbolSize(); ++ndx) {		// Must be a multiple of the opcode symbol size
 						pushBackOpMemory(m_PC, m_Memory[nMemoryType].element(m_PC));
@@ -2701,6 +2710,7 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 					outFile << MakeOutputLine(saOutLine) << "\n";
 					break;
 				case DMEM_CODE:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					// If the following call returns false, that means that we erroneously
 					//	detected code in the first pass so instead of throwing an error or
 					//	causing problems, we will treat it as an illegal opcode:

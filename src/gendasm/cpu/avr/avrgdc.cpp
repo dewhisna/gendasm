@@ -1574,6 +1574,20 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 	size_t nSymbolSize = ((nMemoryType == MT_ROM) ? opcodeSymbolSize() : 1);
 	int nMaxNonPrint = ((nMemoryType == MT_ROM) ? m_nMaxNonPrint : m_Memory[nMemoryType].totalMemorySize());
 
+	auto const &&fnWriteLabels = [&](TAddress nAddress)->void {
+		CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(nAddress);
+		if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+			for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), nAddress);
+				outFile << MakeOutputLine(saOutLine) << "\n";
+			}
+			if (itrLabels->second.size()) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), nAddress);
+				if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+			}
+		}
+	};
+
 	ClearOutputLine(saOutLine);
 
 	bRetVal = WritePreDataSection(nMemoryType, outFile, msgFile, errFile);
@@ -1582,17 +1596,6 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
-			CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
-			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
-				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
-					outFile << MakeOutputLine(saOutLine) << "\n";
-				}
-				if (itrLabels->second.size()) {
-					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(0), m_PC);
-					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
-				}
-			}
 
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
 			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
@@ -1600,6 +1603,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 			switch (nDesc) {
 				case DMEM_DATA:
 				case DMEM_PRINTDATA:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					nCount = 0;
 					maTempOpMemory.clear();
 					maTempOpMemoryAscii.clear();
@@ -1691,6 +1695,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
+					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					// If the following call returns false, that means that the user (or
 					//	special indirect detection logic) erroneously specified (or detected)
 					//	the indirect.  So instead of throwing an error or causing problems,
