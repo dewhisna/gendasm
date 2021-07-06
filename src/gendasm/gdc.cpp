@@ -2465,7 +2465,6 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_DATA, itrLabels->second.at(i), m_PC);
-					if (m_bVBreakDataLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
 				if (itrLabels->second.size()) {
@@ -2681,7 +2680,6 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			if (itrLabels != m_LabelTable[nMemoryType].cend()) {
 				for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
 					saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(i), m_PC);
-					if (m_bVBreakCodeLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 					outFile << MakeOutputLine(saOutLine) << "\n";
 				}
 				if (itrLabels->second.size()) {
