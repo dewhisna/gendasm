@@ -1,0 +1,1150 @@
+GenDasm - Generic Code-Seeking Disassembler
+
+Using: AVR Disassembler
+
+Reading and Parsing Control File: "grbl_v1.1f.20170801_arduino_v1.8.8.ctl"...
+Selected MCU and predefined labels and entry points for: m328p
+Loading "grbl_v1.1f.20170801_arduino_v1.8.8.elf" at offset 0x0000 using elf library...
+32-bit ELF object
+ELF Machine Type: Atmel AVR 8-bit microcontroller
+AVR Type: avr5  - enhanced AVR core with up to 64K program memory
+Program Headers:
+    Type           Offset   VirtAddr   PhysAddr   FileSize MemSize  Flg Align  Section
+    LOAD           0x000074 0x00000000 0x00000000 0x0075BA 0x0075BA R X 0x02  .text
+    LOAD           0x00762E 0x00800100 0x00800100 0x000000 0x000661 RW  0x01  .data
+
+Section Headers:
+  [Nr]  Name                     Type            Addr       Off      Size     EntS Flg Lk Inf Al
+  [ 0]                           NULL            0x00000000 0x000000 0x000000 0x00      0   0  0
+  [ 1]  .data                    PROGBITS        0x00800100 0x00762E 0x000000 0x00 WA   0   0  1
+  [ 2]  .text                    PROGBITS        0x00000000 0x000074 0x0075BA 0x00 AX   0   0  2
+  [ 3]  .bss                     NOBITS          0x00800100 0x00762E 0x000661 0x00 WA   0   0  1
+  [ 4]  .comment                 PROGBITS        0x00000000 0x00762E 0x000011 0x01 MS   0   0  1
+  [ 5]  .note.gnu.avr.deviceinfo NOTE            0x00000000 0x007640 0x000040 0x00      0   0  4
+  [ 6]  .debug_aranges           PROGBITS        0x00000000 0x007680 0x000100 0x00      0   0  8
+  [ 7]  .debug_info              PROGBITS        0x00000000 0x007780 0x000B4C 0x00      0   0  1
+  [ 8]  .debug_abbrev            PROGBITS        0x00000000 0x0082CC 0x000642 0x00      0   0  1
+  [ 9]  .debug_line              PROGBITS        0x00000000 0x00890E 0x00054C 0x00      0   0  1
+  [10]  .debug_str               PROGBITS        0x00000000 0x008E5A 0x000208 0x00      0   0  1
+  [11]  .shstrtab                STRTAB          0x00000000 0x00B7AF 0x00008E 0x00      0   0  1
+  [12]  .symtab                  SYMTAB          0x00000000 0x009064 0x001560 0x10     13 118  4
+  [13]  .strtab                  STRTAB          0x00000000 0x00A5C4 0x0011EB 0x00      0   0  1
+
+Symbol table '.symtab' contains 342 entries:
+   Num: Value      Size  Type    Bind    Vis       Ndx Name
+     0: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   UND 
+     1: 0x00800100     0 SECTION LOCAL   DEFAULT     1 
+     2: 0x00000000     0 SECTION LOCAL   DEFAULT     2 
+     3: 0x00800100     0 SECTION LOCAL   DEFAULT     3 
+     4: 0x00000000     0 SECTION LOCAL   DEFAULT     4 
+     5: 0x00000000     0 SECTION LOCAL   DEFAULT     5 
+     6: 0x00000000     0 SECTION LOCAL   DEFAULT     6 
+     7: 0x00000000     0 SECTION LOCAL   DEFAULT     7 
+     8: 0x00000000     0 SECTION LOCAL   DEFAULT     8 
+     9: 0x00000000     0 SECTION LOCAL   DEFAULT     9 
+    10: 0x00000000     0 SECTION LOCAL   DEFAULT    10 
+    11: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    12: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    13: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    14: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    15: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    16: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    17: 0x008001C0    58 OBJECT  LOCAL   DEFAULT     3 gc_block
+    18: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    19: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    20: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    21: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    22: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    23: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    24: 0x000001F7    29 OBJECT  LOCAL   DEFAULT     2 __c.2623
+    25: 0x0000025F    74 OBJECT  LOCAL   DEFAULT     2 __c.2627
+    26: 0x00000259     6 OBJECT  LOCAL   DEFAULT     2 __c.2673
+    27: 0x00000255     4 OBJECT  LOCAL   DEFAULT     2 __c.2675
+    28: 0x00000246     3 OBJECT  LOCAL   DEFAULT     2 __c.2545
+    29: 0x00000249     3 OBJECT  LOCAL   DEFAULT     2 __c.2549
+    30: 0x00000252     3 OBJECT  LOCAL   DEFAULT     2 __c.2685
+    31: 0x0000024F     3 OBJECT  LOCAL   DEFAULT     2 __c.2687
+    32: 0x0000024C     3 OBJECT  LOCAL   DEFAULT     2 __c.2689
+    33: 0x00000243     3 OBJECT  LOCAL   DEFAULT     2 __c.2654
+    34: 0x0000023D     3 OBJECT  LOCAL   DEFAULT     2 __c.2661
+    35: 0x00000240     3 OBJECT  LOCAL   DEFAULT     2 __c.2657
+    36: 0x00000237     6 OBJECT  LOCAL   DEFAULT     2 __c.2667
+    37: 0x00000231     6 OBJECT  LOCAL   DEFAULT     2 __c.2669
+    38: 0x0000021D    20 OBJECT  LOCAL   DEFAULT     2 __c.2704
+    39: 0x00000217     6 OBJECT  LOCAL   DEFAULT     2 __c.2706
+    40: 0x00000214     3 OBJECT  LOCAL   DEFAULT     2 __c.2695
+    41: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    42: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    43: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    44: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    45: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    46: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    47: 0x00800710     1 OBJECT  LOCAL   DEFAULT     3 serial_tx_buffer_tail
+    48: 0x008006A7   105 OBJECT  LOCAL   DEFAULT     3 serial_tx_buffer
+    49: 0x008006A6     1 OBJECT  LOCAL   DEFAULT     3 serial_tx_buffer_head
+    50: 0x008006A2     4 OBJECT  LOCAL   DEFAULT     3 pwm_gradient
+    51: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    52: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    53: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    54: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    55: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    56: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    57: 0x000002A9     7 OBJECT  LOCAL   DEFAULT     2 __c.2580
+    58: 0x000002F4     5 OBJECT  LOCAL   DEFAULT     2 __c.2732
+    59: 0x000002DC     6 OBJECT  LOCAL   DEFAULT     2 __c.2744
+    60: 0x00000307     5 OBJECT  LOCAL   DEFAULT     2 __c.2719
+    61: 0x00000303     4 OBJECT  LOCAL   DEFAULT     2 __c.2723
+    62: 0x000002FD     6 OBJECT  LOCAL   DEFAULT     2 __c.2726
+    63: 0x000002F9     4 OBJECT  LOCAL   DEFAULT     2 __c.2729
+    64: 0x000002EE     6 OBJECT  LOCAL   DEFAULT     2 __c.2735
+    65: 0x000002E8     6 OBJECT  LOCAL   DEFAULT     2 __c.2738
+    66: 0x000002E2     6 OBJECT  LOCAL   DEFAULT     2 __c.2741
+    67: 0x000002D5     7 OBJECT  LOCAL   DEFAULT     2 __c.2750
+    68: 0x000002CE     7 OBJECT  LOCAL   DEFAULT     2 __c.2752
+    69: 0x000002C9     5 OBJECT  LOCAL   DEFAULT     2 __c.2754
+    70: 0x000002C4     5 OBJECT  LOCAL   DEFAULT     2 __c.2756
+    71: 0x000002BF     5 OBJECT  LOCAL   DEFAULT     2 __c.2761
+    72: 0x000002B9     6 OBJECT  LOCAL   DEFAULT     2 __c.2763
+    73: 0x000002B4     5 OBJECT  LOCAL   DEFAULT     2 __c.2765
+    74: 0x000002B0     4 OBJECT  LOCAL   DEFAULT     2 __c.2769
+    75: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    76: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    77: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    78: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    79: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    80: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    81: 0x0000030C     3 OBJECT  LOCAL   DEFAULT     2 __c.2539
+    82: 0x00000315     7 OBJECT  LOCAL   DEFAULT     2 __c.2575
+    83: 0x00005A72    64 FUNC    LOCAL   DEFAULT     2 report_util_float_setting
+    84: 0x00005AB2    40 FUNC    LOCAL   DEFAULT     2 report_util_uint8_setting
+    85: 0x0000030F     6 OBJECT  LOCAL   DEFAULT     2 __c.2647
+    86: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _clear_bss.o
+    87: 0x00000338     0 NOTYPE  LOCAL   DEFAULT     2 .do_clear_bss_start
+    88: 0x00000336     0 NOTYPE  LOCAL   DEFAULT     2 .do_clear_bss_loop
+    89: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    90: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    91: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    92: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    93: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    94: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    95: 0x00003824    68 FUNC    LOCAL   DEFAULT     2 eeprom_put_char
+    96: 0x008005FC     1 OBJECT  LOCAL   DEFAULT     3 segment_next_head
+    97: 0x008005FF     2 OBJECT  LOCAL   DEFAULT     3 pl_block
+    98: 0x008005FD     2 OBJECT  LOCAL   DEFAULT     3 st_prep_block
+    99: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+   100: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+   101: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+   102: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+   103: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+   104: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+   105: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _udivmodqi4.o
+   106: 0x000074E6     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodqi4_ep
+   107: 0x000074DE     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodqi4_loop
+   108: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _udivmodhi4.o
+   109: 0x00007506     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodhi4_ep
+   110: 0x000074F8     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodhi4_loop
+   111: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _udivmodsi4.o
+   112: 0x0000753E     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodsi4_ep
+   113: 0x00007524     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodsi4_loop
+   114: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _exit.o
+   115: 0x000075B8     0 NOTYPE  LOCAL   DEFAULT     2 __stop_program
+   116: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+   117: 0x000075BA     0 NOTYPE  LOCAL   DEFAULT   ABS __data_load_start
+   118: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_22
+   119: 0x00007404   140 FUNC    GLOBAL  DEFAULT     2 sqrt
+   120: 0x0000757E    30 NOTYPE  GLOBAL  HIDDEN      2 __umulhisi3
+   121: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_1
+   122: 0x000001B9    18 OBJECT  GLOBAL  HIDDEN      2 __c.2595.lto_priv.35
+   123: 0x0000709C     0 NOTYPE  GLOBAL  DEFAULT     2 __fp_mpack_finite
+   124: 0x000064CE   314 FUNC    GLOBAL  HIDDEN      2 spindle_compute_pwm_value
+   125: 0x000073A0    72 FUNC    GLOBAL  DEFAULT     2 round
+   126: 0x00003868   230 FUNC    GLOBAL  HIDDEN      2 plan_compute_profile_nominal_speed
+   127: 0x00800711    80 OBJECT  GLOBAL  HIDDEN      3 line.lto_priv.17
+   128: 0x0000FFA0     0 NOTYPE  GLOBAL  DEFAULT   ABS __DATA_REGION_LENGTH__
+   129: 0x00006E16     8 FUNC    GLOBAL  DEFAULT     2 __divsf3
+   130: 0x0000717A    34 FUNC    GLOBAL  DEFAULT     2 __fp_round
+   131: 0x0000621E   172 FUNC    GLOBAL  HIDDEN      2 limit_value_by_axis_maximum
+   132: 0x00006EFA    14 FUNC    GLOBAL  DEFAULT     2 __fixsfsi
+   133: 0x000071C4    68 FUNC    GLOBAL  DEFAULT     2 __fp_split3
+   134: 0x0000034A  7010 FUNC    GLOBAL  HIDDEN      2 gc_execute_line.constprop.11
+   135: 0x008001FA     1 OBJECT  GLOBAL  HIDDEN      3 serial_rx_buffer_head
+   136: 0x000074F0    40 NOTYPE  GLOBAL  HIDDEN      2 __udivmodhi4
+   137: 0x0080061F     1 OBJECT  GLOBAL  HIDDEN      3 sys_rt_exec_motion_override
+   138: 0x00007260   102 FUNC    GLOBAL  DEFAULT     2 lround
+   139: 0x0000015A     0 NOTYPE  GLOBAL  DEFAULT     2 __trampolines_start
+   140: 0x00004D00   656 FUNC    GLOBAL  HIDDEN      2 planner_recalculate.lto_priv.45
+   141: 0x00006DD4    46 FUNC    GLOBAL  DEFAULT     2 ceil
+   142: 0x0000700E    72 FUNC    GLOBAL  DEFAULT     2 __fp_cmp
+   143: 0x00005718    10 FUNC    GLOBAL  HIDDEN      2 system_flag_wco_change
+   144: 0x00006FE0    46 FUNC    GLOBAL  DEFAULT     2 floor
+   145: 0x0080012B    85 OBJECT  GLOBAL  HIDDEN      3 settings
+   146: 0x000075BA     0 NOTYPE  GLOBAL  DEFAULT     2 _etext
+   147: 0x000059EE    24 FUNC    GLOBAL  HIDDEN      2 report_status_message.part.0.lto_priv.50
+   148: 0x000064B4    26 FUNC    GLOBAL  HIDDEN      2 coolant_set_state
+   149: 0x00800100     1 OBJECT  GLOBAL  HIDDEN      3 probe_invert_mask
+   150: 0x00006C16    14 FUNC    GLOBAL  DEFAULT     2 __subsf3
+   151: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_24
+   152: 0x00005576    26 FUNC    GLOBAL  HIDDEN      2 printString.constprop.9
+   153: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_12
+   154: 0x008001FD     1 OBJECT  GLOBAL  HIDDEN      3 dir_port_invert_mask.lto_priv.21
+   155: 0x00007404     0 NOTYPE  GLOBAL  DEFAULT     2 sqrtf
+   156: 0x0000031C     5 OBJECT  GLOBAL  HIDDEN      2 __c.2571.lto_priv.49
+   157: 0x0000015A     9 OBJECT  GLOBAL  HIDDEN      2 __c.2619.lto_priv.43
+   158: 0x00000346     0 NOTYPE  GLOBAL  DEFAULT     2 __bad_interrupt
+   159: 0x008002D9     1 OBJECT  GLOBAL  HIDDEN      3 next_buffer_head.lto_priv.48
+   160: 0x000075BA     0 NOTYPE  GLOBAL  DEFAULT   ABS __data_load_end
+   161: 0x0000590E    30 FUNC    GLOBAL  HIDDEN      2 printFloat_RateValue
+   162: 0x00006624    86 FUNC    GLOBAL  HIDDEN      2 spindle_set_state
+   163: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_6
+   164: 0x008002D8     1 OBJECT  GLOBAL  HIDDEN      3 block_buffer_planned.lto_priv.29
+   165: 0x00006E02     0 NOTYPE  GLOBAL  DEFAULT     2 __lesf2
+   166: 0x00800222     1 OBJECT  GLOBAL  HIDDEN      3 segment_buffer_tail.lto_priv.25
+   167: 0x00007128    86 FUNC    GLOBAL  DEFAULT     2 __fp_rempio2
+   168: 0x0080011A    17 OBJECT  GLOBAL  HIDDEN      3 sys
+   169: 0x0000015A     0 NOTYPE  GLOBAL  DEFAULT     2 __trampolines_end
+   170: 0x00002FC2  2146 FUNC    GLOBAL  HIDDEN      2 protocol_exec_rt_system
+   171: 0x00005D5C    94 FUNC    GLOBAL  DEFAULT     2 __vector_3
+   172: 0x0000019D    11 OBJECT  GLOBAL  HIDDEN      2 __c.2604.lto_priv.38
+   173: 0x00003990   122 FUNC    GLOBAL  HIDDEN      2 memcpy_to_eeprom_with_checksum
+   174: 0x00800180    64 OBJECT  GLOBAL  HIDDEN      3 gc_state
+   175: 0x00000175    19 OBJECT  GLOBAL  HIDDEN      2 __c.2613.lto_priv.41
+   176: 0x00007238    14 FUNC    GLOBAL  DEFAULT     2 __fp_zero
+   177: 0x00006608    28 FUNC    GLOBAL  HIDDEN      2 spindle_set_speed
+   178: 0x00800620     1 OBJECT  GLOBAL  HIDDEN      3 sys_rt_exec_accessory_override
+   179: 0x00007484     8 FUNC    GLOBAL  DEFAULT     2 square
+   180: 0x000001DF    18 OBJECT  GLOBAL  HIDDEN      2 __c.2588.lto_priv.33
+   181: 0x00006E02     0 NOTYPE  GLOBAL  DEFAULT     2 __nesf2
+   182: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_23
+   183: 0x0080061D     1 OBJECT  GLOBAL  HIDDEN      3 sys_rt_exec_state
+   184: 0x00000322     0 NOTYPE  GLOBAL  DEFAULT     2 __dtors_end
+   185: 0x00800761     0 NOTYPE  GLOBAL  DEFAULT     3 __bss_end
+   186: 0x000061F0    46 FUNC    GLOBAL  HIDDEN      2 limits_init
+   187: 0x00000190    13 OBJECT  GLOBAL  HIDDEN      2 __c.2607.lto_priv.39
+   188: 0x00007568    22 NOTYPE  GLOBAL  HIDDEN      2 __muluhisi3
+   189: 0x00000400     0 NOTYPE  GLOBAL  DEFAULT   ABS __LOCK_REGION_LENGTH__
+   190: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_25
+   191: 0x000061DA    22 FUNC    GLOBAL  HIDDEN      2 limits_disable
+   192: 0x000055E6    18 FUNC    GLOBAL  HIDDEN      2 system_set_exec_motion_override_flag
+   193: 0x0080024E    90 OBJECT  GLOBAL  HIDDEN      3 st_block_buffer.lto_priv.27
+   194: 0x00005D08    84 FUNC    GLOBAL  HIDDEN      2 report_probe_parameters
+   195: 0x00005DBA    42 FUNC    GLOBAL  HIDDEN      2 limits_get_state
+   196: 0x00006418    16 FUNC    GLOBAL  HIDDEN      2 protocol_auto_cycle_start
+   197: 0x000057B0    36 FUNC    GLOBAL  HIDDEN      2 probe_configure_invert_mask
+   198: 0x00005DE4  1014 FUNC    GLOBAL  HIDDEN      2 limits_go_home
+   199: 0x00006E3E   220 FUNC    GLOBAL  DEFAULT     2 __divsf3x
+   200: 0x00002B02  1168 FUNC    GLOBAL  DEFAULT     2 __vector_11
+   201: 0x000057D4   314 FUNC    GLOBAL  HIDDEN      2 printFloat
+   202: 0x00000322     0 NOTYPE  WEAK    DEFAULT     2 __init
+   203: 0x00800119     1 OBJECT  GLOBAL  HIDDEN      3 sys_probe_state
+   204: 0x000074A2    14 FUNC    GLOBAL  DEFAULT     2 __fp_norm2
+   205: 0x00007246     0 NOTYPE  GLOBAL  DEFAULT     2 __gtsf2
+   206: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_13
+   207: 0x00005A06    16 FUNC    GLOBAL  HIDDEN      2 report_status_message
+   208: 0x000072F2     0 NOTYPE  GLOBAL  DEFAULT     2 __mulsf3_pse
+   209: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_17
+   210: 0x000070B4     6 FUNC    GLOBAL  DEFAULT     2 __fp_nan
+   211: 0x00006428    84 FUNC    GLOBAL  DEFAULT     2 __vector_19
+   212: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_7
+   213: 0x00007056    12 FUNC    GLOBAL  DEFAULT     2 __fp_inf
+   214: 0x008002A8    48 OBJECT  GLOBAL  HIDDEN      3 prep.lto_priv.44
+   215: 0x00006E0C    10 FUNC    GLOBAL  DEFAULT     2 cos
+   216: 0x00006956    12 FUNC    GLOBAL  HIDDEN      2 gc_sync_position
+   217: 0x00006398    94 FUNC    GLOBAL  HIDDEN      2 delay_sec
+   218: 0x0000032E    16 NOTYPE  GLOBAL  HIDDEN      2 __do_clear_bss
+   219: 0x00002A34    54 FUNC    GLOBAL  HIDDEN      2 st_generate_step_dir_invert_masks
+   220: 0x00810000     0 NOTYPE  GLOBAL  DEFAULT     4 __eeprom_end
+   221: 0x000072EC   210 FUNC    GLOBAL  DEFAULT     2 __mulsf3x
+   222: 0x00006962    72 FUNC    GLOBAL  HIDDEN      2 mc_reset
+   223: 0x008002DB   800 OBJECT  GLOBAL  HIDDEN      3 block_buffer.lto_priv.30
+   224: 0x0000592C    30 FUNC    GLOBAL  HIDDEN      2 printFloat_CoordValue
+   225: 0x000073E8    16 FUNC    GLOBAL  DEFAULT     2 sin
+   226: 0x00003D74  3908 FUNC    GLOBAL  HIDDEN      2 st_prep_buffer
+   227: 0x000068F0   102 FUNC    GLOBAL  HIDDEN      2 spindle_init
+   228: 0x00006D16   134 FUNC    GLOBAL  DEFAULT     2 atan2
+   229: 0x00006F6A     0 NOTYPE  GLOBAL  DEFAULT     2 __floatsisf
+   230: 0x00000000     0 NOTYPE  GLOBAL  DEFAULT     2 __vectors
+   231: 0x00003A4C   590 FUNC    GLOBAL  HIDDEN      2 settings_restore
+   232: 0x0000562A   118 FUNC    GLOBAL  HIDDEN      2 system_check_travel_limits
+   233: 0x000001B1     8 OBJECT  GLOBAL  HIDDEN      2 __c.2598.lto_priv.36
+   234: 0x00006E02     0 NOTYPE  GLOBAL  DEFAULT     2 __eqsf2
+   235: 0x00000000     0 NOTYPE  WEAK    DEFAULT     2 __vector_default
+   236: 0x00800621   129 OBJECT  GLOBAL  HIDDEN      3 serial_rx_buffer
+   237: 0x0080010D    12 OBJECT  GLOBAL  HIDDEN      3 sys_probe_position
+   238: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_5
+   239: 0x000063F6    34 FUNC    GLOBAL  HIDDEN      2 plan_sync_position
+   240: 0x00003CAA   136 FUNC    GLOBAL  HIDDEN      2 memcpy_from_eeprom_with_checksum
+   241: 0x008002DA     1 OBJECT  GLOBAL  HIDDEN      3 block_buffer_tail.lto_priv.28
+   242: 0x008001FF    35 OBJECT  GLOBAL  HIDDEN      3 st.lto_priv.23
+   243: 0x000059E6     8 FUNC    GLOBAL  HIDDEN      2 report_util_line_feed.lto_priv.46
+   244: 0x0000759C    26 FUNC    GLOBAL  DEFAULT     2 memcmp
+   245: 0x00000400     0 NOTYPE  GLOBAL  DEFAULT   ABS __SIGNATURE_REGION_LENGTH__
+   246: 0x0000755C    12 NOTYPE  GLOBAL  HIDDEN      2 __tablejump2__
+   247: 0x000059C8    30 FUNC    GLOBAL  HIDDEN      2 printPgmString
+   248: 0x00800101    12 OBJECT  GLOBAL  HIDDEN      3 sys_position
+   249: 0x0000647C    56 FUNC    GLOBAL  HIDDEN      2 serial_write
+   250: 0x00000322     0 NOTYPE  GLOBAL  DEFAULT     2 __ctors_start
+   251: 0x00007208    48 FUNC    GLOBAL  DEFAULT     2 __fp_trunc
+   252: 0x000055D4    18 FUNC    GLOBAL  HIDDEN      2 system_set_exec_accessory_override_flag
+   253: 0x00007062    54 FUNC    GLOBAL  DEFAULT     2 __fp_mintl
+   254: 0x000070BA    78 FUNC    GLOBAL  DEFAULT     2 __fp_powser
+   255: 0x00006E02    10 FUNC    GLOBAL  DEFAULT     2 __cmpsf2
+   256: 0x00007116    14 FUNC    GLOBAL  DEFAULT     2 __fp_pscB
+   257: 0x000071D4     0 NOTYPE  GLOBAL  DEFAULT     2 __fp_splitA
+   258: 0x00800100     0 NOTYPE  GLOBAL  DEFAULT     3 __bss_start
+   259: 0x00003A24    40 FUNC    GLOBAL  HIDDEN      2 settings_write_coord_data
+   260: 0x00001F72  2754 FUNC    GLOBAL  DEFAULT     2 main
+   261: 0x00006E02     0 NOTYPE  GLOBAL  DEFAULT     2 __ltsf2
+   262: 0x000001A8     9 OBJECT  GLOBAL  HIDDEN      2 __c.2601.lto_priv.37
+   263: 0x00005740   112 FUNC    GLOBAL  DEFAULT     2 __vector_4
+   264: 0x0000667A   536 FUNC    GLOBAL  HIDDEN      2 protocol_execute_realtime
+   265: 0x000056A0   120 FUNC    GLOBAL  HIDDEN      2 system_convert_array_steps_to_mpos
+   266: 0x00007098    28 FUNC    GLOBAL  DEFAULT     2 __fp_mpack
+   267: 0x00003D32    66 FUNC    GLOBAL  HIDDEN      2 settings_read_coord_data
+   268: 0x0000394E    32 FUNC    GLOBAL  HIDDEN      2 plan_get_current_block
+   269: 0x0000719C    40 FUNC    GLOBAL  DEFAULT     2 __fp_sinus
+   270: 0x00006892    34 FUNC    GLOBAL  HIDDEN      2 protocol_buffer_synchronize
+   271: 0x000062CA   206 FUNC    GLOBAL  HIDDEN      2 convert_delta_vector_to_unit_vector
+   272: 0x000072C6     8 FUNC    GLOBAL  DEFAULT     2 __mulsf3
+   273: 0x00000000     0 NOTYPE  WEAK    DEFAULT   ABS __heap_end
+   274: 0x00007250    16 FUNC    GLOBAL  DEFAULT     2 inverse
+   275: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_9
+   276: 0x00005ADA   548 FUNC    GLOBAL  HIDDEN      2 report_grbl_settings
+   277: 0x0000597C    76 FUNC    GLOBAL  HIDDEN      2 print_uint8_base10
+   278: 0x00005CFE    10 FUNC    GLOBAL  HIDDEN      2 report_util_feedback_line_feed.lto_priv.18
+   279: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_2
+   280: 0x00006C46   204 FUNC    GLOBAL  DEFAULT     2 __addsf3x
+   281: 0x00000400     0 NOTYPE  GLOBAL  DEFAULT   ABS __USER_SIGNATURE_REGION_LENGTH__
+   282: 0x00005590    68 FUNC    GLOBAL  HIDDEN      2 settings_read_startup_line.constprop.7
+   283: 0x00006D76    94 FUNC    GLOBAL  DEFAULT     2 atan
+   284: 0x00000188     8 OBJECT  GLOBAL  HIDDEN      2 __c.2610.lto_priv.40
+   285: 0x00005510   102 FUNC    GLOBAL  HIDDEN      2 st_reset
+   286: 0x00007246    10 FUNC    GLOBAL  DEFAULT     2 __gesf2
+   287: 0x00001EAC   198 FUNC    GLOBAL  HIDDEN      2 mc_line
+   288: 0x0080024D     1 OBJECT  GLOBAL  HIDDEN      3 segment_buffer_head.lto_priv.24
+   289: 0x000074B0    40 FUNC    GLOBAL  DEFAULT     2 __fp_powsodd
+   290: 0x008005FB     1 OBJECT  GLOBAL  HIDDEN      3 block_buffer_head.lto_priv.31
+   291: 0x00002A96   108 FUNC    GLOBAL  HIDDEN      2 st_go_idle
+   292: 0x008001FE     1 OBJECT  GLOBAL  HIDDEN      3 busy.lto_priv.22
+   293: 0x00005604    20 FUNC    GLOBAL  HIDDEN      2 system_clear_exec_state_flag
+   294: 0x00003C9A    16 FUNC    GLOBAL  HIDDEN      2 eeprom_get_char
+   295: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_21
+   296: 0x00005A16    92 FUNC    GLOBAL  HIDDEN      2 system_execute_startup.constprop.2
+   297: 0x008001FC     1 OBJECT  GLOBAL  HIDDEN      3 step_port_invert_mask.lto_priv.20
+   298: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_15
+   299: 0x00007108    14 FUNC    GLOBAL  DEFAULT     2 __fp_pscA
+   300: 0x000074D8    24 NOTYPE  GLOBAL  HIDDEN      2 __udivmodqi4
+   301: 0x00800601    28 OBJECT  GLOBAL  HIDDEN      3 pl.lto_priv.19
+   302: 0x00000322     0 NOTYPE  GLOBAL  DEFAULT     2 __dtors_start
+   303: 0x00000322     0 NOTYPE  GLOBAL  DEFAULT     2 __ctors_end
+   304: 0x00005722    30 FUNC    GLOBAL  HIDDEN      2 system_control_get_state
+   305: 0x000008FF     0 NOTYPE  WEAK    DEFAULT   ABS __stack
+   306: 0x00000163    18 OBJECT  GLOBAL  HIDDEN      2 __c.2616.lto_priv.42
+   307: 0x00800100     0 NOTYPE  GLOBAL  DEFAULT     1 _edata
+   308: 0x00800761     0 NOTYPE  GLOBAL  DEFAULT     4 _end
+   309: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_8
+   310: 0x00006E44     0 NOTYPE  GLOBAL  DEFAULT     2 __divsf3_pse
+   311: 0x000055F8    12 FUNC    GLOBAL  HIDDEN      2 system_set_exec_alarm
+   312: 0x0080061E     1 OBJECT  GLOBAL  HIDDEN      3 sys_rt_exec_alarm
+   313: 0x00006AAE   360 FUNC    GLOBAL  HIDDEN      2 read_float.constprop.12
+   314: 0x000075B6     0 NOTYPE  WEAK    HIDDEN      2 exit
+   315: 0x00006F66   122 FUNC    GLOBAL  DEFAULT     2 __floatunsisf
+   316: 0x00800223    42 OBJECT  GLOBAL  HIDDEN      3 segment_buffer.lto_priv.26
+   317: 0x0000594A    50 FUNC    GLOBAL  HIDDEN      2 report_util_axis_values.lto_priv.47
+   318: 0x00007518    68 NOTYPE  GLOBAL  HIDDEN      2 __udivmodsi4
+   319: 0x000001F1     6 OBJECT  GLOBAL  HIDDEN      2 __c.2585.lto_priv.32
+   320: 0x0000396E    34 FUNC    GLOBAL  HIDDEN      2 plan_reset
+   321: 0x00006F08    94 FUNC    GLOBAL  DEFAULT     2 __fixunssfsi
+   322: 0x00010000     0 NOTYPE  GLOBAL  DEFAULT   ABS __EEPROM_REGION_LENGTH__
+   323: 0x000075B6     0 NOTYPE  GLOBAL  HIDDEN      2 _exit
+   324: 0x00002F92    48 FUNC    GLOBAL  HIDDEN      2 st_wake_up
+   325: 0x000068B4    60 FUNC    GLOBAL  HIDDEN      2 spindle_sync
+   326: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_14
+   327: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_10
+   328: 0x00002A6A    44 FUNC    GLOBAL  DEFAULT     2 __vector_16
+   329: 0x000001CB    20 OBJECT  GLOBAL  HIDDEN      2 __c.2592.lto_priv.34
+   330: 0x00005618    18 FUNC    GLOBAL  HIDDEN      2 system_set_exec_state_flag
+   331: 0x000069AA   260 FUNC    GLOBAL  DEFAULT     2 __vector_18
+   332: 0x00004F90  1408 FUNC    GLOBAL  HIDDEN      2 plan_buffer_line
+   333: 0x00000003     0 NOTYPE  GLOBAL  DEFAULT   ABS __FUSE_REGION_LENGTH__
+   334: 0x008001FB     1 OBJECT  GLOBAL  HIDDEN      3 serial_rx_buffer_tail
+   335: 0x0000748C    22 FUNC    GLOBAL  DEFAULT     2 trunc
+   336: 0x00020000     0 NOTYPE  GLOBAL  DEFAULT   ABS __TEXT_REGION_LENGTH__
+   337: 0x00004CB8    72 FUNC    GLOBAL  HIDDEN      2 st_update_plan_block_parameters
+   338: 0x00000346     0 NOTYPE  WEAK    DEFAULT     2 __vector_20
+   339: 0x00003A0A    26 FUNC    GLOBAL  HIDDEN      2 write_global_settings
+   340: 0x00006C18     0 NOTYPE  GLOBAL  DEFAULT     2 __addsf3
+   341: 0x0000723A     0 NOTYPE  GLOBAL  DEFAULT     2 __fp_szero
+
+
+        1 Source File: grbl_v1.1f.20170801_arduino_v1.8.8.elf
+
+        Disassembly Output File: grbl_v1.1f.20170801_arduino_v1.8.8.dis
+
+        Functions Output File: grbl_v1.1f.20170801_arduino_v1.8.8.fnc
+
+        Memory Mappings:
+            ROM Memory Map:
+                0x0000 - 0x7FFF  (Size: 0x8000)
+            RAM Memory Map:
+                0x0000 - 0x00FF  (Size: 0x0100)
+                0x0100 - 0x08FF  (Size: 0x0800)
+             IO Memory Map:
+                0x0000 - 0x003F  (Size: 0x0040)
+
+        143 Entry Points:
+                0x0000
+                0x0004
+                0x0008
+                0x000C
+                0x0010
+                0x0014
+                0x0018
+                0x001C
+                0x0020
+                0x0024
+                0x0028
+                0x002C
+                0x0030
+                0x0034
+                0x0038
+                0x003C
+                0x0040
+                0x0044
+                0x0048
+                0x004C
+                0x0050
+                0x0054
+                0x0058
+                0x005C
+                0x0060
+                0x0064
+                0x034A
+                0x1EAC
+                0x1F72
+                0x2A34
+                0x2A6A
+                0x2A96
+                0x2B02
+                0x2F92
+                0x2FC2
+                0x3824
+                0x3868
+                0x394E
+                0x396E
+                0x3990
+                0x3A0A
+                0x3A24
+                0x3A4C
+                0x3C9A
+                0x3CAA
+                0x3D32
+                0x3D74
+                0x4CB8
+                0x4D00
+                0x4F90
+                0x5510
+                0x5576
+                0x5590
+                0x55D4
+                0x55E6
+                0x55F8
+                0x5604
+                0x5618
+                0x562A
+                0x56A0
+                0x5718
+                0x5722
+                0x5740
+                0x57B0
+                0x57D4
+                0x590E
+                0x592C
+                0x594A
+                0x597C
+                0x59C8
+                0x59E6
+                0x59EE
+                0x5A06
+                0x5A16
+                0x5A72
+                0x5AB2
+                0x5ADA
+                0x5CFE
+                0x5D08
+                0x5D5C
+                0x5DBA
+                0x5DE4
+                0x61DA
+                0x61F0
+                0x621E
+                0x62CA
+                0x6398
+                0x63F6
+                0x6418
+                0x6428
+                0x647C
+                0x64B4
+                0x64CE
+                0x6608
+                0x6624
+                0x667A
+                0x6892
+                0x68B4
+                0x68F0
+                0x6956
+                0x6962
+                0x69AA
+                0x6AAE
+                0x6C16
+                0x6C46
+                0x6D16
+                0x6D76
+                0x6DD4
+                0x6E02
+                0x6E0C
+                0x6E16
+                0x6E3E
+                0x6EFA
+                0x6F08
+                0x6F66
+                0x6FE0
+                0x700E
+                0x7056
+                0x7062
+                0x7098
+                0x70B4
+                0x70BA
+                0x7108
+                0x7116
+                0x7128
+                0x717A
+                0x719C
+                0x71C4
+                0x7208
+                0x7238
+                0x7246
+                0x7250
+                0x7260
+                0x72C6
+                0x72EC
+                0x73A0
+                0x73E8
+                0x7404
+                0x7484
+                0x748C
+                0x74A2
+                0x74B0
+                0x759C
+
+        0 Exit Functions Defined
+
+        221 Unique ROM Labels Defined:
+                0x0000=RESET_vect,__vectors,__vector_default
+                0x0004=INT0_vect
+                0x0008=INT1_vect
+                0x000C=PCINT0_vect
+                0x0010=PCINT1_vect
+                0x0014=PCINT2_vect
+                0x0018=WDT_vect
+                0x001C=TIMER2_COMPA_vect
+                0x0020=TIMER2_COMPB_vect
+                0x0024=TIMER2_OVF_vect
+                0x0028=TIMER1_CAPT_vect
+                0x002C=TIMER1_COMPA_vect
+                0x0030=TIMER1_COMPB_vect
+                0x0034=TIMER1_OVF_vect
+                0x0038=TIMER0_COMPA_vect
+                0x003C=TIMER0_COMPB_vect
+                0x0040=TIMER0_OVF_vect
+                0x0044=SPI0_STC_vect
+                0x0048=USART0_RX_vect
+                0x004C=USART0_UDRE_vect
+                0x0050=USART0_TX_vect
+                0x0054=ADC_vect
+                0x0058=EE_READY_vect
+                0x005C=ANALOG_COMP_vect
+                0x0060=TWI0_vect
+                0x0064=SPM_Ready_vect
+                0x015A=__trampolines_start,__c_2619_lto_priv_43,__trampolines_end
+                0x0163=__c_2616_lto_priv_42
+                0x0175=__c_2613_lto_priv_41
+                0x0188=__c_2610_lto_priv_40
+                0x0190=__c_2607_lto_priv_39
+                0x019D=__c_2604_lto_priv_38
+                0x01A8=__c_2601_lto_priv_37
+                0x01B1=__c_2598_lto_priv_36
+                0x01B9=__c_2595_lto_priv_35
+                0x01CB=__c_2592_lto_priv_34
+                0x01DF=__c_2588_lto_priv_33
+                0x01F1=__c_2585_lto_priv_32
+                0x01F7=__c_2623
+                0x0214=__c_2695
+                0x0217=__c_2706
+                0x021D=__c_2704
+                0x0231=__c_2669
+                0x0237=__c_2667
+                0x023D=__c_2661
+                0x0240=__c_2657
+                0x0243=__c_2654
+                0x0246=__c_2545
+                0x0249=__c_2549
+                0x024C=__c_2689
+                0x024F=__c_2687
+                0x0252=__c_2685
+                0x0255=__c_2675
+                0x0259=__c_2673
+                0x025F=__c_2627
+                0x02A9=__c_2580
+                0x02B0=__c_2769
+                0x02B4=__c_2765
+                0x02B9=__c_2763
+                0x02BF=__c_2761
+                0x02C4=__c_2756
+                0x02C9=__c_2754
+                0x02CE=__c_2752
+                0x02D5=__c_2750
+                0x02DC=__c_2744
+                0x02E2=__c_2741
+                0x02E8=__c_2738
+                0x02EE=__c_2735
+                0x02F4=__c_2732
+                0x02F9=__c_2729
+                0x02FD=__c_2726
+                0x0303=__c_2723
+                0x0307=__c_2719
+                0x030C=__c_2539
+                0x030F=__c_2647
+                0x0315=__c_2575
+                0x031C=__c_2571_lto_priv_49
+                0x0322=__dtors_end,__init,__ctors_start,__dtors_start,__ctors_end
+                0x032E=__do_clear_bss
+                0x0336=_do_clear_bss_loop
+                0x0338=_do_clear_bss_start
+                0x0346=__vector_22,__vector_1,__vector_24,__vector_12,__bad_interrupt,__vector_6,__vector_23,__vector_25,__vector_13,__vector_17,__vector_7,__vector_5,__vector_9,__vector_2,__vector_21,__vector_15,__vector_8,__vector_14,__vector_10,__vector_20
+                0x034A=gc_execute_line_constprop_11
+                0x1EAC=mc_line
+                0x1F72=main
+                0x2A34=st_generate_step_dir_invert_masks
+                0x2A6A=__vector_16
+                0x2A96=st_go_idle
+                0x2B02=__vector_11
+                0x2F92=st_wake_up
+                0x2FC2=protocol_exec_rt_system
+                0x3824=eeprom_put_char
+                0x3868=plan_compute_profile_nominal_speed
+                0x394E=plan_get_current_block
+                0x396E=plan_reset
+                0x3990=memcpy_to_eeprom_with_checksum
+                0x3A0A=write_global_settings
+                0x3A24=settings_write_coord_data
+                0x3A4C=settings_restore
+                0x3C9A=eeprom_get_char
+                0x3CAA=memcpy_from_eeprom_with_checksum
+                0x3D32=settings_read_coord_data
+                0x3D74=st_prep_buffer
+                0x4CB8=st_update_plan_block_parameters
+                0x4D00=planner_recalculate_lto_priv_45
+                0x4F90=plan_buffer_line
+                0x5510=st_reset
+                0x5576=printString_constprop_9
+                0x5590=settings_read_startup_line_constprop_7
+                0x55D4=system_set_exec_accessory_override_flag
+                0x55E6=system_set_exec_motion_override_flag
+                0x55F8=system_set_exec_alarm
+                0x5604=system_clear_exec_state_flag
+                0x5618=system_set_exec_state_flag
+                0x562A=system_check_travel_limits
+                0x56A0=system_convert_array_steps_to_mpos
+                0x5718=system_flag_wco_change
+                0x5722=system_control_get_state
+                0x5740=__vector_4
+                0x57B0=probe_configure_invert_mask
+                0x57D4=printFloat
+                0x590E=printFloat_RateValue
+                0x592C=printFloat_CoordValue
+                0x594A=report_util_axis_values_lto_priv_47
+                0x597C=print_uint8_base10
+                0x59C8=printPgmString
+                0x59E6=report_util_line_feed_lto_priv_46
+                0x59EE=report_status_message_part_0_lto_priv_50
+                0x5A06=report_status_message
+                0x5A16=system_execute_startup_constprop_2
+                0x5A72=report_util_float_setting
+                0x5AB2=report_util_uint8_setting
+                0x5ADA=report_grbl_settings
+                0x5CFE=report_util_feedback_line_feed_lto_priv_18
+                0x5D08=report_probe_parameters
+                0x5D5C=__vector_3
+                0x5DBA=limits_get_state
+                0x5DE4=limits_go_home
+                0x61DA=limits_disable
+                0x61F0=limits_init
+                0x621E=limit_value_by_axis_maximum
+                0x62CA=convert_delta_vector_to_unit_vector
+                0x6398=delay_sec
+                0x63F6=plan_sync_position
+                0x6418=protocol_auto_cycle_start
+                0x6428=__vector_19
+                0x647C=serial_write
+                0x64B4=coolant_set_state
+                0x64CE=spindle_compute_pwm_value
+                0x6608=spindle_set_speed
+                0x6624=spindle_set_state
+                0x667A=protocol_execute_realtime
+                0x6892=protocol_buffer_synchronize
+                0x68B4=spindle_sync
+                0x68F0=spindle_init
+                0x6956=gc_sync_position
+                0x6962=mc_reset
+                0x69AA=__vector_18
+                0x6AAE=read_float_constprop_12
+                0x6C16=__subsf3
+                0x6C18=__addsf3
+                0x6C46=__addsf3x
+                0x6D16=atan2
+                0x6D76=atan
+                0x6DD4=ceil
+                0x6E02=__lesf2,__nesf2,__eqsf2,__cmpsf2,__ltsf2
+                0x6E0C=cos
+                0x6E16=__divsf3
+                0x6E3E=__divsf3x
+                0x6E44=__divsf3_pse
+                0x6EFA=__fixsfsi
+                0x6F08=__fixunssfsi
+                0x6F66=__floatunsisf
+                0x6F6A=__floatsisf
+                0x6FE0=floor
+                0x700E=__fp_cmp
+                0x7056=__fp_inf
+                0x7062=__fp_mintl
+                0x7098=__fp_mpack
+                0x709C=__fp_mpack_finite
+                0x70B4=__fp_nan
+                0x70BA=__fp_powser
+                0x7108=__fp_pscA
+                0x7116=__fp_pscB
+                0x7128=__fp_rempio2
+                0x717A=__fp_round
+                0x719C=__fp_sinus
+                0x71C4=__fp_split3
+                0x71D4=__fp_splitA
+                0x7208=__fp_trunc
+                0x7238=__fp_zero
+                0x723A=__fp_szero
+                0x7246=__gtsf2,__gesf2
+                0x7250=inverse
+                0x7260=lround
+                0x72C6=__mulsf3
+                0x72EC=__mulsf3x
+                0x72F2=__mulsf3_pse
+                0x73A0=round
+                0x73E8=sin
+                0x7404=sqrt,sqrtf
+                0x7484=square
+                0x748C=trunc
+                0x74A2=__fp_norm2
+                0x74B0=__fp_powsodd
+                0x74D8=__udivmodqi4
+                0x74DE=__udivmodqi4_loop
+                0x74E6=__udivmodqi4_ep
+                0x74F0=__udivmodhi4
+                0x74F8=__udivmodhi4_loop
+                0x7506=__udivmodhi4_ep
+                0x7518=__udivmodsi4
+                0x7524=__udivmodsi4_loop
+                0x753E=__udivmodsi4_ep
+                0x755C=__tablejump2__
+                0x7568=__muluhisi3
+                0x757E=__umulhisi3
+                0x759C=memcmp
+                0x75B6=exit,_exit
+                0x75B8=__stop_program
+                0x75BA=_etext
+
+        158 Unique RAM Labels Defined:
+                0x0000=R0
+                0x0001=R1
+                0x0002=R2
+                0x0003=R3
+                0x0004=R4
+                0x0005=R5
+                0x0006=R6
+                0x0007=R7
+                0x0008=R8
+                0x0009=R9
+                0x000A=R10
+                0x000B=R11
+                0x000C=R12
+                0x000D=R13
+                0x000E=R14
+                0x000F=R15
+                0x0010=R16
+                0x0011=R17
+                0x0012=R18
+                0x0013=R19
+                0x0014=R20
+                0x0015=R21
+                0x0016=R22
+                0x0017=R23
+                0x0018=R24
+                0x0019=R25
+                0x001A=R26
+                0x001B=R27
+                0x001C=R28
+                0x001D=R29
+                0x001E=R30
+                0x001F=R31
+                0x0023=PINB
+                0x0024=DDRB
+                0x0025=PORTB
+                0x0026=PINC
+                0x0027=DDRC
+                0x0028=PORTC
+                0x0029=PIND
+                0x002A=DDRD
+                0x002B=PORTD
+                0x0035=TIFR0
+                0x0036=TIFR1
+                0x0037=TIFR2
+                0x003B=PCIFR
+                0x003C=EIFR
+                0x003D=EIMSK
+                0x003E=GPIOR0
+                0x003F=EECR
+                0x0040=EEDR
+                0x0041=EEADL
+                0x0042=EEADH
+                0x0043=GTCCR
+                0x0044=TCCR0A
+                0x0045=TCCR0B
+                0x0046=TCNT0
+                0x0047=OCRA0
+                0x0048=OCRB0
+                0x004A=GPIOR1
+                0x004B=GPIOR2
+                0x004C=SPCR0
+                0x004D=SPSR0
+                0x004E=SPDR0
+                0x0050=ACSR
+                0x0053=SMCR
+                0x0054=MCUSR
+                0x0055=MCUCR
+                0x0057=SPMCSR
+                0x005D=SPL
+                0x005E=SPH
+                0x005F=SREG
+                0x0060=WDTCSR
+                0x0061=CLKPR
+                0x0064=PRR0
+                0x0066=OSCCAL
+                0x0068=PCICR
+                0x0069=EICRA
+                0x006B=PCMSK0
+                0x006C=PCMSK1
+                0x006D=PCMSK2
+                0x006E=TIMSK0
+                0x006F=TIMSK1
+                0x0070=TIMSK2
+                0x0078=ADCL
+                0x0079=ADCH
+                0x007A=ADCSRA
+                0x007B=ADCSRB
+                0x007C=ADMUX
+                0x007E=DIDR0
+                0x007F=DIDR1
+                0x0080=TCCR1A
+                0x0081=TCCR1B
+                0x0082=TCCR1C
+                0x0084=TCNT1L
+                0x0085=TCNT1H
+                0x0086=ICR1L
+                0x0087=ICR1H
+                0x0088=OCR1AL
+                0x0089=OCR1AH
+                0x008A=OCR1BL
+                0x008B=OCR1BH
+                0x00B0=TCCR2A
+                0x00B1=TCCR2B
+                0x00B2=TCNT2
+                0x00B3=OCR2A
+                0x00B4=OCR2B
+                0x00B6=ASSR
+                0x00B8=TWBR0
+                0x00B9=TWSR0
+                0x00BA=TWAR0
+                0x00BB=TWDR0
+                0x00BC=TWCR0
+                0x00BD=TWAMR0
+                0x00C0=UCSR0A
+                0x00C1=UCSR0B
+                0x00C2=UCSR0C
+                0x00C4=UBRR0L
+                0x00C5=UBRR0H
+                0x00C6=UDR0
+                0x0100=probe_invert_mask,__bss_start,_edata
+                0x0101=sys_position
+                0x010D=sys_probe_position
+                0x0119=sys_probe_state
+                0x011A=sys
+                0x012B=settings
+                0x0180=gc_state
+                0x01C0=gc_block
+                0x01FA=serial_rx_buffer_head
+                0x01FB=serial_rx_buffer_tail
+                0x01FC=step_port_invert_mask_lto_priv_20
+                0x01FD=dir_port_invert_mask_lto_priv_21
+                0x01FE=busy_lto_priv_22
+                0x01FF=st_lto_priv_23
+                0x0222=segment_buffer_tail_lto_priv_25
+                0x0223=segment_buffer_lto_priv_26
+                0x024D=segment_buffer_head_lto_priv_24
+                0x024E=st_block_buffer_lto_priv_27
+                0x02A8=prep_lto_priv_44
+                0x02D8=block_buffer_planned_lto_priv_29
+                0x02D9=next_buffer_head_lto_priv_48
+                0x02DA=block_buffer_tail_lto_priv_28
+                0x02DB=block_buffer_lto_priv_30
+                0x05FB=block_buffer_head_lto_priv_31
+                0x05FC=segment_next_head
+                0x05FD=st_prep_block
+                0x05FF=pl_block
+                0x0601=pl_lto_priv_19
+                0x061D=sys_rt_exec_state
+                0x061E=sys_rt_exec_alarm
+                0x061F=sys_rt_exec_motion_override
+                0x0620=sys_rt_exec_accessory_override
+                0x0621=serial_rx_buffer
+                0x06A2=pwm_gradient
+                0x06A6=serial_tx_buffer_head
+                0x06A7=serial_tx_buffer
+                0x0710=serial_tx_buffer_tail
+                0x0711=line_lto_priv_17
+                0x0761=__bss_end
+
+        39 Unique IO Labels Defined:
+                0x0003=PINB_
+                0x0004=DDRB_
+                0x0005=PORTB_
+                0x0006=PINC_
+                0x0007=DDRC_
+                0x0008=PORTC_
+                0x0009=PIND_
+                0x000A=DDRD_
+                0x000B=PORTD_
+                0x0015=TIFR0_
+                0x0016=TIFR1_
+                0x0017=TIFR2_
+                0x001B=PCIFR_
+                0x001C=EIFR_
+                0x001D=EIMSK_
+                0x001E=GPIOR0_
+                0x001F=EECR_
+                0x0020=EEDR_
+                0x0021=EEADL_
+                0x0022=EEADH_
+                0x0023=GTCCR_
+                0x0024=TCCR0A_
+                0x0025=TCCR0B_
+                0x0026=TCNT0_
+                0x0027=OCRA0_
+                0x0028=OCRB0_
+                0x002A=GPIOR1_
+                0x002B=GPIOR2_
+                0x002C=SPCR0_
+                0x002D=SPSR0_
+                0x002E=SPDR0_
+                0x0030=ACSR_
+                0x0033=SMCR_
+                0x0034=MCUSR_
+                0x0035=MCUCR_
+                0x0037=SPMCSR_
+                0x003D=SPL_
+                0x003E=SPH_
+                0x003F=SREG_
+
+Writing printable data as ASCII in disassembly file.
+Writing byte value comments for ASCII data in disassembly file.
+
+Compiling Indirect Code (branch) Table as specified in Control File...
+        83 Indirect Code Vectors:
+                [0x0068] -> 0x06F2
+                [0x006A] -> 0x1E28
+                [0x006C] -> 0x1E28
+                [0x006E] -> 0x0706
+                [0x0070] -> 0x071C
+                [0x0072] -> 0x0732
+                [0x0074] -> 0x0748
+                [0x0076] -> 0x1E28
+                [0x0078] -> 0x0750
+                [0x007A] -> 0x1E28
+                [0x007C] -> 0x076C
+                [0x007E] -> 0x1E28
+                [0x0080] -> 0x0780
+                [0x0082] -> 0x0794
+                [0x0084] -> 0x07A8
+                [0x0086] -> 0x1E28
+                [0x0088] -> 0x1E28
+                [0x008A] -> 0x1E28
+                [0x008C] -> 0x07C8
+                [0x008E] -> 0x07E2
+                [0x0090] -> 0x07FC
+                [0x0092] -> 0x2834
+                [0x0094] -> 0x2840
+                [0x0096] -> 0x2846
+                [0x0098] -> 0x284C
+                [0x009A] -> 0x2856
+                [0x009C] -> 0x2866
+                [0x009E] -> 0x2876
+                [0x00A0] -> 0x29AC
+                [0x00A2] -> 0x29AC
+                [0x00A4] -> 0x29AC
+                [0x00A6] -> 0x2890
+                [0x00A8] -> 0x2896
+                [0x00AA] -> 0x28A8
+                [0x00AC] -> 0x28BA
+                [0x00AE] -> 0x29AC
+                [0x00B0] -> 0x29AC
+                [0x00B2] -> 0x29AC
+                [0x00B4] -> 0x29AC
+                [0x00B6] -> 0x29AC
+                [0x00B8] -> 0x29AC
+                [0x00BA] -> 0x28D2
+                [0x00BC] -> 0x28E6
+                [0x00BE] -> 0x28FE
+                [0x00C0] -> 0x290E
+                [0x00C2] -> 0x2914
+                [0x00C4] -> 0x2926
+                [0x00C6] -> 0x2938
+                [0x00C8] -> 0x2944
+                [0x00CA] -> 0x29AC
+                [0x00CC] -> 0x29AC
+                [0x00CE] -> 0x2956
+                [0x00D0] -> 0x2968
+                [0x00D2] -> 0x297E
+                [0x00D4] -> 0x6A16
+                [0x00D6] -> 0x6A1A
+                [0x00D8] -> 0x6A8C
+                [0x00DA] -> 0x6A8C
+                [0x00DC] -> 0x6A8C
+                [0x00DE] -> 0x6A8C
+                [0x00E0] -> 0x6A8C
+                [0x00E2] -> 0x6A8C
+                [0x00E4] -> 0x6A8C
+                [0x00E6] -> 0x6A8C
+                [0x00E8] -> 0x6A8C
+                [0x00EA] -> 0x6A8C
+                [0x00EC] -> 0x6A26
+                [0x00EE] -> 0x6A2A
+                [0x00F0] -> 0x6A2E
+                [0x00F2] -> 0x6A32
+                [0x00F4] -> 0x6A36
+                [0x00F6] -> 0x6A3A
+                [0x00F8] -> 0x6A3E
+                [0x00FA] -> 0x6A42
+                [0x00FC] -> 0x6A8C
+                [0x00FE] -> 0x6A4A
+                [0x0100] -> 0x6A4E
+                [0x0102] -> 0x6A52
+                [0x0104] -> 0x6A56
+                [0x0106] -> 0x6A5A
+                [0x0108] -> 0x6A5E
+                [0x010A] -> 0x6A8C
+                [0x010C] -> 0x6A62
+
+Compiling Indirect Data Table as specified in Control File...
+        0 Indirect Data Vectors
+
+
+Pass 1 - Finding Code, Data, and Labels...
+CL0388 CL0398 CL03AC CL1E6A DL0170 CL1F0E CL1FB2 CL2A22 DL015C DL015D
+DL015E CL2ACA CL2F70 CL2F9E CL3060 CL302A CL3020 CL3026 CL3826 CL38BC
+CL3968 CL3976 CL39E8 CL39DA CL3C18 CL3D02 CL3CF8 CL3D6A CL3D58 CL3D6C
+DL011E CL4C86 DL0600 CL4CFA DL02A9 DL02BF DL02C0 DL02C1 DL02C2 CL4D30
+CL4FE8 CL5090 CL5520 CL552E CL558A CL557E CL55CC CL55CE CL5688 CL56CC
+DL0126 CL573C CL573E CL578E CL5774 CL57C2 CL581E CL5926 CL5944 CL596E
+CL5954 CL5990 CL5996 CL59E0 CL59CE CL5A12 CL5A42 DL015B DL015F DL0160
+DL0161 DL0162 DL0163 DL0164 DL0165 DL0166 DL0167 DL0171 DL0172 DL0173
+DL0174 DL0175 DL0176 DL0177 DL0178 DL0179 DL017A DL017B DL017C DL017D
+DL017E DL017F DL0168 DL0169 DL016A DL016B DL016C DL016D DL016E DL016F
+CL5CAE CL5CCA CL5CA2 CL5CD6 DL011F CL5D98 CL5DCA DL011B CL61A8 CL621A
+CL629E CL6256 CL6332 CL62F8 CL6358 CL63EE CL63FE CL6426 CL6454 CL646A
+CL6494 CL64CC CL654C CL6618 CL6678 DL011C CL6696 CL6882 CL68B2 CL68E4
+DL06A3 DL06A4 DL06A5 CL69A8 CL69F0 CL69E0 CL69F8 CL6AE6 CL6AF8 CL6C24
+CL6C62 CL6C7A CL6CC6 CL6CF0 CL6D12 CL6D3E CL6D52 CL6D92 CL6DCE CL6DFE
+CL6DF0 CL6DE6 CL6E0A CL6E1E CL6E34 CL6E30 CL6E6A CL6E54 CL6ED6 CL6E7E
+CL6ED8 CL6E70 CL6E9A CL6EB4 CL6ECA CL6F30 CL6F38 CL6F46 CL6F54 CL6F2C
+CL6F1C CL6F7C CL700A CL6FFC CL6FF2 CL7054 CL7046 CL704C CL7082 CL7072
+CL7080 CL70A8 CL70DC CL7124 CL7174 CL714C CL7186 CL719A CL7192 CL71B0
+CL71E4 CL71EE CL71F4 CL71FE CL7236 CL7232 CL7216 CL724E CL72BC CL72C2
+CL7296 CL72AA CL7278 CL72CE CL72E6 CL737A CL7392 CL736C CL7356 CL73E0
+CL73E4 CL73DC CL73C4 CL73AE CL73F8 CL7400 CL73FC CL7434 CL743C CL7448
+CL742C CL7466 CL7472 CL7456 CL749E CL749A CL75AA DL01C1 DL01C2 CL03F2
+CL085C CL03FE CL1E08 CL0418 CL1E0C CL046A CL0468 CL063C CL06D0 CL0470
+CL05FC CL04BA CL0490 CL047C CL0590 CL0482 CL0526 CL0486 CL054E CL048C
+CL0516 CL0496 CL04AC CL04A0 DL01C3 CL0606 CL04B6 CL04C0 CL05F0 CL04EC
+CL04D8 CL04CE CL05C2 CL04D4 CL04E0 DL01C7 CL04FE CL04F6 CL059C CL055A
+CL050A CL1E10 CL0538 CL0600 CL0544 CL0610 CL0564 CL0604 CL0580 DL01C5
+CL05AC DL01C4 CL05B6 CL05BE CL05F8 CL1E78 CL0618 CL0614 CL062E CL03E0
+CL060A CL064A CL065E CL0676 CL0652 CL0692 CL0670 CL0668 CL06A6 DL01C8
+CL0682 CL068A CL0684 DL01CA CL068E CL06A8 CL069E DL01C9 CL06A2 CL06B0
+CL06AC CL06C2 CL0628 CL06EA DL01CC DL01CD DL01CE DL01CF CL0814 DL01D0
+DL01D1 DL01D2 DL01D3 DL01D4 DL01D5 DL01D6 DL01D7 DL01D8 DL01D9 DL01DA
+DL01DB DL01DC DL01DD DL01DE DL01DF DL01E0 DL01E1 DL01E2 DL01E3 DL01E4
+DL01E5 DL01E6 DL01E7 DL01E8 DL01E9 DL01EA DL01EB DL01EC CL07C0 CL1E14
+DL01ED DL01EE DL01EF DL01F0 DL01F1 DL01F2 DL01F3 DL01F4 DL01F5 DL01F6
+DL01F7 DL01F8 DL01F9 CL081E CL081A CL0830 CL1E18 CL0838 CL0834 CL0856
+CL086C CL088E CL089E CL089C CL08CE CL08C2 CL0924 CL08C0 DL0181 CL0948
+CL095E CL095A CL0980 CL0974 CL098A CL099A CL0A0A CL09F8 CL09B6 CL09B2
+CL09E2 CL09AC CL0992 DL01C6 CL1E24 CL0A14 CL0A34 CL0A42 DL0186 CL0A24
+CL0A5C CL1E50 CL0A5E CL0A32 CL0B98 CL0C70 CL0A6A CL0A76 CL0954 CL0A3C
+CL0AAA CL0AA2 CL0AB8 CL0ABE CL0AD0 DL01BC DL01BD DL01BE DL01BF CL0B08
+CL0B04 CL0B7A CL0B96 CL0AFE CL0E16 CL0BA0 CL0A64 CL0BDE CL0BDA CL0C38
+CL0C6E CL0BD2 CL0E14 CL0C90 CL0C7C CL0DA4 CL0C82 CL0E08 CL0C88 CL0DAA
+CL0C76 CL0CDA CL0CD6 CL0CF8 CL0CFE CL0D80 CL0D5A CL0DA2 CL0CCE CL0DB6
+CL0DC2 CL0DDE CL0DDA CL0DFA CL0DD4 CL1E2C CL0E2A CL1E30 CL0E32 CL131E
+CL0E40 CL0E60 CL1E34 CL0E68 CL12F2 CL0E7A CL0E98 CL0E9E CL0E78 CL0E8E
+CL0E82 CL0E86 CL12EC CL0E8C CL0EA6 CL0EC8 CL0EC4 CL0ED4 CL0ED0 CL0EEC
+CL1E38 CL114C CL115E CL1E40 CL116C CL1262 CL12B2 CL1272 CL126E CL129E
+CL1266 CL12C8 CL0F7A CL12EA CL1300 CL1308 CL132E CL1340 CL1E44 CL134A
+CL1356 CL13EC CL1362 CL1E48 CL136E DL018B DL018C DL018D DL018E DL0189
+DL0188 CL13C0 CL1E54 CL1444 DL0194 DL0195 DL0196 DL0197 CL1474 DL018F
+DL0190 DL0191 DL0192 CL14D4 CL14F4 CL1530 DL0193 CL1558 CL1598 CL1580
+CL158E CL15D0 DL0184 DL0182 CL1642 DL0185 CL1602 CL1668 CL165C DL0183
+CL16F4 CL1688 CL16C0 CL16A0 CL1726 CL1700 CL1692 CL1714 CL1698 CL16FA
+CL16D6 CL16EA CL170A CL1722 CL171C CL1734 CL1D6C CL173C CL1748 CL1754
+CL175E CL1D5A CL1766 CL1C8C CL18F6 CL191E CL1990 CL1740 CL19C0 CL1AB0
+CL1AB8 CL1B40 CL1C0A CL1C9C CL1D64 DL0187 CL1D7A CL1D9A CL1E02 DL0121
+DL0122 DL0123 CL1DEE CL1E66 CL1E5E CL03BE CL1F66 CL1FC8 CL203E CL2058
+CL206C CL208A CL20B2 CL20CC CL2122 CL2150 CL21A2 CL2142 CL215A CL216C
+CL21AE CL21C0 CL2064 CL21C6 CL29D6 CL2178 CL283A CL29B2 CL2990 CL2850
+CL2862 CL298C CL2872 CL2882 CL2884 CL28C6 CL28C8 CL28E2 CL29B8 CL28F2
+CL28F4 CL290A CL2978 CL298A CL29BC CL29D0 CL219E CL29E4 CL29E0 CL29EA
+CL29F0 CL2A16 CL2A1A CL2A1E CL2A12 CL2AE8 CL2AE4 CL2AD8 CL2ADE CL2AD0
+CL2AEA CL2AF6 CL2AFE DL020D DL020C CL3018 CL303C CL3056 CL306A CL35E0
+CL3076 CL33F8 CL3400 CL34CE CL340C CL34AC CL3438 CL37F0 CL3446 CL3458
+CL3466 CL34C8 CL355A CL35EA CL3740 CL3600 CL3618 CL361E CL362A CL363E
+DL0125 CL366A CL3718 CL36B0 CL36C0 CL3708 CL3710 CL3664 DL0619 DL061A
+DL061B DL061C CL374A CL37DA CL3760 CL3778 CL377E CL3794 CL37B6 CL37C2
+CL37CE CL37F4 CL38EE CL3916 CL3934 CL39BA CL3C3C CL3C68 CL3C80 CL3CD4
+CL3D18 CL4D3E CL4F6A CL4D8E CL4DB0 CL4DC4 CL4DF8 CL4E06 CL4E88 CL4E80
+CL4DDC CL5016 CL501A CL5108 CL5098 CL50C6 CL5184 CL5190 CL5194 CL5196
+CL5100 CL51A0 CL51AA CL54D6 CL522E CL5242 CL525C CL5304 CL527E CL530E
+CL53F0 CL5344 CL53D8 CL54DA CL54DC CL5780 CL57D2 CL583C CL5820 CL5854
+CL58A2 CL5874 CL58BA CL58A4 CL58E4 CL58CC CL58D6 CL59A2 CL59A4 CL59B4
+CL59C2 CL5A66 CL5A1C CL5C84 CL5DE0 CL5DE2 CL648C CL64B2 DL0127 DL0128
+DL0129 DL012A CL65EE CL66BA CL66C6 CL66D4 CL66E6 CL69EC CL69F2 CL6A6A
+CL6A44 CL6A64 CL6A78 CL6AF0 CL6AF6 CL6B42 CL6B3A CL6B4E CL6B56 CL6B04
+CL6B5C CL6BFA CL6BC8 CL6B92 CL6B76 CL6BAC CL6BE0 CL6BEC CL6BFC CL6C38
+CL6C40 CL6C3C CL6C66 CL6CA6 CL6C98 CL6CE2 CL6C7E CL6CE0 CL6CB4 CL6CE8
+CL6D0E CL6CFE CL6D26 CL6D74 CL6DFA CL6E3A CL6E36 CL6EB0 CL6EBC CL6EF2
+CL6F3C CL6F4A CL6F64 CL6FAA CL6F86 CL6FB2 CL6FD4 CL6FBE CL6FC8 CL6FDE
+CL6FD6 CL6FCC CL7006 CL707A CL7094 CL708E CL7084 CL70D0 CL70D2 CL7160
+CL7140 CL7168 CL7156 CL71D2 CL7204 CL71E0 CL7228 CL7286 CL729A CL72BA
+CL72A4 CL72E2 CL7376 CL7382 CL73BC CL75A2 CL75B2 
+
+Pass 2 - Disassembling to Output File...
+
+
+Pass 3 - Creating Functions Output File...
+
+Disassembly Complete

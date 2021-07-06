@@ -36,16 +36,20 @@ set_property(TEST "grbl-v-sainsmart3018,dasm_sainsmart3018" APPEND PROPERTY FIXT
 # Check grbl Disassembler Output (must pass the Disassemble test to run these):
 add_test(NAME "grbl-v-sainsmart3018,dasm_grbl,log" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/grbl_v1.1f.20170801.log" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,dasm_grbl,log" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,dasm_grbl")
+if(FUNC_FLAG_COMMENT)
 add_test(NAME "grbl-v-sainsmart3018,dasm_grbl,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/grbl_v1.1f.20170801.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,dasm_grbl,dis" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,dasm_grbl")
+endif()
 add_test(NAME "grbl-v-sainsmart3018,dasm_grbl,fnc" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801.fnc" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/grbl_v1.1f.20170801.fnc" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,dasm_grbl,fnc" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,dasm_grbl")
 
 # Check SainSmart Disassembler Output (must pass the Disassemble test to run these):
 add_test(NAME "grbl-v-sainsmart3018,dasm_sainsmart3018,log" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.log" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,dasm_sainsmart3018,log" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,dasm_sainsmart3018")
+if(FUNC_FLAG_COMMENT)
 add_test(NAME "grbl-v-sainsmart3018,dasm_sainsmart3018,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,dasm_sainsmart3018,dis" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,dasm_sainsmart3018")
+endif()
 add_test(NAME "grbl-v-sainsmart3018,dasm_sainsmart3018,fnc" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.fnc" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.fnc" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,dasm_sainsmart3018,fnc" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,dasm_sainsmart3018")
 
@@ -106,3 +110,34 @@ set_property(TEST "grbl-roundtrip,diff_grbl" APPEND PROPERTY DEPENDS "grbl-round
 # Compare SainSmart3018Pro_m328p_flash_original files:
 add_test(NAME "grbl-roundtrip,diff_sainsmart3018" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.bin" "SainSmart3018Pro_m328p_flash_original.dis.bin" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip")
 set_property(TEST "grbl-roundtrip,diff_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip,hex2bin_sainsmart3018")
+
+# Configure data for grbl-elf:
+configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf COPYONLY)
+configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl COPYONLY)
+
+# Disassemble grbl_v1.1f.20170801_arduino_v1.8.8.elf
+add_test(NAME "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl > grbl_v1.1f.20170801_arduino_v1.8.8.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+set_property(TEST "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8" APPEND PROPERTY FIXTURES_REQUIRED grbl_v1.1f.20170801_arduino_v1.8.8.ctl)
+set_property(TEST "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8" APPEND PROPERTY FIXTURES_REQUIRED grbl_v1.1f.20170801_arduino_v1.8.8.elf)
+
+# Reassemble grbl_v1.1f.20170801_arduino_v1.8.8 firmware for grbl-elf:
+add_test(NAME "grbl-elf,asm_v1.1f.20170801_arduino_v1.8.8" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/avra grbl_v1.1f.20170801_arduino_v1.8.8.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+set_property(TEST "grbl-elf,asm_v1.1f.20170801_arduino_v1.8.8" APPEND PROPERTY DEPENDS "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8")
+
+# Convert grbl_v1.1f.20170801_arduino_v1.8.8 reassembly files from hex to bin:
+add_test(NAME "grbl-elf,hex2bin_v1.1f.20170801_arduino_v1.8.8" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin grbl_v1.1f.20170801_arduino_v1.8.8.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+set_property(TEST "grbl-elf,hex2bin_v1.1f.20170801_arduino_v1.8.8" APPEND PROPERTY DEPENDS "grbl-elf,asm_v1.1f.20170801_arduino_v1.8.8")
+
+# Compare grbl_v1.1f.20170801_arduino_v1.8.8 firmware files:
+add_test(NAME "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,bin" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801_arduino_v1.8.8.dis.bin" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.bin" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+set_property(TEST "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,bin" APPEND PROPERTY DEPENDS "grbl-elf,hex2bin_v1.1f.20170801_arduino_v1.8.8")
+add_test(NAME "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,log" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801_arduino_v1.8.8.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.log" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+set_property(TEST "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,log" APPEND PROPERTY DEPENDS "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8")
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801_arduino_v1.8.8.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+set_property(TEST "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" APPEND PROPERTY DEPENDS "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8")
+endif()
+
+if(NOT FUNC_FLAG_COMMENT)
+	message(WARNING "Without FUNC_FLAG_COMMENT support enabled, tests comparing actual disassembler text output can't be performed and will be skipped...")
+endif()
