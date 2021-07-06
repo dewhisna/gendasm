@@ -1714,8 +1714,6 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 				default:
 					bDone = true;
 			}
-
-			if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bDone = true;
 		}
 
 		bRetVal = bRetVal && WritePostDataSection(nMemoryType, outFile, msgFile, errFile);
