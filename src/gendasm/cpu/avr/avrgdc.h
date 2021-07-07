@@ -190,6 +190,7 @@ private:
 
 	std::string m_strDevice;				// Device Directive for avra assembler, set via mcu setting
 
+	TAddress m_nSkipOpcodePC;				// Address for the Skip opcode -- used to add a branch reference
 	bool m_bCurrentOpcodeIsSkip;			// Set to true if the current opcode being processes is a CTL_Skip or CTL_SkipIOLabel
 	bool m_bLastOpcodeWasSkip;				// Set to true if the last opcode processed was a CTL_Skip or CTL_SkipIOLabel (i.e. we are on the opcode that would be skipped)
 

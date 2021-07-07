@@ -682,7 +682,8 @@ bool CAVRDisassembler::isDUBLSameRegister(const COpcodeEntry<TAVRDisassembler> &
 
 
 CAVRDisassembler::CAVRDisassembler()
-	:	m_bCurrentOpcodeIsSkip(false),
+	:	m_nSkipOpcodePC(0),
+		m_bCurrentOpcodeIsSkip(false),
 		m_bLastOpcodeWasSkip(false),
 		m_nStartPC(0),
 		m_nSectionCount(0)
@@ -983,6 +984,8 @@ bool CAVRDisassembler::ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std
 	//	if on-the-fly disassembly is desired without modifying the descriptors, such
 	//	as in pass 2 of the disassembly process.
 
+	using namespace TAVRDisassembler_ENUMS;
+
 	TAVRDisassembler::TOpcodeSymbol nFirstWord;
 
 	TAddress nSavedPC;
@@ -1062,7 +1065,7 @@ bool CAVRDisassembler::ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std
 	// If we get here, then we've found a valid matching opcode.  m_CurrentOpcode has been set to the opcode value
 	//	and m_OpMemory has already been copied, tag the bytes in memory, increment m_PC, and call CompleteObjRead.
 	//	If CompleteObjRead returns FALSE, then we'll have to undo everything and return flagging an invalid opcode.
-	nSavedPC = m_PC;	// Remember m_PC in case we have to undo things (remember, m_PC has already been incremented by 2)!!
+	nSavedPC = m_PC;	// Remember m_PC in case we have to undo things (remember, m_PC has already been incremented by opcodeSymbolSize or 2)!!
 	m_PC += (m_OpMemory.size()-1)*opcodeSymbolSize();		// minus 1 because we already did the first symbol above
 
 	if (!CompleteObjRead(nMemoryType, true, msgFile, errFile))  {
@@ -1081,6 +1084,10 @@ bool CAVRDisassembler::ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std
 
 //	assert(CompleteObjRead(true, msgFile, errFile));
 
+	// If this opcode is a skip, flag for the m_bLastOpcodeWasSkip and CurrentOpcodeIsStop() logic:
+	m_bCurrentOpcodeIsSkip = (((m_CurrentOpcode.control() & CTL_MASK) == CTL_Skip) ||
+							  ((m_CurrentOpcode.control() & CTL_MASK) == CTL_SkipIOLabel));
+	if (m_bCurrentOpcodeIsSkip) m_nSkipOpcodePC = nSavedPC - opcodeSymbolSize();
 
 	nSavedPC -= opcodeSymbolSize();
 	for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {		// CompleteObjRead may add words to OpMemory, so we simply have to flag memory for that many bytes.  m_PC is already incremented by CompleteObjRead
@@ -2336,12 +2343,18 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 	if (bAddFunctionBranchRef) {
 		if (((m_CurrentOpcode.group() == S_JMP) || (m_CurrentOpcode.group() == S_RJMP)) &&
 			((m_CurrentOpcode.control() & TAVRDisassembler::OCTL_STOP) == 0)) {		// Check for 'call' or 'rcall'
-			// Add these only if it is replacing a lower priority value:
-			CFuncEntryMap::const_iterator itrFunction = m_FunctionEntryTable.find(nTargetAddr);
-			if (itrFunction == m_FunctionEntryTable.cend()) {
-				m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
-			} else {
-				if (itrFunction->second > FUNCF_CALL) m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
+			// Note: Special case --- Sometimes rcall is used to jump to next address
+			//		to allocate stack space for local variables.  If that's the case,
+			//		no need to add it to the function entry table because it's part
+			//		of the current function we are in:
+			if (m_PC != nTargetAddr) {
+				// Add these only if it is replacing a lower priority value:
+				CFuncEntryMap::const_iterator itrFunction = m_FunctionEntryTable.find(nTargetAddr);
+				if (itrFunction == m_FunctionEntryTable.cend()) {
+					m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
+				} else {
+					if (itrFunction->second > FUNCF_CALL) m_FunctionEntryTable[nTargetAddr] = FUNCF_CALL;
+				}
 			}
 
 			// See if this is the end of a function (explicitly tagged):
@@ -2359,6 +2372,7 @@ bool CAVRDisassembler::DecodeOpcode(bool bAddLabels, std::ostream *msgFile, std:
 		// If the previous opcode was a skip, add a branchin for the next
 		//	opcode since it's what we "skipped" to:
 		if (!m_FunctionEntryTable.contains(m_PC)) m_FunctionEntryTable[m_PC] = FUNCF_BRANCHIN;
+		AddBranch(m_PC, true, m_nSkipOpcodePC);		// Add the branch reference address, since GenAddrLabel wasn't called for it
 	}
 
 	// See if this is the end of a function:
