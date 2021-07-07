@@ -57,5 +57,19 @@ target_include_directories(funcanal
 	PRIVATE ../gendasm/
 )
 
+if(UNIX)
+	target_compile_definitions(funcanal PRIVATE
+		OS_UNIX
+	)
+	target_link_libraries(funcanal PRIVATE
+		pthread
+	)
+endif()
+if(WIN32)
+	target_compile_definitions(funcanal PRIVATE
+		OS_WIN32
+	)
+endif()
+
 install(TARGETS funcanal DESTINATION bin)
 

@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <set>
 #include <utility>
+#include <thread>
 
 #include <stringhelp.h>
 
@@ -27,6 +28,38 @@
 #ifndef UNUSED
 	#define UNUSED(x) ((void)(x))
 #endif
+
+// ============================================================================
+
+#define MINIMUM_THREAD_COUNT 2		// Minimum number of worker threads to create if ideal number of threads is less than this value or ideal number of threads can't be determined
+
+#ifdef OS_UNIX
+#include <unistd.h>
+static int idealThreadCount()
+{
+	int numCPU = sysconf(_SC_NPROCESSORS_ONLN);
+	return ((numCPU > 0) ? numCPU : MINIMUM_THREAD_COUNT);
+}
+#elif defined (OS_WIN32)
+#include <windows.h>
+static int idealThreadCount()
+{
+	SYSTEM_INFO sysinfo;
+	GetSystemInfo(&sysinfo);
+	return ((sysinfo.dwNumberOfProcessors > MINIMUM_THREAD_COUNT) ? sysinfo.dwNumberOfProcessors : MINIMUM_THREAD_COUNT);
+}
+#else
+static int idealThreadCount()
+{
+	return MINIMUM_THREAD_COUNT;
+}
+#endif
+
+static unsigned int threadCount()
+{
+	unsigned int nThreads = std::thread::hardware_concurrency();
+	return (nThreads ? nThreads : idealThreadCount());
+}
 
 // ============================================================================
 
@@ -250,6 +283,7 @@ int main(int argc, char* argv[])
 	bool bDFROWithCodeFlag = false;
 	bool bCompOESFlag = false;
 	bool bDeterministic = false;
+	bool bSingleThreaded = false;
 
 	// Parse Arguments:
 	for (int ndx = 1; ((ndx < argc) && !bNeedUsage); ++ndx) {
@@ -258,6 +292,8 @@ int main(int argc, char* argv[])
 		if (!strArg.starts_with("-")) {
 			// If not prefixed by an option, assume it's a filename:
 			m_arrInputFilenames.push_back(strArg);
+		} else if (strArg == "-st") {
+			bSingleThreaded = true;
 		} else if (strArg == "--deterministic") {
 			bDeterministic = true;
 		} else if (strArg.starts_with("-mi")) {			// Matrix Input File
@@ -436,7 +472,7 @@ int main(int argc, char* argv[])
 
 	if (bNeedUsage) {
 		std::cerr <<"Usage:\n"
-					"funcanal [--deterministic] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [[-do <dro-fn> | -dc <dro-fn>] -dl <fdl>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
+					"funcanal [--deterministic] [-st] [-ooa] [-a <alg>] [-f] [-e <oes-fn>] [-s <sym-fn>] [-mi <mtx-fn> | -mo <mtx-fn>] [[-do <dro-fn> | -dc <dro-fn>] -dl <fdl>] [-cn <cmp-fn> | -ce <cmp-fn>] [-l <limit>] <func-fn1> [<func-fn2>]\n"
 					"\n"
 					"Where:\n\n"
 					"    <oes-fn>   = Output Optimal Edit Script Filename to generate\n\n"
@@ -492,6 +528,7 @@ int main(int argc, char* argv[])
 					"    -dl <fdl>    Function Diff Level when generating DRO.\n"
 					"                 <fdl> Levels 1-" << NUM_FUNC_DIFF_LEVELS << "\n\n"
 					"    -ooa         Output-Option Add Address to diff create line output.\n\n"
+					"    -st          Run Single Threaded when computing comparison matrix.\n\n"
 					"\n";
 		return -1;
 	}
@@ -683,23 +720,63 @@ int main(int argc, char* argv[])
 				fileMatrixOut << "\n";
 			}
 
-			for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) {
-				std::cerr << ".";
-				if (fileMatrixOut.is_open()) {
-					fileMatrixOut << pFuncFile1->GetFunc(ndxFile1).GetMainName();		// Y breakpoint
-				}
-				for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
-					m_matrixCompResult[ndxFile1][ndxFile2] = CompareFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pFuncFile2, ndxFile2, false);
+			if (bSingleThreaded) {
+				for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) {
+					std::cerr << ".";
 					if (fileMatrixOut.is_open()) {
-						char arrTemp[30];
-						std::sprintf(arrTemp, ",%.12g", m_matrixCompResult[ndxFile1][ndxFile2]);
-						fileMatrixOut << arrTemp;
+						fileMatrixOut << pFuncFile1->GetFunc(ndxFile1).GetMainName();		// Y breakpoint
+					}
+					for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
+						m_matrixCompResult[ndxFile1][ndxFile2] = CompareFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pFuncFile2, ndxFile2, false);
+						if (fileMatrixOut.is_open()) {
+							char arrTemp[30];
+							std::sprintf(arrTemp, ",%.12g", m_matrixCompResult[ndxFile1][ndxFile2]);
+							fileMatrixOut << arrTemp;
+						}
+					}
+					if (fileMatrixOut.is_open()) {
+						fileMatrixOut << "\n";
 					}
 				}
+			} else {
+				// First compute the results (multi-threaded):
+				CFuncDescArray::size_type nThreadGroupSize = pFuncFile1->GetFuncCount() / threadCount();	// How many things each thread will be processing
+				std::vector<std::unique_ptr<std::thread>> arrThreads;
+				auto const &&fnCompare = [&](CFuncDescArray::size_type nStart, CFuncDescArray::size_type nEnd)->void {
+					for (CFuncDescArray::size_type ndxFile1 = nStart; ndxFile1 < nEnd; ++ndxFile1) {
+						std::cerr << ".";		// On C++20, these are synchronized for multi-thread writes, only the data order isn't guaranteed, but just printing "." should be fine
+						for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
+							m_matrixCompResult[ndxFile1][ndxFile2] = CompareFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pFuncFile2, ndxFile2, false);
+						}
+					}
+				};
+
+				// Spawn the threads:
+				unsigned int nThreadCount = threadCount() - 1;
+				for (unsigned int nThread = 0; nThread < nThreadCount; ++nThread) {
+					arrThreads.push_back(std::make_unique<std::thread>(fnCompare, nThread*nThreadGroupSize, (nThread+1)*nThreadGroupSize));
+				}
+				// Compute remaining on main-thread:
+				fnCompare(nThreadCount*nThreadGroupSize, pFuncFile1->GetFuncCount());
+				// Wait for other threads to finish:
+				for (auto &pThread : arrThreads) {
+					pThread->join();
+				}
+
+				// Then output it to the file:
 				if (fileMatrixOut.is_open()) {
-					fileMatrixOut << "\n";
+					char arrTemp[30];
+					for (CFuncDescArray::size_type ndxFile1 = 0; ndxFile1 < pFuncFile1->GetFuncCount(); ++ndxFile1) {
+						fileMatrixOut << pFuncFile1->GetFunc(ndxFile1).GetMainName();		// Y breakpoint
+						for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
+							std::sprintf(arrTemp, ",%.12g", m_matrixCompResult[ndxFile1][ndxFile2]);
+							fileMatrixOut << arrTemp;
+						}
+						fileMatrixOut << "\n";
+					}
 				}
 			}
+
 			std::cerr << "\n\n";
 		}
 
