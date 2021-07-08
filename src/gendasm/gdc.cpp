@@ -1687,12 +1687,17 @@ bool CDisassembler::FindCode(std::ostream *msgFile, std::ostream *errFile)
 
 // ----------------------------------------------------------------------------
 
-std::string CDisassembler::FormatAddress(TAddress nAddress)
+std::string CDisassembler::FormatAddress(TAddress nAddress) const
 {
 	std::ostringstream sstrTemp;
 
 	sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nAddress;
 	return sstrTemp.str();
+}
+
+TAddress CDisassembler::UnformatAddress(const std::string strAddress) const
+{
+	return strtoul(strAddress.c_str(), nullptr, 16);
 }
 
 std::string CDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress)
@@ -1868,6 +1873,11 @@ std::string CDisassembler::FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, M
 
 // ----------------------------------------------------------------------------
 
+TAddressOffset CDisassembler::GetOpBytesFWAddressOffset() const
+{
+	return (GetFieldWidth(FC_OPBYTES)+2)/3;				// Use +2 /3 for rounding, since a field width of 11 and 12, for example, should both be 4 bytes
+}
+
 int CDisassembler::GetFieldWidth(FIELD_CODE nFC) const
 {
 	switch (nFC) {
@@ -2041,6 +2051,9 @@ std::string CDisassembler::MakeOutputLine(CStringArray& saOutputData) const
 			strOutput = MakeOutputLine(saOutputData) + "\n" + strOutput;	// Call recursively
 		}
 		if ((!strOpBytePart.empty()) || (!strCommentPart.empty())) {
+			if (!strOpBytePart.empty()) {
+				saOutputData[FC_ADDRESS] = FormatAddress(UnformatAddress(saOutputData[FC_ADDRESS]) + GetOpBytesFWAddressOffset());
+			}
 			saOutputData[FC_OPBYTES] = strOpBytePart;
 			saOutputData[FC_LABEL].clear();
 			saOutputData[FC_MNEMONIC].clear();

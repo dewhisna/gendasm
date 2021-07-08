@@ -485,12 +485,14 @@ protected:
 	virtual std::string FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create the operands for the current opcode if MC_OPCODE is issued.  For others, it should format the data in m_OpMemory to the specified form!
 	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) = 0;	// Pure Virtual.  This function should create any needed comments for the disassembly output for the current opcode or other special MC_OPCODE function.  This is where "undetermined branches" and "out of source branches" can get flagged by the specific disassembler.  The suggested minimum is to call FormatReferences to put references in the comments.
 
-	virtual std::string FormatAddress(TAddress nAddress);					// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
+	virtual std::string FormatAddress(TAddress nAddress) const;				// This function creates the address field of the disassembly output.  Default is "xxxx" hex value.  Override for other formats.
+	virtual TAddress UnformatAddress(const std::string strAddress) const;	// Returns the Address from a formatted address (used for address increment in Opbyte wrapping of MakeOutputLine.
 	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
 	virtual std::string FormatReferences(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all references for the specified address
 	virtual std::string FormatUserComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
 	virtual std::string FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);	// Generate debug comments from the function flags if it's enabled
 
+	virtual TAddressOffset GetOpBytesFWAddressOffset() const;				// Returns the number of bytes to increment FC_ADDRESS by for the field width of OpcodeByte display.  That is, if OpcodeByte field width is 12 and Opbyte Output is "XX XX XX XX ", then this would return 4.
 	virtual int GetFieldWidth(FIELD_CODE nFC) const;						// Defines the widths of each output field.  Can be overridden to alter output formatting.  To eliminate space/tab mixing, these should typically be a multiple of the tab width
 	virtual std::string MakeOutputLine(CStringArray& saOutputData) const;	// Formats the data in saOutputData, which should have indicies corresponding to FIELD_CODE enum, to a string that can be sent to the output file
 	virtual void ClearOutputLine(CStringArray& saOutputData) const;
