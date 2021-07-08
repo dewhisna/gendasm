@@ -15,6 +15,7 @@ ascii on
 dataopbytes on
 opbytes on
 
+; Jump Table:
 indirect code 0068
 indirect code 006a
 indirect code 006c
@@ -99,7 +100,4 @@ indirect code 0108
 indirect code 010a
 indirect code 010c
 
-
-;entry 131e
-;entry 1346
 

@@ -13710,7 +13710,18 @@ C|2|B800|D=SREG_|R18       ->  0406                out    SREG_,R18
 C|2|9508                   ->  0408                ret                         
 
 
-Function "CL041C" (30):
+Function "CL040A" (30):
+-----------------------
+C|2|B000|R18|D=SREG_       ->  040A   CL040A:      in     R18,SREG_            
+C|2|94F8                   ->  040C                cli                         
+C|4|90000000|R25|D=DL0615  ->  040E                lds    R25,DL0615           
+C|2|2800|R25|R24           ->  0412                or     R25,R24              
+C|4|92000000|D=DL0615|R25  ->  0414                sts    DL0615,R25           
+C|2|B800|D=SREG_|R18       ->  0418                out    SREG_,R18            
+C|2|9508                   ->  041A                ret                         
+
+
+Function "CL041C" (31):
 -----------------------
 C|2|B000|R25|D=SREG_       ->  041C   CL041C:      in     R25,SREG_            
 C|2|94F8                   ->  041E                cli                         
@@ -13719,7 +13730,7 @@ C|2|B800|D=SREG_|R25       ->  0424                out    SREG_,R25
 C|2|9508                   ->  0426                ret                         
 
 
-Function "CL0428" (31):
+Function "CL0428" (32):
 -----------------------
 C|2|B000|R25|D=SREG_       ->  0428   CL0428:      in     R25,SREG_            
 C|2|94F8                   ->  042A                cli                         
@@ -13731,7 +13742,7 @@ C|2|B800|D=SREG_|R25       ->  0438                out    SREG_,R25
 C|2|9508                   ->  043A                ret                         
 
 
-Function "CL043C" (32):
+Function "CL043C" (33):
 -----------------------
 C|2|B000|R18|D=SREG_       ->  043C   CL043C:      in     R18,SREG_            
 C|2|94F8                   ->  043E                cli                         
@@ -13742,7 +13753,7 @@ C|2|B800|D=SREG_|R18       ->  044A                out    SREG_,R18
 C|2|9508                   ->  044C                ret                         
 
 
-Function "CL044E" (33):
+Function "CL044E" (34):
 -----------------------
 C|2|920F|R10           ->  044E   CL044E:      push   R10                  
 C|2|920F|R11           ->  0450                push   R11                  
@@ -13803,7 +13814,7 @@ C|2|E000|R24|#01       ->  04C0   CL04C0:      ldi    R24,0x01
 C|2|C000|C^-1A         ->  04C2                rjmp   CL04AA               
 
 
-Function "CL04C4" (34):
+Function "CL04C4" (35):
 -----------------------
 C|2|920F|R8            ->  04C4   CL04C4:      push   R8                   
 C|2|920F|R9            ->  04C6                push   R9                   
@@ -13865,7 +13876,7 @@ C|2|900F|R8            ->  0538                pop    R8
 C|2|9508               ->  053A                ret                         
 
 
-Function "CL053C" (35):
+Function "CL053C" (36):
 -----------------------
 C|2|B000|R25|D=PINC_  ->  053C   CL053C:      in     R25,PINC_            
 C|2|2C00|R24|R25      ->  053E                mov    R24,R25              
@@ -13881,7 +13892,7 @@ C|2|6000|R24|#04      ->  0550                ori    R24,0x04
 C|2|9508              ->  0552   CL0552:      ret                         
 
 
-Function "CL0554" (36):
+Function "CL0554" (37):
 -----------------------
 C|4|92000000|D=DL0617|R1   ->  0554   CL0554:      sts    DL0617,R1            
 C|4|90000000|R25|D=DL0687  ->  0558                lds    R25,DL0687           
@@ -13898,7 +13909,7 @@ C|4|92000000|D=DL0617|R24  ->  0572                sts    DL0617,R24
 C|2|9508                   ->  0576   CL0576:      ret                         
 
 
-Function "CL0578" (37):
+Function "CL0578" (38):
 -----------------------
 C|2|B000|R25|D=PINB_       ->  0578   CL0578:      in     R25,PINB_            
 C|4|90000000|R24|D=DL0687  ->  057A                lds    R24,DL0687           
@@ -13921,7 +13932,7 @@ C|2|E000|R24|#00           ->  059C   CL059C:      ldi    R24,0x00
 C|2|9508                   ->  059E   CL059E:      ret                         
 
 
-Function "CL05A0" (38):
+Function "CL05A0" (39):
 -----------------------
 C|2|E000|R30|#6B  ->  05A0   CL05A0:      ldi    R30,0x6B             
 C|2|E000|R31|#00  ->  05A2                ldi    R31,0x00             
@@ -13936,7 +13947,7 @@ C|2|8200|RZ|R24   ->  05B2                st     Z,R24
 C|2|9508          ->  05B4                ret                         
 
 
-Function "CL05B6" (39):
+Function "CL05B6" (40):
 -----------------------
 C|2|B000|R24|D=DDRB_       ->  05B6   CL05B6:      in     R24,DDRB_            
 C|2|7000|R24|#E9           ->  05B8                andi   R24,0xE9             
@@ -13957,7 +13968,7 @@ C|2|9508                   ->  05DE                ret
 C|4|940C0000|C=CL05A0      ->  05E0   CL05E0:      jmp    CL05A0               
 
 
-Function "CL05E4" (40):
+Function "CL05E4" (41):
 -----------------------
 C|2|920F|R6            ->  05E4   CL05E4:      push   R6                   
 C|2|920F|R7            ->  05E6                push   R7                   
@@ -14045,7 +14056,7 @@ C|2|900F|R6            ->  068E                pop    R6
 C|2|9508               ->  0690                ret                         
 
 
-Function "CL0692" (41):
+Function "CL0692" (42):
 -----------------------
 C|2|E000|R30|#F7    ->  0692   CL0692:      ldi    R30,0xF7             
 C|2|E000|R31|#05    ->  0694                ldi    R31,0x05             
@@ -14083,7 +14094,7 @@ C|2|8200|RZ+11|R27  ->  06D2                std    Z+11,R27
 C|2|9508            ->  06D4                ret                         
 
 
-Function "CL06D6" (42):
+Function "CL06D6" (43):
 -----------------------
 C|2|920F|R11               ->  06D6   CL06D6:      push   R11                  
 C|2|920F|R12               ->  06D8                push   R12                  
@@ -14192,7 +14203,7 @@ C|2|2C00|R28|R15           ->  07B8                mov    R28,R15
 C|2|C000|C^-94             ->  07BA                rjmp   CL0728               
 
 
-Function "CL07BC" (43):
+Function "CL07BC" (44):
 -----------------------
 C|4|90000000|R24|D=DL02D5  ->  07BC   CL07BC:      lds    R24,DL02D5           
 C|4|90000000|R25|D=DL05F6  ->  07C0                lds    R25,DL05F6           
@@ -14210,7 +14221,7 @@ C|2|E000|R24|#00           ->  07D8                ldi    R24,0x00
 C|2|9508                   ->  07DA                ret                         
 
 
-Function "CL07DC" (44):
+Function "CL07DC" (45):
 -----------------------
 C|2|94F8               ->  07DC   CL07DC:      cli                         
 C|2|9900|D=EECR_,1     ->  07DE   CL07DE:      sbic   EECR_,1              
@@ -14246,7 +14257,7 @@ C|2|E000|R24|#24       ->  0818                ldi    R24,0x24
 C|2|C000|C^-12         ->  081A                rjmp   CL080A               
 
 
-Function "CL081C" (45):
+Function "CL081C" (46):
 -----------------------
 C|2|920F|R8            ->  081C   CL081C:      push   R8                   
 C|2|920F|R9            ->  081E                push   R9                   
@@ -14311,7 +14322,7 @@ C|2|E000|R28|#01       ->  0896   CL0896:      ldi    R28,0x01
 C|2|C000|C^-46         ->  0898                rjmp   CL0854               
 
 
-Function "CL089A" (46):
+Function "CL089A" (47):
 -----------------------
 C|2|E000|R22|#0A       ->  089A   CL089A:      ldi    R22,0x0A             
 C|2|E000|R25|#00       ->  089C                ldi    R25,0x00             
@@ -14326,7 +14337,7 @@ C|2|E000|R25|#00       ->  08AE                ldi    R25,0x00
 C|4|940C0000|C=CL081C  ->  08B0                jmp    CL081C               
 
 
-Function "CL08B4" (47):
+Function "CL08B4" (48):
 -----------------------
 C|2|9900|D=EECR_,1     ->  08B4   CL08B4:      sbic   EECR_,1              
 C|2|C000|C^-4          ->  08B6                rjmp   CL08B4               
@@ -14338,7 +14349,7 @@ C|2|B000|R24|D=EEDR_   ->  08C0                in     R24,EEDR_
 C|2|9508               ->  08C2                ret                         
 
 
-Function "CL08C4" (48):
+Function "CL08C4" (49):
 -----------------------
 C|2|920F|R9            ->  08C4   CL08C4:      push   R9                   
 C|2|920F|R10           ->  08C6                push   R10                  
@@ -14406,7 +14417,7 @@ C|2|900F|R9            ->  0944                pop    R9
 C|2|9508               ->  0946                ret                         
 
 
-Function "CL0948" (49):
+Function "CL0948" (50):
 -----------------------
 C|2|920F|R28               ->  0948   CL0948:      push   R28                  
 C|2|920F|R29               ->  094A                push   R29                  
@@ -14435,7 +14446,7 @@ C|2|900F|R28               ->  098C                pop    R28
 C|2|9508                   ->  098E                ret                         
 
 
-Function "CL0990" (50):
+Function "CL0990" (51):
 -----------------------
 C|2|920F|R2                ->  0990   CL0990:      push   R2                   
 C|2|920F|R3                ->  0992                push   R3                   
@@ -14781,7 +14792,7 @@ C|2|8208|RY+1|R14          ->  0C60                std    Y+1,R14
 C|2|C000|C^-1C8            ->  0C62                rjmp   CL0A9C               
 
 
-Function "CL0C64" (51):
+Function "CL0C64" (52):
 -----------------------
 C|4|90000000|R25|D=DL0673  ->  0C64   CL0C64:      lds    R25,DL0673           
 C|2|2C00|R20|R25           ->  0C68                mov    R20,R25              
@@ -14810,7 +14821,7 @@ C|2|E000|R24|#00           ->  0C9A   CL0C9A:      ldi    R24,0x00
 C|2|C000|C^-22             ->  0C9C                rjmp   CL0C7C               
 
 
-Function "CL0C9E" (52):
+Function "CL0C9E" (53):
 -----------------------
 C|4|90000000|R24|D=DL0687  ->  0C9E   CL0C9E:      lds    R24,DL0687           
 C|2|FE00|R24,2             ->  0CA2                sbrs   R24,2                
@@ -14832,7 +14843,7 @@ C|2|9800|D=PORTB_,0        ->  0CCC   CL0CCC:      cbi    PORTB_,0
 C|2|C000|C^-28             ->  0CCE                rjmp   CL0CA8               
 
 
-Function "CL0CD0" (53):
+Function "CL0CD0" (54):
 -----------------------
 C|4|940E0000|C=CL07BC  ->  0CD0   CL0CD0:      call   CL07BC               
 C|2|2800|R24|R25       ->  0CD4                or     R24,R25              
@@ -14842,7 +14853,7 @@ C|4|940C0000|C=CL043C  ->  0CDA                jmp    CL043C
 C|2|9508               ->  0CDE   CL0CDE:      ret                         
 
 
-Function "CL0CE0" (54):
+Function "CL0CE0" (55):
 -----------------------
 C|4|90000000|R30|D=DL0104  ->  0CE0   CL0CE0:      lds    R30,DL0104           
 C|2|E000|R25|#01           ->  0CE4                ldi    R25,0x01             
@@ -14868,7 +14879,7 @@ C|2|C000|C^-28             ->  0D14                rjmp   CL0CEE
 C|2|9508                   ->  0D16   CL0D16:      ret                         
 
 
-Function "CL0D18" (55):
+Function "CL0D18" (56):
 -----------------------
 C|2|920F|R28           ->  0D18   CL0D18:      push   R28                  
 C|2|920F|R29           ->  0D1A                push   R29                  
@@ -14884,7 +14895,7 @@ C|4|940E0000|C=CL0CE0  ->  0D2C   CL0D2C:      call   CL0CE0
 C|2|C000|C^-12         ->  0D30                rjmp   CL0D20               
 
 
-Function "CL0D32" (56):
+Function "CL0D32" (57):
 -----------------------
 C|2|920F|R4            ->  0D32   CL0D32:      push   R4                   
 C|2|920F|R5            ->  0D34                push   R5                   
@@ -15049,7 +15060,7 @@ C|2|5000|R17|#01       ->  0E82                subi   R17,0x01
 C|2|C000|C^-84         ->  0E84                rjmp   CL0E02               
 
 
-Function "CL0E86" (57):
+Function "CL0E86" (58):
 -----------------------
 C|4|90000000|R18|D=DL0687  ->  0E86   CL0E86:      lds    R18,DL0687           
 C|2|E000|R20|#00           ->  0E8A                ldi    R20,0x00             
@@ -15064,7 +15075,7 @@ C|2|E000|R20|#01           ->  0E9C                ldi    R20,0x01
 C|4|940C0000|C=CL0D32      ->  0E9E   CL0E9E:      jmp    CL0D32               
 
 
-Function "CL0EA2" (58):
+Function "CL0EA2" (59):
 -----------------------
 C|4|90000000|R18|D=DL0687  ->  0EA2   CL0EA2:      lds    R18,DL0687           
 C|2|E000|R20|#03           ->  0EA6                ldi    R20,0x03             
@@ -15079,7 +15090,7 @@ C|2|E000|R20|#04           ->  0EB8                ldi    R20,0x04
 C|4|940C0000|C=CL0D32      ->  0EBA   CL0EBA:      jmp    CL0D32               
 
 
-Function "CL0EBE" (59):
+Function "CL0EBE" (60):
 -----------------------
 C|2|920F|R16           ->  0EBE   CL0EBE:      push   R16                  
 C|2|920F|R17           ->  0EC0                push   R17                  
@@ -15106,7 +15117,7 @@ C|2|900F|R16           ->  0EEC                pop    R16
 C|2|9508               ->  0EEE                ret                         
 
 
-Function "CL0EF0" (60):
+Function "CL0EF0" (61):
 -----------------------
 C|2|920F|R28           ->  0EF0   CL0EF0:      push   R28                  
 C|2|920F|R29           ->  0EF2                push   R29                  
@@ -15142,7 +15153,7 @@ C|2|900F|R28           ->  0F36                pop    R28
 C|2|9508               ->  0F38                ret                         
 
 
-Function "CL0F3A" (61):
+Function "CL0F3A" (62):
 -----------------------
 C|2|920F|R28           ->  0F3A   CL0F3A:      push   R28                  
 C|2|920F|R29           ->  0F3C                push   R29                  
@@ -15159,14 +15170,14 @@ C|4|940E0000|C=CL0CE0  ->  0F50   CL0F50:      call   CL0CE0
 C|2|C000|C^-16         ->  0F54                rjmp   CL0F40               
 
 
-Function "CL0F56" (62):
+Function "CL0F56" (63):
 -----------------------
 C|2|E000|R24|#C9       ->  0F56   CL0F56:      ldi    R24,0xC9             
 C|2|E000|R25|#01       ->  0F58                ldi    R25,0x01             
 C|4|940C0000|C=CL0F3A  ->  0F5A                jmp    CL0F3A               
 
 
-Function "CL0F5E" (63):
+Function "CL0F5E" (64):
 -----------------------
 C|2|920F|R28           ->  0F5E   CL0F5E:      push   R28                  
 C|2|2C00|R28|R24       ->  0F60                mov    R28,R24              
@@ -15179,7 +15190,7 @@ C|2|900F|R28           ->  0F70                pop    R28
 C|4|940C0000|C=CL0F56  ->  0F72                jmp    CL0F56               
 
 
-Function "CL0F76" (64):
+Function "CL0F76" (65):
 -----------------------
 C|2|1000|R24|R1        ->  0F76   CL0F76:      cpse   R24,R1               
 C|2|C000|C^+8          ->  0F78                rjmp   CL0F82               
@@ -15189,7 +15200,7 @@ C|4|940C0000|C=CL0F3A  ->  0F7E                jmp    CL0F3A
 C|4|940C0000|C=CL0F5E  ->  0F82   CL0F82:      jmp    CL0F5E               
 
 
-Function "CL0F86" (65):
+Function "CL0F86" (66):
 -----------------------
 C|2|920F|R12           ->  0F86   CL0F86:      push   R12                  
 C|2|920F|R13           ->  0F88                push   R13                  
@@ -15220,7 +15231,7 @@ C|2|900F|R12           ->  0FC0                pop    R12
 C|4|940C0000|C=CL0F56  ->  0FC2                jmp    CL0F56               
 
 
-Function "CL0FC6" (66):
+Function "CL0FC6" (67):
 -----------------------
 C|2|920F|R28           ->  0FC6   CL0FC6:      push   R28                  
 C|2|920F|R29           ->  0FC8                push   R29                  
@@ -15239,7 +15250,7 @@ C|2|900F|R28           ->  0FE8                pop    R28
 C|4|940C0000|C=CL0F56  ->  0FEA                jmp    CL0F56               
 
 
-Function "CL0FEE" (67):
+Function "CL0FEE" (68):
 -----------------------
 C|2|920F|R14               ->  0FEE   CL0FEE:      push   R14                  
 C|2|920F|R15               ->  0FF0                push   R15                  
@@ -15443,14 +15454,14 @@ C|2|5000|R23|#80           ->  1202                subi   R23,0x80
 C|2|C000|C^-5A             ->  1204                rjmp   CL11AC               
 
 
-Function "CL1206" (68):
+Function "CL1206" (69):
 -----------------------
 C|2|E000|R24|#5D       ->  1206   CL1206:      ldi    R24,0x5D             
 C|4|940E0000|C=CL0CE0  ->  1208                call   CL0CE0               
 C|4|940C0000|C=CL0F56  ->  120C                jmp    CL0F56               
 
 
-Function "CL1210" (69):
+Function "CL1210" (70):
 -----------------------
 C|2|920F|R28               ->  1210   CL1210:      push   R28                  
 C|2|920F|R29               ->  1212                push   R29                  
@@ -15489,7 +15500,7 @@ C|2|900F|R28               ->  1260                pop    R28
 C|2|9508                   ->  1262                ret                         
 
 
-Function "CL1264" (70):
+Function "CL1264" (71):
 -----------------------
 C|4|90000000|R25|D=DL0632  ->  1264   CL1264:      lds    R25,DL0632           
 C|2|1000|R25|R1            ->  1268                cpse   R25,R1               
@@ -15505,7 +15516,7 @@ C|2|9A00|D=PORTC_,3        ->  127C                sbi    PORTC_,3
 C|2|C000|C^-E              ->  127E                rjmp   CL1272               
 
 
-Function "CL1280" (71):
+Function "CL1280" (72):
 -----------------------
 C|4|92000000|D=OCR2A|R24   ->  1280   CL1280:      sts    OCR2A,R24            
 C|2|1000|R24|R1            ->  1284                cpse   R24,R1               
@@ -15519,7 +15530,7 @@ C|2|6000|R24|#80           ->  1298                ori    R24,0x80
 C|2|C000|C^-E              ->  129A                rjmp   CL128E               
 
 
-Function "CL129C" (72):
+Function "CL129C" (73):
 -----------------------
 C|2|920F|R28               ->  129C   CL129C:      push   R28                  
 C|2|920F|R29               ->  129E                push   R29                  
@@ -15559,7 +15570,7 @@ C|2|900F|R28               ->  12FE                pop    R28
 C|2|9508                   ->  1300                ret                         
 
 
-Function "CL1302" (73):
+Function "CL1302" (74):
 -----------------------
 C|2|E000|R22|#18       ->  1302   CL1302:      ldi    R22,0x18             
 C|2|E000|R23|#06       ->  1304                ldi    R23,0x06             
@@ -15568,7 +15579,7 @@ C|2|E000|R25|#06       ->  1308                ldi    R25,0x06
 C|4|940C0000|C=CL04C4  ->  130A                jmp    CL04C4               
 
 
-Function "CL130E" (74):
+Function "CL130E" (75):
 -----------------------
 C|2|E000|R30|#F7           ->  130E   CL130E:      ldi    R30,0xF7             
 C|2|E000|R31|#05           ->  1310                ldi    R31,0x05             
@@ -15585,7 +15596,7 @@ C|4|92000000|D=DL02D3|R1   ->  132A                sts    DL02D3,R1
 C|2|9508                   ->  132E                ret                         
 
 
-Function "CL1330" (75):
+Function "CL1330" (76):
 -----------------------
 C|2|920F|R4            ->  1330   CL1330:      push   R4                   
 C|2|920F|R5            ->  1332                push   R5                   
@@ -15690,7 +15701,7 @@ C|2|900F|R4            ->  1402                pop    R4
 C|2|9508               ->  1404                ret                         
 
 
-Function "CL1406" (76):
+Function "CL1406" (77):
 -----------------------
 C|2|920F|R4                ->  1406   CL1406:      push   R4                   
 C|2|920F|R5                ->  1408                push   R5                   
@@ -15720,11 +15731,7 @@ C|2|0100|R24|R10           ->  1446                movw   R24,R10
 C|2|0100|R22|R8            ->  1448                movw   R22,R8               
 C|4|940E0000|C=CL7120      ->  144A                call   CL7120               
 C|2|FE00|R24,7             ->  144E                sbrs   R24,7                
-C|2|C000|C=CL1488          ->  1450                rjmp   CL1488               
-
-
-Function "CL1452" (77):
------------------------
+C|2|C000|C^+36             ->  1450                rjmp   CL1488               
 C|4|90000000|R22|D=DL063A  ->  1452                lds    R22,DL063A           
 C|2|E000|R23|#00           ->  1456                ldi    R23,0x00             
 C|2|E000|R25|#00           ->  1458                ldi    R25,0x00             
@@ -19103,7 +19110,7 @@ C|4|940E0000|C=CL2B26      ->  339C                call   CL2B26
 C|4|90000000|R24|D=DL0633  ->  33A0                lds    R24,DL0633           
 C|2|2000|R24               ->  33A4                tst    R24                  
 C|2|F401|C^+2              ->  33A6                brne   CL33AA               
-C|2|C000|C=CL3476          ->  33A8                rjmp   CL3476               
+C|2|C000|C^+CC             ->  33A8                rjmp   CL3476               
 C|4|940E0000|C=CL07BC      ->  33AA   CL33AA:      call   CL07BC               
 C|2|9700|R24|#00           ->  33AE                sbiw   R24,0x00             
 C|2|F001|C^+2              ->  33B0                breq   CL33B4               
@@ -19127,19 +19134,19 @@ C|2|7000|R28|#40           ->  33E2                andi   R28,0x40
 C|4|90000000|R24|D=DL0633  ->  33E4   CL33E4:      lds    R24,DL0633           
 C|2|2000|R24               ->  33E8                tst    R24                  
 C|2|F401|C^+2              ->  33EA                brne   CL33EE               
-C|2|C000|C=CL3476          ->  33EC                rjmp   CL3476               
+C|2|C000|C^+88             ->  33EC                rjmp   CL3476               
 C|4|90000000|R25|D=DL0632  ->  33EE   CL33EE:      lds    R25,DL0632           
 C|2|1000|R25|R1            ->  33F2                cpse   R25,R1               
-C|2|C000|C=CL3476          ->  33F4                rjmp   CL3476               
+C|2|C000|C^+80             ->  33F4                rjmp   CL3476               
 C|2|FE00|R24,0             ->  33F6                sbrs   R24,0                
 C|2|C000|C^+32             ->  33F8                rjmp   CL342C               
 C|4|90000000|R25|D=DL0631  ->  33FA                lds    R25,DL0631           
 C|2|2C00|R18|R25           ->  33FE                mov    R18,R25              
 C|2|7000|R18|#C0           ->  3400                andi   R18,0xC0             
 C|2|F401|C^+2              ->  3402                brne   CL3406               
-C|2|C000|C=CL3510          ->  3404                rjmp   CL3510               
+C|2|C000|C^+10A            ->  3404                rjmp   CL3510               
 C|2|FC00|R24,2             ->  3406   CL3406:      sbrc   R24,2                
-C|2|C000|C=CL3440          ->  3408                rjmp   CL3440               
+C|2|C000|C^+36             ->  3408                rjmp   CL3440               
 C|4|92000000|D=DL063B|R1   ->  340A                sts    DL063B,R1            
 C|2|E000|R20|#00           ->  340E                ldi    R20,0x00             
 C|2|E000|R21|#00           ->  3410                ldi    R21,0x00             
@@ -19161,10 +19168,6 @@ C|2|8000|R13|RZ+47         ->  3438                ldd    R13,Z+47
 C|2|8000|R14|RZ+48         ->  343A                ldd    R14,Z+48             
 C|2|8000|R15|RZ+49         ->  343C                ldd    R15,Z+49             
 C|2|C000|C^-72             ->  343E                rjmp   CL33CE               
-
-
-Function "CL3440" (86):
------------------------
 C|2|3000|R25|#80           ->  3440   CL3440:      cpi    R25,0x80             
 C|2|F401|C^+48             ->  3442                brne   CL348C               
 C|2|E000|R24|#75           ->  3444                ldi    R24,0x75             
@@ -19201,7 +19204,7 @@ C|2|7000|R24|#DF           ->  3490                andi   R24,0xDF
 C|4|92000000|D=DL0633|R24  ->  3492                sts    DL0633,R24           
 C|4|90000000|R24|D=DL0633  ->  3496   CL3496:      lds    R24,DL0633           
 C|2|FE00|R24,3             ->  349A                sbrs   R24,3                
-C|2|C000|C=CL342C          ->  349C                rjmp   CL342C               
+C|2|C000|C^-72             ->  349C                rjmp   CL342C               
 C|4|90000000|R25|D=DL06A0  ->  349E                lds    R25,DL06A0           
 C|2|2000|R25               ->  34A2                tst    R25                  
 C|2|F001|C^+16             ->  34A4                breq   CL34BC               
@@ -19229,12 +19232,12 @@ C|2|E000|R25|#3F           ->  34DA                ldi    R25,0x3F
 C|4|940E0000|C=CL396A      ->  34DC                call   CL396A               
 C|4|90000000|R24|D=DL0633  ->  34E0   CL34E0:      lds    R24,DL0633           
 C|2|FC00|R24,1             ->  34E4                sbrc   R24,1                
-C|2|C000|C=CL342C          ->  34E6                rjmp   CL342C               
+C|2|C000|C^-BC             ->  34E6                rjmp   CL342C               
 C|2|6000|R24|#10           ->  34E8                ori    R24,0x10             
 C|4|92000000|D=DL0633|R24  ->  34EA                sts    DL0633,R24           
 C|2|E000|R24|#02           ->  34EE                ldi    R24,0x02             
 C|4|940E0000|C=CL043C      ->  34F0                call   CL043C               
-C|2|C000|C=CL342C          ->  34F4                rjmp   CL342C               
+C|2|C000|C^-CA             ->  34F4                rjmp   CL342C               
 C|2|0100|R22|R14           ->  34F6   CL34F6:      movw   R22,R14              
 C|2|0100|R20|R12           ->  34F8                movw   R20,R12              
 C|2|2C00|R24|R29           ->  34FA                mov    R24,R29              
@@ -19260,10 +19263,10 @@ C|2|0100|R22|R20           ->  3528                movw   R22,R20
 C|2|E000|R24|#00           ->  352A                ldi    R24,0x00             
 C|4|940E0000|C=CL1544      ->  352C                call   CL1544               
 C|4|92000000|D=DL063B|R17  ->  3530                sts    DL063B,R17           
-C|2|C000|C=CL342C          ->  3534                rjmp   CL342C               
+C|2|C000|C^-10A            ->  3534                rjmp   CL342C               
 C|2|7000|R24|#0C           ->  3536   CL3536:      andi   R24,0x0C             
 C|2|F401|C^+2              ->  3538                brne   CL353C               
-C|2|C000|C=CL342C          ->  353A                rjmp   CL342C               
+C|2|C000|C^-110            ->  353A                rjmp   CL342C               
 C|4|90000000|R24|D=DL06A0  ->  353C   CL353C:      lds    R24,DL06A0           
 C|2|2000|R24               ->  3540                tst    R24                  
 C|2|F001|C^+26             ->  3542                breq   CL356A               
@@ -19286,7 +19289,7 @@ C|2|C000|C^+6              ->  3570                rjmp   CL3578
 C|2|E000|R24|#02           ->  3572                ldi    R24,0x02             
 C|4|940E0000|C=CL043C      ->  3574                call   CL043C               
 C|4|92000000|D=DL063B|R1   ->  3578   CL3578:      sts    DL063B,R1            
-C|2|C000|C=CL342C          ->  357C                rjmp   CL342C               
+C|2|C000|C^-152            ->  357C                rjmp   CL342C               
 C|2|0100|R22|R14           ->  357E   CL357E:      movw   R22,R14              
 C|2|0100|R20|R12           ->  3580                movw   R20,R12              
 C|2|2C00|R24|R29           ->  3582                mov    R24,R29              
@@ -19294,7 +19297,7 @@ C|4|940E0000|C=CL1544      ->  3584                call   CL1544
 C|2|C000|C^-20             ->  3588                rjmp   CL356A               
 C|4|90000000|R24|D=DL0635  ->  358A   CL358A:      lds    R24,DL0635           
 C|2|FE00|R24,3             ->  358E                sbrs   R24,3                
-C|2|C000|C=CL342C          ->  3590                rjmp   CL342C               
+C|2|C000|C^-166            ->  3590                rjmp   CL342C               
 C|2|0100|R22|R14           ->  3592                movw   R22,R14              
 C|2|0100|R20|R12           ->  3594                movw   R20,R12              
 C|2|2C00|R24|R29           ->  3596                mov    R24,R29              
@@ -19302,10 +19305,10 @@ C|4|940E0000|C=CL1544      ->  3598                call   CL1544
 C|4|90000000|R24|D=DL0635  ->  359C                lds    R24,DL0635           
 C|2|7000|R24|#F7           ->  35A0                andi   R24,0xF7             
 C|4|92000000|D=DL0635|R24  ->  35A2                sts    DL0635,R24           
-C|2|C000|C=CL342C          ->  35A6                rjmp   CL342C               
+C|2|C000|C^-17C            ->  35A6                rjmp   CL342C               
 
 
-Function "CL35A8" (87):
+Function "CL35A8" (86):
 -----------------------
 C|2|920F|R2                ->  35A8   CL35A8:      push   R2                   
 C|2|920F|R3                ->  35AA                push   R3                   
@@ -19739,7 +19742,7 @@ C|2|E000|R24|#09           ->  3966                ldi    R24,0x09
 C|2|C000|C^-178            ->  3968                rjmp   CL37F2               
 
 
-Function "CL396A" (88):
+Function "CL396A" (87):
 -----------------------
 C|2|920F|R17               ->  396A   CL396A:      push   R17                  
 C|2|920F|R28               ->  396C                push   R28                  
@@ -19782,7 +19785,7 @@ C|2|900F|R17               ->  39C2                pop    R17
 C|2|9508                   ->  39C4                ret                         
 
 
-Function "CL39C6" (89):
+Function "CL39C6" (88):
 -----------------------
 C|4|940E0000|C=CL0CD0      ->  39C6   CL39C6:      call   CL0CD0               
 C|4|940E0000|C=CL338E      ->  39CA   CL39CA:      call   CL338E               
@@ -19798,7 +19801,7 @@ C|2|F001|C^-1C             ->  39E4                breq   CL39CA
 C|2|9508                   ->  39E6   CL39E6:      ret                         
 
 
-Function "CL39E8" (90):
+Function "CL39E8" (89):
 -----------------------
 C|2|920F|R28              ->  39E8   CL39E8:      push   R28                  
 C|2|920F|R29              ->  39EA                push   R29                  
@@ -19831,14 +19834,14 @@ C|2|E000|R24|#01          ->  3A26   CL3A26:      ldi    R24,0x01
 C|2|C000|C^-A             ->  3A28                rjmp   CL3A20               
 
 
-Function "CL3A2A" (91):
+Function "CL3A2A" (90):
 -----------------------
 C|4|940E0000|C=CL39C6     ->  3A2A   CL3A2A:      call   CL39C6               
 C|4|92000000|D=DL063D|R1  ->  3A2E                sts    DL063D,R1            
 C|2|9508                  ->  3A32                ret                         
 
 
-Function "CL3A34" (92):
+Function "CL3A34" (91):
 -----------------------
 C|2|920F|R16           ->  3A34   CL3A34:      push   R16                  
 C|2|920F|R17           ->  3A36                push   R17                  
@@ -19860,7 +19863,7 @@ C|2|900F|R16           ->  3A56                pop    R16
 C|4|940C0000|C=CL081C  ->  3A58                jmp    CL081C               
 
 
-Function "CL3A5C" (93):
+Function "CL3A5C" (92):
 -----------------------
 C|2|920F|R17           ->  3A5C   CL3A5C:      push   R17                  
 C|2|920F|R28           ->  3A5E                push   R28                  
@@ -19895,7 +19898,7 @@ C|2|E000|R24|#01       ->  3A9A   CL3A9A:      ldi    R24,0x01
 C|2|C000|C^-C          ->  3A9C                rjmp   CL3A92               
 
 
-Function "CL3A9E" (94):
+Function "CL3A9E" (93):
 -----------------------
 C|2|920F|R14               ->  3A9E   CL3A9E:      push   R14                  
 C|2|920F|R15               ->  3AA0                push   R15                  
@@ -20106,7 +20109,7 @@ C|2|900F|R14               ->  3CF2                pop    R14
 C|2|9508                   ->  3CF4                ret                         
 
 
-Function "CL3CF6" (95):
+Function "CL3CF6" (94):
 -----------------------
 C|2|920F|R12               ->  3CF6   CL3CF6:      push   R12                  
 C|2|920F|R13               ->  3CF8                push   R13                  
@@ -20137,7 +20140,7 @@ C|2|900F|R12               ->  3D2E                pop    R12
 C|2|9508                   ->  3D30                ret                         
 
 
-Function "CL3D32" (96):
+Function "CL3D32" (95):
 -----------------------
 C|2|920F|R15               ->  3D32   CL3D32:      push   R15                  
 C|2|920F|R16               ->  3D34                push   R16                  
@@ -20219,7 +20222,7 @@ C|2|900F|R15               ->  3DF0                pop    R15
 C|4|940C0000|C=CL3CF6      ->  3DF2                jmp    CL3CF6               
 
 
-Function "CL3DF6" (97):
+Function "CL3DF6" (96):
 -----------------------
 C|2|920F|R2                ->  3DF6   CL3DF6:      push   R2                   
 C|2|920F|R3                ->  3DF8                push   R3                   
@@ -20286,7 +20289,7 @@ C|2|E000|R27|#61           ->  3E72                ldi    R27,0x61
 C|2|2C00|R8|R27            ->  3E74                mov    R8,R27               
 C|2|E000|R27|#03           ->  3E76                ldi    R27,0x03             
 C|2|2C00|R9|R27            ->  3E78                mov    R9,R27               
-C|2|C000|C^+270            ->  3E7A                rjmp   CL40EC               
+C|2|C000|C=CL40EC          ->  3E7A                rjmp   CL40EC               
 C|2|E000|R24|#01           ->  3E7C   CL3E7C:      ldi    R24,0x01             
 C|4|92000000|D=DL06D8|R24  ->  3E7E                sts    DL06D8,R24           
 C|4|92000000|D=DL06D9|R1   ->  3E82                sts    DL06D9,R1            
@@ -20343,11 +20346,11 @@ C|2|F001|C^+1E             ->  3EFC                breq   CL3F1C
 C|2|E000|R31|#4D           ->  3EFE                ldi    R31,0x4D             
 C|2|1400|R13|R31           ->  3F00                cp     R13,R31              
 C|2|F401|C^+2              ->  3F02                brne   CL3F06               
-C|2|C000|C^+29E            ->  3F04                rjmp   CL41A4               
+C|2|C000|C=CL41A4          ->  3F04                rjmp   CL41A4               
 C|2|E000|R30|#BA           ->  3F06   CL3F06:      ldi    R30,0xBA             
 C|2|0C00|R30|R13           ->  3F08                add    R30,R13              
 C|2|3000|R30|#15           ->  3F0A                cpi    R30,0x15             
-C|2|F400|C^+2E             ->  3F0C                brcc   CL3F3C               
+C|2|F400|C=CL3F3C          ->  3F0C                brcc   CL3F3C               
 C|2|2C00|R0|R30            ->  3F0E                mov    R0,R30               
 C|2|0C00|R0                ->  3F10                lsl    R0                   
 C|2|0800|R31|R31           ->  3F12                sbc    R31,R31              
@@ -20356,20 +20359,24 @@ C|2|4000|R31|#C5           ->  3F16                sbci   R31,0xC5
 C|4|940C0000|C=CL7436      ->  3F18                jmp    CL7436               
 C|2|3000|R16|#28           ->  3F1C   CL3F1C:      cpi    R16,0x28             
 C|2|F401|C^+2              ->  3F1E                brne   CL3F22               
-C|2|C000|C^+1BA            ->  3F20                rjmp   CL40DC               
-C|2|F400|C^+4C             ->  3F22   CL3F22:      brcc   CL3F70               
+C|2|C000|C=CL40DC          ->  3F20                rjmp   CL40DC               
+C|2|F400|C=CL3F70          ->  3F22   CL3F22:      brcc   CL3F70               
 C|2|3000|R16|#14           ->  3F24                cpi    R16,0x14             
-C|2|F400|C^+18             ->  3F26                brcc   CL3F40               
+C|2|F400|C=CL3F40          ->  3F26                brcc   CL3F40               
 C|2|3000|R16|#11           ->  3F28                cpi    R16,0x11             
 C|2|F000|C^+2              ->  3F2A                brcs   CL3F2E               
-C|2|C000|C^+130            ->  3F2C                rjmp   CL405E               
+C|2|C000|C=CL405E          ->  3F2C                rjmp   CL405E               
 C|2|3000|R16|#04           ->  3F2E   CL3F2E:      cpi    R16,0x04             
 C|2|F401|C^+2              ->  3F30                brne   CL3F34               
-C|2|C000|C^+E8             ->  3F32                rjmp   CL401C               
-C|2|F000|C^+2C             ->  3F34   CL3F34:      brcs   CL3F62               
+C|2|C000|C=CL401C          ->  3F32                rjmp   CL401C               
+C|2|F000|C=CL3F62          ->  3F34   CL3F34:      brcs   CL3F62               
 C|2|3000|R16|#0A           ->  3F36                cpi    R16,0x0A             
-C|2|F401|C^+2              ->  3F38                brne   CL3F3C               
-C|2|C000|C^+D0             ->  3F3A                rjmp   CL400C               
+C|2|F401|C=CL3F3C          ->  3F38                brne   CL3F3C               
+C|2|C000|C=CL400C          ->  3F3A                rjmp   CL400C               
+
+
+Function "CL3F3C" (97):
+-----------------------
 C|2|E000|R24|#14           ->  3F3C   CL3F3C:      ldi    R24,0x14             
 C|2|C000|C^+12C            ->  3F3E                rjmp   CL406C               
 C|2|3000|R16|#1C           ->  3F40   CL3F40:      cpi    R16,0x1C             
@@ -20578,7 +20585,7 @@ C|2|5000|R30|#EF           ->  40F2                subi   R30,0xEF
 C|2|4000|R31|#F8           ->  40F4                sbci   R31,0xF8             
 C|2|8000|R13|RZ            ->  40F6                ld     R13,Z                
 C|2|1000|R13|R1            ->  40F8                cpse   R13,R1               
-C|2|C000|C^-26C            ->  40FA                rjmp   CL3E90               
+C|2|C000|C=CL3E90          ->  40FA                rjmp   CL3E90               
 C|2|8008|R27|RY+27         ->  40FC                ldd    R27,Y+27             
 C|2|2000|R27               ->  40FE                tst    R27                  
 C|2|F001|C^+A              ->  4100                breq   CL410C               
@@ -20706,8 +20713,185 @@ C|4|92000000|D=DL06E0|R1   ->  422C   CL422C:      sts    DL06E0,R1
 C|2|C000|C^-A              ->  4230                rjmp   CL4228               
 
 
-Function "CL439C" (98):
+Function "CL4232" (98):
 -----------------------
+C|4|92000000|D=DL06E3|R4  ->  4232   CL4232:      sts    DL06E3,R4            
+C|4|92000000|D=DL06E4|R5  ->  4236                sts    DL06E4,R5            
+C|4|92000000|D=DL06E5|R6  ->  423A                sts    DL06E5,R6            
+C|4|92000000|D=DL06E6|R7  ->  423E                sts    DL06E6,R7            
+C|2|E000|R24|#00          ->  4242                ldi    R24,0x00             
+C|2|0100|R12|R14          ->  4244   CL4244:      movw   R12,R14              
+C|2|2C00|R0|R24           ->  4246                mov    R0,R24               
+C|2|C000|C^+4             ->  4248                rjmp   CL424E               
+C|2|0C00|R12              ->  424A   CL424A:      lsl    R12                  
+C|2|1C00|R13              ->  424C                rol    R13                  
+C|2|940A|R0               ->  424E   CL424E:      dec    R0                   
+C|2|F402|C^-8             ->  4250                brpl   CL424A               
+C|2|0100|R18|R12          ->  4252                movw   R18,R12              
+C|2|2000|R18|R2           ->  4254                and    R18,R2               
+C|2|2000|R19|R3           ->  4256                and    R19,R3               
+C|2|2800|R18|R19          ->  4258                or     R18,R19              
+C|2|F001|C^+4             ->  425A                breq   CL4260               
+C|4|940C0000|C=CL5916     ->  425C                jmp    CL5916               
+C|2|0100|R26|R8           ->  4260   CL4260:      movw   R26,R8               
+C|2|C000|C^+4             ->  4262                rjmp   CL4268               
+C|2|9405|R27              ->  4264   CL4264:      asr    R27                  
+C|2|9407|R26              ->  4266                ror    R26                  
+C|2|940A|R24              ->  4268   CL4268:      dec    R24                  
+C|2|F402|C^-8             ->  426A                brpl   CL4264               
+C|2|FE00|R26,0            ->  426C                sbrs   R26,0                
+C|2|C000|C^+16            ->  426E                rjmp   CL4286               
+C|2|E000|R18|#00          ->  4270                ldi    R18,0x00             
+C|2|E000|R19|#00          ->  4272                ldi    R19,0x00             
+C|2|0100|R20|R18          ->  4274                movw   R20,R18              
+C|2|0100|R24|R6           ->  4276                movw   R24,R6               
+C|2|0100|R22|R4           ->  4278                movw   R22,R4               
+C|4|940E0000|C=CL6CDC     ->  427A                call   CL6CDC               
+C|2|FE00|R24,7            ->  427E                sbrs   R24,7                
+C|2|C000|C^+4             ->  4280                rjmp   CL4286               
+C|4|940C0000|C=CL591C     ->  4282                jmp    CL591C               
+C|2|2800|R2|R12           ->  4286   CL4286:      or     R2,R12               
+C|2|2800|R3|R13           ->  4288                or     R3,R13               
+C|2|C000|C=CL40EC         ->  428A                rjmp   CL40EC               
+
+
+Function "CL428C" (99):
+-----------------------
+C|4|92000000|D=DL06E7|R4  ->  428C   CL428C:      sts    DL06E7,R4            
+C|4|92000000|D=DL06E8|R5  ->  4290                sts    DL06E8,R5            
+C|4|92000000|D=DL06E9|R6  ->  4294                sts    DL06E9,R6            
+C|4|92000000|D=DL06EA|R7  ->  4298                sts    DL06EA,R7            
+C|2|6000|R17|#01          ->  429C                ori    R17,0x01             
+C|2|E000|R24|#01          ->  429E                ldi    R24,0x01             
+C|2|C000|C=CL4244         ->  42A0                rjmp   CL4244               
+
+
+Function "CL42A2" (100):
+------------------------
+C|4|92000000|D=DL06EB|R4  ->  42A2   CL42A2:      sts    DL06EB,R4            
+C|4|92000000|D=DL06EC|R5  ->  42A6                sts    DL06EC,R5            
+C|4|92000000|D=DL06ED|R6  ->  42AA                sts    DL06ED,R6            
+C|4|92000000|D=DL06EE|R7  ->  42AE                sts    DL06EE,R7            
+C|2|6000|R17|#02          ->  42B2                ori    R17,0x02             
+C|2|E000|R24|#02          ->  42B4                ldi    R24,0x02             
+C|2|C000|C=CL4244         ->  42B6                rjmp   CL4244               
+
+
+Function "CL42B8" (101):
+------------------------
+C|4|92000000|D=DL06EF|R4  ->  42B8   CL42B8:      sts    DL06EF,R4            
+C|4|92000000|D=DL06F0|R5  ->  42BC                sts    DL06F0,R5            
+C|4|92000000|D=DL06F1|R6  ->  42C0                sts    DL06F1,R6            
+C|4|92000000|D=DL06F2|R7  ->  42C4                sts    DL06F2,R7            
+C|2|6000|R17|#04          ->  42C8                ori    R17,0x04             
+C|2|E000|R24|#03          ->  42CA                ldi    R24,0x03             
+C|2|C000|C=CL4244         ->  42CC                rjmp   CL4244               
+
+
+Function "CL42CE" (102):
+------------------------
+C|4|92000000|D=DL06F3|R16  ->  42CE   CL42CE:      sts    DL06F3,R16           
+C|2|E000|R24|#04           ->  42D2                ldi    R24,0x04             
+C|2|C000|C=CL4244          ->  42D4                rjmp   CL4244               
+
+
+Function "CL42D6" (103):
+------------------------
+C|2|0100|R24|R6            ->  42D6   CL42D6:      movw   R24,R6               
+C|2|0100|R22|R4            ->  42D8                movw   R22,R4               
+C|4|940E0000|C=CL6DD4      ->  42DA                call   CL6DD4               
+C|4|92000000|D=DL06F4|R22  ->  42DE                sts    DL06F4,R22           
+C|4|92000000|D=DL06F5|R23  ->  42E2                sts    DL06F5,R23           
+C|4|92000000|D=DL06F6|R24  ->  42E6                sts    DL06F6,R24           
+C|4|92000000|D=DL06F7|R25  ->  42EA                sts    DL06F7,R25           
+C|2|E000|R24|#05           ->  42EE                ldi    R24,0x05             
+C|2|C000|C=CL4244          ->  42F0                rjmp   CL4244               
+
+
+Function "CL42F2" (104):
+------------------------
+C|4|92000000|D=DL06F8|R4  ->  42F2   CL42F2:      sts    DL06F8,R4            
+C|4|92000000|D=DL06F9|R5  ->  42F6                sts    DL06F9,R5            
+C|4|92000000|D=DL06FA|R6  ->  42FA                sts    DL06FA,R6            
+C|4|92000000|D=DL06FB|R7  ->  42FE                sts    DL06FB,R7            
+C|2|E000|R24|#06          ->  4302                ldi    R24,0x06             
+C|2|C000|C=CL4244         ->  4304                rjmp   CL4244               
+
+
+Function "CL4306" (105):
+------------------------
+C|4|92000000|D=DL06FC|R4  ->  4306   CL4306:      sts    DL06FC,R4            
+C|4|92000000|D=DL06FD|R5  ->  430A                sts    DL06FD,R5            
+C|4|92000000|D=DL06FE|R6  ->  430E                sts    DL06FE,R6            
+C|4|92000000|D=DL06FF|R7  ->  4312                sts    DL06FF,R7            
+C|2|E000|R24|#07          ->  4316                ldi    R24,0x07             
+C|2|C000|C=CL4244         ->  4318                rjmp   CL4244               
+
+
+Function "CL431A" (106):
+------------------------
+C|4|92000000|D=DL0700|R4  ->  431A   CL431A:      sts    DL0700,R4            
+C|4|92000000|D=DL0701|R5  ->  431E                sts    DL0701,R5            
+C|4|92000000|D=DL0702|R6  ->  4322                sts    DL0702,R6            
+C|4|92000000|D=DL0703|R7  ->  4326                sts    DL0703,R7            
+C|2|E000|R24|#08          ->  432A                ldi    R24,0x08             
+C|2|C000|C=CL4244         ->  432C                rjmp   CL4244               
+
+
+Function "CL432E" (107):
+------------------------
+C|2|E000|R18|#00           ->  432E   CL432E:      ldi    R18,0x00             
+C|2|E000|R19|#00           ->  4330                ldi    R19,0x00             
+C|2|E000|R20|#7F           ->  4332                ldi    R20,0x7F             
+C|2|E000|R21|#43           ->  4334                ldi    R21,0x43             
+C|2|0100|R24|R6            ->  4336                movw   R24,R6               
+C|2|0100|R22|R4            ->  4338                movw   R22,R4               
+C|4|940E0000|C=CL7120      ->  433A                call   CL7120               
+C|2|1400|R1|R24            ->  433E                cp     R1,R24               
+C|2|F404|C^+4              ->  4340                brge   CL4346               
+C|4|940C0000|C=CL5910      ->  4342                jmp    CL5910               
+C|4|92000000|D=DL0704|R16  ->  4346   CL4346:      sts    DL0704,R16           
+C|2|E000|R24|#09           ->  434A                ldi    R24,0x09             
+C|2|C000|C=CL4244          ->  434C                rjmp   CL4244               
+
+
+Function "CL434E" (108):
+------------------------
+C|4|92000000|D=DL0705|R4  ->  434E   CL434E:      sts    DL0705,R4            
+C|4|92000000|D=DL0706|R5  ->  4352                sts    DL0706,R5            
+C|4|92000000|D=DL0707|R6  ->  4356                sts    DL0707,R6            
+C|4|92000000|D=DL0708|R7  ->  435A                sts    DL0708,R7            
+C|2|8008|R19|RY+27        ->  435E                ldd    R19,Y+27             
+C|2|6000|R19|#01          ->  4360                ori    R19,0x01             
+C|2|8208|RY+27|R19        ->  4362                std    Y+27,R19             
+C|2|E000|R24|#0A          ->  4364                ldi    R24,0x0A             
+C|2|C000|C=CL4244         ->  4366                rjmp   CL4244               
+
+
+Function "CL4368" (109):
+------------------------
+C|4|92000000|D=DL0709|R4  ->  4368   CL4368:      sts    DL0709,R4            
+C|4|92000000|D=DL070A|R5  ->  436C                sts    DL070A,R5            
+C|4|92000000|D=DL070B|R6  ->  4370                sts    DL070B,R6            
+C|4|92000000|D=DL070C|R7  ->  4374                sts    DL070C,R7            
+C|2|8008|R20|RY+27        ->  4378                ldd    R20,Y+27             
+C|2|6000|R20|#02          ->  437A                ori    R20,0x02             
+C|2|8208|RY+27|R20        ->  437C                std    Y+27,R20             
+C|2|E000|R24|#0B          ->  437E                ldi    R24,0x0B             
+C|2|C000|C=CL4244         ->  4380                rjmp   CL4244               
+
+
+Function "CL4382" (110):
+------------------------
+C|4|92000000|D=DL070D|R4   ->  4382   CL4382:      sts    DL070D,R4            
+C|4|92000000|D=DL070E|R5   ->  4386                sts    DL070E,R5            
+C|4|92000000|D=DL070F|R6   ->  438A                sts    DL070F,R6            
+C|4|92000000|D=DL0710|R7   ->  438E                sts    DL0710,R7            
+C|2|8008|R24|RY+27         ->  4392                ldd    R24,Y+27             
+C|2|6000|R24|#04           ->  4394                ori    R24,0x04             
+C|2|8208|RY+27|R24         ->  4396                std    Y+27,R24             
+C|2|E000|R24|#0C           ->  4398                ldi    R24,0x0C             
+C|2|C000|C=CL4244          ->  439A                rjmp   CL4244               
 C|4|90000000|R24|D=DL06D9  ->  439C   CL439C:      lds    R24,DL06D9           
 C|2|3000|R24|#01           ->  43A0                cpi    R24,0x01             
 C|2|F401|C^+20             ->  43A2                brne   CL43C4               
@@ -21380,7 +21564,7 @@ C|2|1000|R26|R1            ->  4964                cpse   R26,R1
 C|2|7000|R25|#E3           ->  4966                andi   R25,0xE3             
 C|2|2800|R24|R25           ->  4968                or     R24,R25              
 C|2|F001|C^+2              ->  496A                breq   CL496E               
-C|2|C000|C=CL5934          ->  496C                rjmp   CL5934               
+C|2|C000|C^+FC6            ->  496C                rjmp   CL5934               
 C|2|0100|R16|R28           ->  496E   CL496E:      movw   R16,R28              
 C|2|5000|R16|#F3           ->  4970                subi   R16,0xF3             
 C|2|4000|R17|#FF           ->  4972                sbci   R17,0xFF             
@@ -21397,12 +21581,12 @@ C|2|8008|R25|RY+52         ->  4986                ldd    R25,Y+52
 C|2|7000|R24|#B6           ->  4988                andi   R24,0xB6             
 C|2|2800|R24|R25           ->  498A                or     R24,R25              
 C|2|F001|C^+2              ->  498C                breq   CL4990               
-C|2|C000|C=CL593A          ->  498E                rjmp   CL593A               
+C|2|C000|C^+FAA            ->  498E                rjmp   CL593A               
 C|4|90000000|R24|D=DL06D7  ->  4990   CL4990:      lds    R24,DL06D7           
 C|2|3000|R24|#35           ->  4994                cpi    R24,0x35             
 C|2|F001|C^+4              ->  4996                breq   CL499C               
 C|2|1000|R24|R1            ->  4998                cpse   R24,R1               
-C|2|C000|C=CL593A          ->  499A                rjmp   CL593A               
+C|2|C000|C^+F9E            ->  499A                rjmp   CL593A               
 C|4|90000000|R24|D=DL06A2  ->  499C   CL499C:      lds    R24,DL06A2           
 C|4|90000000|R25|D=DL06A3  ->  49A0                lds    R25,DL06A3           
 C|4|90000000|R26|D=DL06A4  ->  49A4                lds    R26,DL06A4           
@@ -21431,7 +21615,7 @@ C|2|E000|R24|#05           ->  49E2                ldi    R24,0x05
 C|2|E000|R25|#07           ->  49E4                ldi    R25,0x07             
 C|4|940E0000|C=CL044E      ->  49E6                call   CL044E               
 C|2|1000|R24|R1            ->  49EA                cpse   R24,R1               
-C|2|C000|C=CL5940          ->  49EC                rjmp   CL5940               
+C|2|C000|C^+F52            ->  49EC                rjmp   CL5940               
 C|2|0100|R22|R16           ->  49EE   CL49EE:      movw   R22,R16              
 C|2|E000|R24|#05           ->  49F0                ldi    R24,0x05             
 C|2|E000|R25|#07           ->  49F2                ldi    R25,0x07             
@@ -21500,7 +21684,7 @@ C|2|2000|R24|R14           ->  4A7A                and    R24,R14
 C|2|2000|R25|R15           ->  4A7C                and    R25,R15              
 C|2|2800|R24|R25           ->  4A7E                or     R24,R25              
 C|2|F401|C^+2              ->  4A80                brne   CL4A84               
-C|2|C000|C=CL5928          ->  4A82                rjmp   CL5928               
+C|2|C000|C^+EA4            ->  4A82                rjmp   CL5928               
 C|2|0100|R30|R26           ->  4A84   CL4A84:      movw   R30,R26              
 C|2|0C00|R30               ->  4A86                lsl    R30                  
 C|2|1C00|R31               ->  4A88                rol    R31                  
@@ -21646,7 +21830,7 @@ C|2|E000|R19|#00           ->  4BCC                ldi    R19,0x00
 C|2|0100|R20|R18           ->  4BCE                movw   R20,R18              
 C|4|940E0000|C=CL6CDC      ->  4BD0                call   CL6CDC               
 C|2|FC00|R24,7             ->  4BD4                sbrc   R24,7                
-C|2|C000|C=CL592E          ->  4BD6                rjmp   CL592E               
+C|2|C000|C^+D56            ->  4BD6                rjmp   CL592E               
 C|2|0100|R24|R14           ->  4BD8                movw   R24,R14              
 C|2|0100|R22|R12           ->  4BDA                movw   R22,R12              
 C|4|940E0000|C=CL72DE      ->  4BDC                call   CL72DE               
@@ -23072,25 +23256,27 @@ C|2|E000|R24|#02           ->  5904   CL5904:      ldi    R24,0x02
 C|4|940C0000|C=CL406C      ->  5906                jmp    CL406C               
 C|2|E000|R24|#18           ->  590A   CL590A:      ldi    R24,0x18             
 C|4|940C0000|C=CL406C      ->  590C                jmp    CL406C               
+C|2|E000|R24|#26           ->  5910   CL5910:      ldi    R24,0x26             
+C|4|940C0000|C=CL406C      ->  5912                jmp    CL406C               
+C|2|E000|R24|#19           ->  5916   CL5916:      ldi    R24,0x19             
+C|4|940C0000|C=CL406C      ->  5918                jmp    CL406C               
+C|2|E000|R24|#04           ->  591C   CL591C:      ldi    R24,0x04             
+C|4|940C0000|C=CL406C      ->  591E                jmp    CL406C               
+C|2|E000|R24|#1B           ->  5922   CL5922:      ldi    R24,0x1B             
+C|4|940C0000|C=CL406C      ->  5924                jmp    CL406C               
+C|2|E000|R24|#20           ->  5928   CL5928:      ldi    R24,0x20             
+C|4|940C0000|C=CL406C      ->  592A                jmp    CL406C               
+C|2|E000|R24|#22           ->  592E   CL592E:      ldi    R24,0x22             
+C|4|940C0000|C=CL406C      ->  5930                jmp    CL406C               
+C|2|E000|R24|#24           ->  5934   CL5934:      ldi    R24,0x24             
+C|4|940C0000|C=CL406C      ->  5936                jmp    CL406C               
+C|2|E000|R24|#10           ->  593A   CL593A:      ldi    R24,0x10             
+C|4|940C0000|C=CL406C      ->  593C                jmp    CL406C               
+C|2|E000|R24|#0F           ->  5940   CL5940:      ldi    R24,0x0F             
+C|4|940C0000|C=CL406C      ->  5942                jmp    CL406C               
 
 
-Function "CL5922" (99):
------------------------
-C|2|E000|R24|#1B       ->  5922   CL5922:      ldi    R24,0x1B             
-C|4|940C0000|C=CL406C  ->  5924                jmp    CL406C               
-C|2|E000|R24|#20       ->  5928   CL5928:      ldi    R24,0x20             
-C|4|940C0000|C=CL406C  ->  592A                jmp    CL406C               
-C|2|E000|R24|#22       ->  592E   CL592E:      ldi    R24,0x22             
-C|4|940C0000|C=CL406C  ->  5930                jmp    CL406C               
-C|2|E000|R24|#24       ->  5934   CL5934:      ldi    R24,0x24             
-C|4|940C0000|C=CL406C  ->  5936                jmp    CL406C               
-C|2|E000|R24|#10       ->  593A   CL593A:      ldi    R24,0x10             
-C|4|940C0000|C=CL406C  ->  593C                jmp    CL406C               
-C|2|E000|R24|#0F       ->  5940   CL5940:      ldi    R24,0x0F             
-C|4|940C0000|C=CL406C  ->  5942                jmp    CL406C               
-
-
-Function "CL5946" (100):
+Function "CL5946" (111):
 ------------------------
 C|2|920F|R28               ->  5946   CL5946:      push   R28                  
 C|2|920F|R29               ->  5948                push   R29                  
@@ -23668,7 +23854,7 @@ C|2|920F|R30               ->  5F26                push   R30
 C|2|920F|R31               ->  5F28                push   R31                  
 C|4|90000000|R30|D=UDR0    ->  5F2A                lds    R30,UDR0             
 C|2|3000|R30|#21           ->  5F2E                cpi    R30,0x21             
-C|2|F001|C^+54             ->  5F30                breq   CL5F86               
+C|2|F001|C=CL5F86          ->  5F30                breq   CL5F86               
 C|2|F400|C^+18             ->  5F32                brcc   CL5F4C               
 C|2|3000|R30|#18           ->  5F34                cpi    R30,0x18             
 C|2|F001|C^+24             ->  5F36                breq   CL5F5C               
@@ -23676,44 +23862,151 @@ C|2|FE00|R30,7             ->  5F38   CL5F38:      sbrs   R30,7
 C|2|C000|C=CL5FDE          ->  5F3A                rjmp   CL5FDE               
 C|2|5000|R30|#84           ->  5F3C                subi   R30,0x84             
 C|2|3000|R30|#1D           ->  5F3E                cpi    R30,0x1D             
-C|2|F400|C^+1E             ->  5F40                brcc   CL5F60               
+C|2|F400|C=CL5F60          ->  5F40                brcc   CL5F60               
 C|2|E000|R31|#00           ->  5F42                ldi    R31,0x00             
 C|2|5000|R30|#A1           ->  5F44                subi   R30,0xA1             
 C|2|4000|R31|#C5           ->  5F46                sbci   R31,0xC5             
 C|4|940C0000|C=CL7436      ->  5F48                jmp    CL7436               
 C|2|3000|R30|#3F           ->  5F4C   CL5F4C:      cpi    R30,0x3F             
-C|2|F001|C^+32             ->  5F4E                breq   CL5F82               
+C|2|F001|C=CL5F82          ->  5F4E                breq   CL5F82               
 C|2|E000|R24|#02           ->  5F50                ldi    R24,0x02             
 C|2|3000|R30|#7E           ->  5F52                cpi    R30,0x7E             
 C|2|F401|C^-1E             ->  5F54                brne   CL5F38               
 C|4|940E0000|C=CL043C      ->  5F56   CL5F56:      call   CL043C               
-C|2|C000|C^+4              ->  5F5A                rjmp   CL5F60               
+C|2|C000|C=CL5F60          ->  5F5A                rjmp   CL5F60               
 C|4|940E0000|C=CL1BCA      ->  5F5C   CL5F5C:      call   CL1BCA               
-C|2|900F|R31               ->  5F60   CL5F60:      pop    R31                  
-C|2|900F|R30               ->  5F62                pop    R30                  
-C|2|900F|R27               ->  5F64                pop    R27                  
-C|2|900F|R26               ->  5F66                pop    R26                  
-C|2|900F|R25               ->  5F68                pop    R25                  
-C|2|900F|R24               ->  5F6A                pop    R24                  
-C|2|900F|R23               ->  5F6C                pop    R23                  
-C|2|900F|R22               ->  5F6E                pop    R22                  
-C|2|900F|R21               ->  5F70                pop    R21                  
-C|2|900F|R20               ->  5F72                pop    R20                  
-C|2|900F|R19               ->  5F74                pop    R19                  
-C|2|900F|R18               ->  5F76                pop    R18                  
-C|2|900F|R0                ->  5F78                pop    R0                   
-C|2|B800|D=SREG_|R0        ->  5F7A                out    SREG_,R0             
-C|2|900F|R0                ->  5F7C                pop    R0                   
-C|2|900F|R1                ->  5F7E                pop    R1                   
-C|2|9518                   ->  5F80                reti                        
-C|2|E000|R24|#01           ->  5F82   CL5F82:      ldi    R24,0x01             
-C|2|C000|C^-30             ->  5F84                rjmp   CL5F56               
-C|2|E000|R24|#08           ->  5F86   CL5F86:      ldi    R24,0x08             
-C|2|C000|C^-34             ->  5F88                rjmp   CL5F56               
 
 
-Function "CL5FDE" (101):
+Function "CL5F60" (112):
 ------------------------
+C|2|900F|R31         ->  5F60   CL5F60:      pop    R31                  
+C|2|900F|R30         ->  5F62                pop    R30                  
+C|2|900F|R27         ->  5F64                pop    R27                  
+C|2|900F|R26         ->  5F66                pop    R26                  
+C|2|900F|R25         ->  5F68                pop    R25                  
+C|2|900F|R24         ->  5F6A                pop    R24                  
+C|2|900F|R23         ->  5F6C                pop    R23                  
+C|2|900F|R22         ->  5F6E                pop    R22                  
+C|2|900F|R21         ->  5F70                pop    R21                  
+C|2|900F|R20         ->  5F72                pop    R20                  
+C|2|900F|R19         ->  5F74                pop    R19                  
+C|2|900F|R18         ->  5F76                pop    R18                  
+C|2|900F|R0          ->  5F78                pop    R0                   
+C|2|B800|D=SREG_|R0  ->  5F7A                out    SREG_,R0             
+C|2|900F|R0          ->  5F7C                pop    R0                   
+C|2|900F|R1          ->  5F7E                pop    R1                   
+C|2|9518             ->  5F80                reti                        
+C|2|E000|R24|#01     ->  5F82   CL5F82:      ldi    R24,0x01             
+C|2|C000|C=CL5F56    ->  5F84                rjmp   CL5F56               
+C|2|E000|R24|#08     ->  5F86   CL5F86:      ldi    R24,0x08             
+C|2|C000|C=CL5F56    ->  5F88                rjmp   CL5F56               
+
+
+Function "CL5F8A" (113):
+------------------------
+C|2|E000|R24|#20   ->  5F8A   CL5F8A:      ldi    R24,0x20             
+C|2|C000|C=CL5F56  ->  5F8C                rjmp   CL5F56               
+
+
+Function "CL5F8E" (114):
+------------------------
+C|4|90000000|R24|D=DL0631  ->  5F8E   CL5F8E:      lds    R24,DL0631           
+C|2|FE00|R24,5             ->  5F92                sbrs   R24,5                
+C|2|C000|C=CL5F60          ->  5F94                rjmp   CL5F60               
+C|2|E000|R24|#40           ->  5F96                ldi    R24,0x40             
+C|2|C000|C=CL5F56          ->  5F98                rjmp   CL5F56               
+
+
+Function "CL5F9A" (115):
+------------------------
+C|2|E000|R24|#01       ->  5F9A   CL5F9A:      ldi    R24,0x01             
+C|4|940E0000|C=CL040A  ->  5F9C   CL5F9C:      call   CL040A               
+C|2|C000|C=CL5F60      ->  5FA0                rjmp   CL5F60               
+
+
+Function "CL5FA2" (116):
+------------------------
+C|2|E000|R24|#02   ->  5FA2   CL5FA2:      ldi    R24,0x02             
+C|2|C000|C=CL5F9C  ->  5FA4                rjmp   CL5F9C               
+
+
+Function "CL5FA6" (117):
+------------------------
+C|2|E000|R24|#04   ->  5FA6   CL5FA6:      ldi    R24,0x04             
+C|2|C000|C=CL5F9C  ->  5FA8                rjmp   CL5F9C               
+
+
+Function "CL5FAA" (118):
+------------------------
+C|2|E000|R24|#08   ->  5FAA   CL5FAA:      ldi    R24,0x08             
+C|2|C000|C=CL5F9C  ->  5FAC                rjmp   CL5F9C               
+
+
+Function "CL5FAE" (119):
+------------------------
+C|2|E000|R24|#10   ->  5FAE   CL5FAE:      ldi    R24,0x10             
+C|2|C000|C=CL5F9C  ->  5FB0                rjmp   CL5F9C               
+
+
+Function "CL5FB2" (120):
+------------------------
+C|2|E000|R24|#20   ->  5FB2   CL5FB2:      ldi    R24,0x20             
+C|2|C000|C=CL5F9C  ->  5FB4                rjmp   CL5F9C               
+
+
+Function "CL5FB6" (121):
+------------------------
+C|2|E000|R24|#40   ->  5FB6   CL5FB6:      ldi    R24,0x40             
+C|2|C000|C=CL5F9C  ->  5FB8                rjmp   CL5F9C               
+
+
+Function "CL5FBA" (122):
+------------------------
+C|2|E000|R24|#80   ->  5FBA   CL5FBA:      ldi    R24,0x80             
+C|2|C000|C=CL5F9C  ->  5FBC                rjmp   CL5F9C               
+
+
+Function "CL5FBE" (123):
+------------------------
+C|2|E000|R24|#01       ->  5FBE   CL5FBE:      ldi    R24,0x01             
+C|4|940E0000|C=CL03F8  ->  5FC0   CL5FC0:      call   CL03F8               
+C|2|C000|C=CL5F60      ->  5FC4                rjmp   CL5F60               
+
+
+Function "CL5FC6" (124):
+------------------------
+C|2|E000|R24|#02   ->  5FC6   CL5FC6:      ldi    R24,0x02             
+C|2|C000|C=CL5FC0  ->  5FC8                rjmp   CL5FC0               
+
+
+Function "CL5FCA" (125):
+------------------------
+C|2|E000|R24|#04   ->  5FCA   CL5FCA:      ldi    R24,0x04             
+C|2|C000|C=CL5FC0  ->  5FCC                rjmp   CL5FC0               
+
+
+Function "CL5FCE" (126):
+------------------------
+C|2|E000|R24|#08   ->  5FCE   CL5FCE:      ldi    R24,0x08             
+C|2|C000|C=CL5FC0  ->  5FD0                rjmp   CL5FC0               
+
+
+Function "CL5FD2" (127):
+------------------------
+C|2|E000|R24|#10   ->  5FD2   CL5FD2:      ldi    R24,0x10             
+C|2|C000|C=CL5FC0  ->  5FD4                rjmp   CL5FC0               
+
+
+Function "CL5FD6" (128):
+------------------------
+C|2|E000|R24|#20   ->  5FD6   CL5FD6:      ldi    R24,0x20             
+C|2|C000|C=CL5FC0  ->  5FD8                rjmp   CL5FC0               
+
+
+Function "CL5FDA" (129):
+------------------------
+C|2|E000|R24|#40           ->  5FDA   CL5FDA:      ldi    R24,0x40             
+C|2|C000|C=CL5FC0          ->  5FDC                rjmp   CL5FC0               
 C|4|90000000|R26|D=DL01F0  ->  5FDE   CL5FDE:      lds    R26,DL01F0           
 C|2|E000|R24|#01           ->  5FE2                ldi    R24,0x01             
 C|2|0C00|R24|R26           ->  5FE4                add    R24,R26              
@@ -23763,7 +24056,7 @@ C|2|900F|R24               ->  604A                pop    R24
 C|2|9518                   ->  604C                reti                        
 
 
-Function "CL604E" (102):
+Function "CL604E" (130):
 ------------------------
 C|2|B000|R28|D=SPL_        ->  604E   CL604E:      in     R28,SPL_             
 C|2|B000|R29|D=SPH_        ->  6050                in     R29,SPH_             
@@ -23975,12 +24268,12 @@ C|2|3000|R24|#24           ->  6278                cpi    R24,0x24
 C|2|F401|C^+32             ->  627A                brne   CL62AE               
 C|4|90000000|R25|D=DL0713  ->  627C   CL627C:      lds    R25,DL0713           
 C|2|1000|R25|R1            ->  6280                cpse   R25,R1               
-C|2|C000|C^+80             ->  6282                rjmp   CL6304               
+C|2|C000|C=CL6304          ->  6282                rjmp   CL6304               
 C|2|3000|R24|#43           ->  6284                cpi    R24,0x43             
 C|2|F401|C^+2              ->  6286                brne   CL628A               
-C|2|C000|C^+1F6            ->  6288                rjmp   CL6480               
+C|2|C000|C=CL6480          ->  6288                rjmp   CL6480               
 C|2|F004|C^+2              ->  628A   CL628A:      brlt   CL628E               
-C|2|C000|C^+88             ->  628C                rjmp   CL6316               
+C|2|C000|C=CL6316          ->  628C                rjmp   CL6316               
 C|2|3000|R24|#24           ->  628E   CL628E:      cpi    R24,0x24             
 C|2|F401|C^+5C             ->  6290                brne   CL62EE               
 C|4|90000000|R24|D=DL0631  ->  6292                lds    R24,DL0631           
@@ -24001,15 +24294,15 @@ C|2|F000|C^+2              ->  62B4                brcs   CL62B8
 C|2|C000|C=CL6A2A          ->  62B6                rjmp   CL6A2A               
 C|2|3000|R24|#49           ->  62B8   CL62B8:      cpi    R24,0x49             
 C|2|F401|C^+2              ->  62BA                brne   CL62BE               
-C|2|C000|C^+346            ->  62BC                rjmp   CL6604               
+C|2|C000|C=CL6604          ->  62BC                rjmp   CL6604               
 C|2|F004|C^+2              ->  62BE   CL62BE:      brlt   CL62C2               
-C|2|C000|C^+1FA            ->  62C0                rjmp   CL64BC               
+C|2|C000|C=CL64BC          ->  62C0                rjmp   CL64BC               
 C|2|3000|R24|#23           ->  62C2   CL62C2:      cpi    R24,0x23             
 C|2|F401|C^+2              ->  62C4                brne   CL62C8               
-C|2|C000|C^+21C            ->  62C6                rjmp   CL64E4               
+C|2|C000|C=CL64E4          ->  62C6                rjmp   CL64E4               
 C|2|3000|R24|#48           ->  62C8   CL62C8:      cpi    R24,0x48             
 C|2|F401|C^+2              ->  62CA                brne   CL62CE               
-C|2|C000|C^+2B4            ->  62CC                rjmp   CL6582               
+C|2|C000|C=CL6582          ->  62CC                rjmp   CL6582               
 C|2|E000|R17|#00           ->  62CE   CL62CE:      ldi    R17,0x00             
 C|2|0100|R22|R28           ->  62D0   CL62D0:      movw   R22,R28              
 C|2|5000|R22|#EF           ->  62D2                subi   R22,0xEF             
@@ -24018,21 +24311,25 @@ C|2|0100|R24|R28           ->  62D6                movw   R24,R28
 C|2|9600|R24|#15           ->  62D8                adiw   R24,0x15             
 C|4|940E0000|C=CL02A4      ->  62DA                call   CL02A4               
 C|2|1000|R24|R1            ->  62DE                cpse   R24,R1               
-C|2|C000|C^+45C            ->  62E0                rjmp   CL673E               
+C|2|C000|C=CL673E          ->  62E0                rjmp   CL673E               
 C|2|E000|R17|#02           ->  62E2   CL62E2:      ldi    R17,0x02             
-C|2|C000|C^+28             ->  62E4                rjmp   CL630E               
+C|2|C000|C=CL630E          ->  62E4                rjmp   CL630E               
 C|2|E000|R24|#1C           ->  62E6   CL62E6:      ldi    R24,0x1C             
 C|2|E000|R25|#01           ->  62E8                ldi    R25,0x01             
 C|4|940E0000|C=CL0F3A      ->  62EA                call   CL0F3A               
 C|2|E000|R17|#00           ->  62EE   CL62EE:      ldi    R17,0x00             
-C|2|C000|C^+1C             ->  62F0                rjmp   CL630E               
+C|2|C000|C=CL630E          ->  62F0                rjmp   CL630E               
 C|4|90000000|R24|D=DL0631  ->  62F2   CL62F2:      lds    R24,DL0631           
 C|2|7000|R24|#DF           ->  62F6                andi   R24,0xDF             
 C|2|F001|C^+2              ->  62F8                breq   CL62FC               
 C|2|C000|C=CL6A2A          ->  62FA                rjmp   CL6A2A               
 C|4|90000000|R24|D=DL0713  ->  62FC   CL62FC:      lds    R24,DL0713           
 C|2|3000|R24|#3D           ->  6300                cpi    R24,0x3D             
-C|2|F001|C^+4              ->  6302                breq   CL6308               
+C|2|F001|C=CL6308          ->  6302                breq   CL6308               
+
+
+Function "CL6304" (131):
+------------------------
 C|2|E000|R17|#03           ->  6304   CL6304:      ldi    R17,0x03             
 C|2|C000|C^+6              ->  6306                rjmp   CL630E               
 C|4|940E0000|C=CL3DF6      ->  6308   CL6308:      call   CL3DF6               
@@ -24043,10 +24340,10 @@ C|2|C000|C=CL6AEA          ->  6314                rjmp   CL6AEA
 C|2|3000|R24|#47           ->  6316   CL6316:      cpi    R24,0x47             
 C|2|F001|C^+26             ->  6318                breq   CL6340               
 C|2|3000|R24|#58           ->  631A                cpi    R24,0x58             
-C|2|F401|C^-30             ->  631C                brne   CL62EE               
+C|2|F401|C=CL62EE          ->  631C                brne   CL62EE               
 C|4|90000000|R24|D=DL0631  ->  631E                lds    R24,DL0631           
 C|2|3000|R24|#01           ->  6322                cpi    R24,0x01             
-C|2|F401|C^-38             ->  6324                brne   CL62EE               
+C|2|F401|C=CL62EE          ->  6324                brne   CL62EE               
 C|2|E000|R24|#75           ->  6326                ldi    R24,0x75             
 C|2|E000|R25|#02           ->  6328                ldi    R25,0x02             
 C|4|940E0000|C=CL0F3A      ->  632A                call   CL0F3A               
@@ -24055,7 +24352,7 @@ C|2|E000|R25|#02           ->  6330                ldi    R25,0x02
 C|4|940E0000|C=CL0F3A      ->  6332                call   CL0F3A               
 C|4|940E0000|C=CL1206      ->  6336                call   CL1206               
 C|4|92000000|D=DL0631|R1   ->  633A                sts    DL0631,R1            
-C|2|C000|C^-52             ->  633E                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  633E                rjmp   CL62EE               
 C|2|E000|R24|#16           ->  6340   CL6340:      ldi    R24,0x16             
 C|2|E000|R25|#01           ->  6342                ldi    R25,0x01             
 C|4|940E0000|C=CL0F3A      ->  6344                call   CL0F3A               
@@ -24164,7 +24461,7 @@ C|4|90000000|R25|D=DL06A5  ->  6468                lds    R25,DL06A5
 C|2|E000|R20|#00           ->  646C                ldi    R20,0x00             
 C|4|940E0000|C=CL0D32      ->  646E                call   CL0D32               
 C|4|940E0000|C=CL1206      ->  6472   CL6472:      call   CL1206               
-C|2|C000|C^-18A            ->  6476                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  6476                rjmp   CL62EE               
 C|2|E000|R24|#34           ->  6478   CL6478:      ldi    R24,0x34             
 C|2|C000|C^-6E             ->  647A                rjmp   CL640E               
 C|2|E000|R24|#39           ->  647C   CL647C:      ldi    R24,0x39             
@@ -24199,7 +24496,7 @@ C|2|F401|C^+2              ->  64C4                brne   CL64C8
 C|2|C000|C^+118            ->  64C6                rjmp   CL65E0               
 C|2|3000|R24|#4E           ->  64C8   CL64C8:      cpi    R24,0x4E             
 C|2|F001|C^+2              ->  64CA                breq   CL64CE               
-C|2|C000|C^-200            ->  64CC                rjmp   CL62CE               
+C|2|C000|C=CL62CE          ->  64CC                rjmp   CL62CE               
 C|2|8208|RY+21|R8          ->  64CE   CL64CE:      std    Y+21,R8              
 C|4|90000000|R24|D=DL0713  ->  64D0                lds    R24,DL0713           
 C|2|E000|R17|#00           ->  64D4                ldi    R17,0x00             
@@ -24209,7 +24506,7 @@ C|2|C000|C^+22E            ->  64DA                rjmp   CL670A
 C|2|1000|R25|R1            ->  64DC   CL64DC:      cpse   R25,R1               
 C|2|C000|C=CL6A2A          ->  64DE                rjmp   CL6A2A               
 C|2|E000|R17|#01           ->  64E0                ldi    R17,0x01             
-C|2|C000|C^-214            ->  64E2                rjmp   CL62D0               
+C|2|C000|C=CL62D0          ->  64E2                rjmp   CL62D0               
 C|4|90000000|R24|D=DL0713  ->  64E4   CL64E4:      lds    R24,DL0713           
 C|2|1000|R24|R1            ->  64E8                cpse   R24,R1               
 C|2|C000|C^-1E8            ->  64EA                rjmp   CL6304               
@@ -24265,7 +24562,7 @@ C|4|90000000|R25|D=DL06D6  ->  656A                lds    R25,DL06D6
 C|4|940E0000|C=CL0EA2      ->  656E                call   CL0EA2               
 C|4|940E0000|C=CL1206      ->  6572                call   CL1206               
 C|4|940E0000|C=CL1210      ->  6576                call   CL1210               
-C|2|C000|C^-28E            ->  657A                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  657A                rjmp   CL62EE               
 C|2|E000|R24|#FA           ->  657C   CL657C:      ldi    R24,0xFA             
 C|2|E000|R25|#00           ->  657E                ldi    R25,0x00             
 C|2|C000|C^-5C             ->  6580                rjmp   CL6526               
@@ -24286,18 +24583,18 @@ C|4|940E0000|C=CL35A8      ->  65A6                call   CL35A8
 C|4|940E0000|C=CL338E      ->  65AA                call   CL338E               
 C|4|90000000|R24|D=DL0632  ->  65AE                lds    R24,DL0632           
 C|2|1000|R24|R1            ->  65B2                cpse   R24,R1               
-C|2|C000|C^-2C8            ->  65B4                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  65B4                rjmp   CL62EE               
 C|4|940E0000|C=CL1302      ->  65B6                call   CL1302               
 C|4|940E0000|C=CL0692      ->  65BA                call   CL0692               
 C|4|940E0000|C=CL05B6      ->  65BE                call   CL05B6               
 C|4|90000000|R17|D=DL0632  ->  65C2                lds    R17,DL0632           
 C|2|1000|R17|R1            ->  65C6                cpse   R17,R1               
-C|2|C000|C^-2DC            ->  65C8                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  65C8                rjmp   CL62EE               
 C|4|92000000|D=DL0631|R1   ->  65CA                sts    DL0631,R1            
 C|4|940E0000|C=CL1AFC      ->  65CE                call   CL1AFC               
 C|4|90000000|R24|D=DL0713  ->  65D2                lds    R24,DL0713           
 C|2|1000|R24|R1            ->  65D6                cpse   R24,R1               
-C|2|C000|C^-2EC            ->  65D8                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  65D8                rjmp   CL62EE               
 C|4|940E0000|C=CL5946      ->  65DA                call   CL5946               
 C|2|C000|C^-2D2            ->  65DE                rjmp   CL630E               
 C|4|90000000|R24|D=DL0713  ->  65E0   CL65E0:      lds    R24,DL0713           
@@ -24313,7 +24610,7 @@ C|2|1000|R24|R1            ->  65F8                cpse   R24,R1
 C|2|C000|C^-2F8            ->  65FA                rjmp   CL6304               
 C|2|E000|R24|#80           ->  65FC                ldi    R24,0x80             
 C|4|940E0000|C=CL043C      ->  65FE                call   CL043C               
-C|2|C000|C^-316            ->  6602                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  6602                rjmp   CL62EE               
 C|2|8208|RY+21|R8          ->  6604   CL6604:      std    Y+21,R8              
 C|4|90000000|R24|D=DL0713  ->  6606                lds    R24,DL0713           
 C|2|1000|R24|R1            ->  660A                cpse   R24,R1               
@@ -24381,7 +24678,7 @@ C|2|E000|R23|#07           ->  669C                ldi    R23,0x07
 C|2|E000|R24|#AE           ->  669E                ldi    R24,0xAE             
 C|2|E000|R25|#03           ->  66A0                ldi    R25,0x03             
 C|4|940E0000|C=CL081C      ->  66A2                call   CL081C               
-C|2|C000|C^-3BA            ->  66A6                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  66A6                rjmp   CL62EE               
 C|4|90000000|R24|D=DL0713  ->  66A8   CL66A8:      lds    R24,DL0713           
 C|2|3000|R24|#53           ->  66AC                cpi    R24,0x53             
 C|2|F001|C^+2              ->  66AE                breq   CL66B2               
@@ -24417,7 +24714,7 @@ C|2|E000|R25|#01           ->  66F4                ldi    R25,0x01
 C|4|940E0000|C=CL0F3A      ->  66F6                call   CL0F3A               
 C|4|940E0000|C=CL1206      ->  66FA                call   CL1206               
 C|4|940E0000|C=CL1BCA      ->  66FE                call   CL1BCA               
-C|2|C000|C^-416            ->  6702                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  6702                rjmp   CL62EE               
 C|2|EF0F|R24               ->  6704   CL6704:      ser    R24                  
 C|2|C000|C^-22             ->  6706                rjmp   CL66E6               
 C|2|E000|R17|#01           ->  6708   CL6708:      ldi    R17,0x01             
@@ -24429,7 +24726,7 @@ C|2|E000|R24|#07           ->  6714                ldi    R24,0x07
 C|4|940E0000|C=CL0F5E      ->  6716                call   CL0F5E               
 C|2|3000|R17|#01           ->  671A   CL671A:      cpi    R17,0x01             
 C|2|F401|C^-16             ->  671C                brne   CL6708               
-C|2|C000|C^-432            ->  671E                rjmp   CL62EE               
+C|2|C000|C=CL62EE          ->  671E                rjmp   CL62EE               
 C|2|E000|R24|#D1           ->  6720   CL6720:      ldi    R24,0xD1             
 C|2|E000|R25|#00           ->  6722                ldi    R25,0x00             
 C|4|940E0000|C=CL0F3A      ->  6724                call   CL0F3A               
@@ -24505,7 +24802,7 @@ C|2|9600|R24|#15           ->  67C2                adiw   R24,0x15
 C|4|940E0000|C=CL02A4      ->  67C4                call   CL02A4               
 C|2|2000|R24               ->  67C8                tst    R24                  
 C|2|F401|C^+2              ->  67CA                brne   CL67CE               
-C|2|C000|C^-4EC            ->  67CC                rjmp   CL62E2               
+C|2|C000|C=CL62E2          ->  67CC                rjmp   CL62E2               
 C|2|8008|R30|RY+21         ->  67CE   CL67CE:      ldd    R30,Y+21             
 C|2|E000|R31|#00           ->  67D0                ldi    R31,0x00             
 C|2|5000|R30|#EF           ->  67D2                subi   R30,0xEF             
@@ -24626,16 +24923,222 @@ C|2|4000|R31|#C5           ->  68C6                sbci   R31,0xC5
 C|4|940C0000|C=CL7436      ->  68C8                jmp    CL7436               
 
 
-Function "CL6A2A" (103):
+Function "CL68CC" (132):
 ------------------------
-C|2|E000|R17|#08   ->  6A2A   CL6A2A:      ldi    R17,0x08             
-C|2|C000|C=CL630E  ->  6A2C                rjmp   CL630E               
-C|2|E000|R17|#04   ->  6A2E   CL6A2E:      ldi    R17,0x04             
-C|2|C000|C=CL630E  ->  6A30                rjmp   CL630E               
+C|2|3000|R22|#03           ->  68CC   CL68CC:      cpi    R22,0x03             
+C|2|F400|C^+2              ->  68CE                brcc   CL68D2               
+C|2|C000|C=CL6A32          ->  68D0                rjmp   CL6A32               
+C|4|92000000|D=DL0672|R22  ->  68D2   CL68D2:      sts    DL0672,R22           
+C|2|C000|C=CL6850          ->  68D6                rjmp   CL6850               
 
 
-Function "CL6A3A" (104):
+Function "CL68D8" (133):
 ------------------------
+C|4|92000000|D=DL0675|R22  ->  68D8   CL68D8:      sts    DL0675,R22           
+C|2|C000|C=CL6850          ->  68DC                rjmp   CL6850               
+
+
+Function "CL68DE" (134):
+------------------------
+C|4|92000000|D=DL0673|R22  ->  68DE   CL68DE:      sts    DL0673,R22           
+C|4|940E0000|C=CL0C64      ->  68E2   CL68E2:      call   CL0C64               
+C|2|C000|C=CL6850          ->  68E6                rjmp   CL6850               
+
+
+Function "CL68E8" (135):
+------------------------
+C|4|92000000|D=DL0674|R22  ->  68E8   CL68E8:      sts    DL0674,R22           
+C|2|C000|C=CL68E2          ->  68EC                rjmp   CL68E2               
+
+
+Function "CL68EE" (136):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  68EE   CL68EE:      lds    R24,DL0687           
+C|2|2000|R22               ->  68F2                tst    R22                  
+C|2|F001|C^+8              ->  68F4                breq   CL68FE               
+C|2|6000|R24|#04           ->  68F6                ori    R24,0x04             
+C|4|92000000|D=DL0687|R24  ->  68F8   CL68F8:      sts    DL0687,R24           
+C|2|C000|C=CL6850          ->  68FC                rjmp   CL6850               
+C|2|7000|R24|#FB           ->  68FE   CL68FE:      andi   R24,0xFB             
+C|2|C000|C^-A              ->  6900                rjmp   CL68F8               
+
+
+Function "CL6902" (137):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  6902   CL6902:      lds    R24,DL0687           
+C|2|2000|R22               ->  6906                tst    R22                  
+C|2|F001|C^+4              ->  6908                breq   CL690E               
+C|2|6000|R24|#40           ->  690A                ori    R24,0x40             
+C|2|C000|C=CL68F8          ->  690C                rjmp   CL68F8               
+C|2|7000|R24|#BF           ->  690E   CL690E:      andi   R24,0xBF             
+C|2|C000|C=CL68F8          ->  6910                rjmp   CL68F8               
+
+
+Function "CL6912" (138):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  6912   CL6912:      lds    R24,DL0687           
+C|2|2000|R22               ->  6916                tst    R22                  
+C|2|F001|C^+E              ->  6918                breq   CL6928               
+C|2|6000|R24|#80           ->  691A                ori    R24,0x80             
+C|4|92000000|D=DL0687|R24  ->  691C   CL691C:      sts    DL0687,R24           
+C|2|E000|R24|#00           ->  6920                ldi    R24,0x00             
+C|4|940E0000|C=CL0554      ->  6922                call   CL0554               
+C|2|C000|C=CL6850          ->  6926                rjmp   CL6850               
+C|2|7000|R24|#7F           ->  6928   CL6928:      andi   R24,0x7F             
+C|2|C000|C^-10             ->  692A                rjmp   CL691C               
+
+
+Function "CL692C" (139):
+------------------------
+C|4|92000000|D=DL0676|R22  ->  692C   CL692C:      sts    DL0676,R22           
+C|2|C000|C=CL6850          ->  6930                rjmp   CL6850               
+
+
+Function "CL6932" (140):
+------------------------
+C|4|92000000|D=DL0677|R4  ->  6932   CL6932:      sts    DL0677,R4            
+C|4|92000000|D=DL0678|R5  ->  6936                sts    DL0678,R5            
+C|4|92000000|D=DL0679|R6  ->  693A                sts    DL0679,R6            
+C|4|92000000|D=DL067A|R7  ->  693E                sts    DL067A,R7            
+C|2|C000|C=CL6850         ->  6942                rjmp   CL6850               
+
+
+Function "CL6944" (141):
+------------------------
+C|4|92000000|D=DL067B|R4  ->  6944   CL6944:      sts    DL067B,R4            
+C|4|92000000|D=DL067C|R5  ->  6948                sts    DL067C,R5            
+C|4|92000000|D=DL067D|R6  ->  694C                sts    DL067D,R6            
+C|4|92000000|D=DL067E|R7  ->  6950                sts    DL067E,R7            
+C|2|C000|C=CL6850         ->  6954                rjmp   CL6850               
+
+
+Function "CL6956" (142):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  6956   CL6956:      lds    R24,DL0687           
+C|2|2000|R22               ->  695A                tst    R22                  
+C|2|F001|C^+C              ->  695C                breq   CL696A               
+C|2|6000|R24|#01           ->  695E                ori    R24,0x01             
+C|4|92000000|D=DL0687|R24  ->  6960   CL6960:      sts    DL0687,R24           
+C|4|940E0000|C=CL3A2A      ->  6964                call   CL3A2A               
+C|2|C000|C=CL6850          ->  6968                rjmp   CL6850               
+C|2|7000|R24|#FE           ->  696A   CL696A:      andi   R24,0xFE             
+C|2|C000|C^-E              ->  696C                rjmp   CL6960               
+
+
+Function "CL696E" (143):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  696E   CL696E:      lds    R24,DL0687           
+C|2|2000|R22               ->  6972                tst    R22                  
+C|2|F001|C^+8              ->  6974                breq   CL697E               
+C|2|FE00|R24,4             ->  6976                sbrs   R24,4                
+C|2|C000|C=CL6A36          ->  6978                rjmp   CL6A36               
+C|2|6000|R24|#20           ->  697A                ori    R24,0x20             
+C|2|C000|C=CL68F8          ->  697C                rjmp   CL68F8               
+C|2|7000|R24|#DF           ->  697E   CL697E:      andi   R24,0xDF             
+C|2|C000|C=CL68F8          ->  6980                rjmp   CL68F8               
+
+
+Function "CL6982" (144):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  6982   CL6982:      lds    R24,DL0687           
+C|2|2000|R22               ->  6986                tst    R22                  
+C|2|F001|C^+C              ->  6988                breq   CL6996               
+C|2|6000|R24|#08           ->  698A                ori    R24,0x08             
+C|4|92000000|D=DL0687|R24  ->  698C   CL698C:      sts    DL0687,R24           
+C|4|940E0000|C=CL05B6      ->  6990                call   CL05B6               
+C|2|C000|C=CL6850          ->  6994                rjmp   CL6850               
+C|2|7000|R24|#F7           ->  6996   CL6996:      andi   R24,0xF7             
+C|2|C000|C^-E              ->  6998                rjmp   CL698C               
+
+
+Function "CL699A" (145):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  699A   CL699A:      lds    R24,DL0687           
+C|2|2000|R22               ->  699E                tst    R22                  
+C|2|F001|C^+4              ->  69A0                breq   CL69A6               
+C|2|6000|R24|#10           ->  69A2                ori    R24,0x10             
+C|2|C000|C=CL68F8          ->  69A4                rjmp   CL68F8               
+C|2|7000|R24|#CF           ->  69A6   CL69A6:      andi   R24,0xCF             
+C|2|C000|C=CL68F8          ->  69A8                rjmp   CL68F8               
+
+
+Function "CL69AA" (146):
+------------------------
+C|4|92000000|D=DL0688|R22  ->  69AA   CL69AA:      sts    DL0688,R22           
+C|2|C000|C=CL6850          ->  69AE                rjmp   CL6850               
+
+
+Function "CL69B0" (147):
+------------------------
+C|4|92000000|D=DL0689|R4  ->  69B0   CL69B0:      sts    DL0689,R4            
+C|4|92000000|D=DL068A|R5  ->  69B4                sts    DL068A,R5            
+C|4|92000000|D=DL068B|R6  ->  69B8                sts    DL068B,R6            
+C|4|92000000|D=DL068C|R7  ->  69BC                sts    DL068C,R7            
+C|2|C000|C=CL6850         ->  69C0                rjmp   CL6850               
+
+
+Function "CL69C2" (148):
+------------------------
+C|4|92000000|D=DL068D|R4  ->  69C2   CL69C2:      sts    DL068D,R4            
+C|4|92000000|D=DL068E|R5  ->  69C6                sts    DL068E,R5            
+C|4|92000000|D=DL068F|R6  ->  69CA                sts    DL068F,R6            
+C|4|92000000|D=DL0690|R7  ->  69CE                sts    DL0690,R7            
+C|2|C000|C=CL6850         ->  69D2                rjmp   CL6850               
+
+
+Function "CL69D4" (149):
+------------------------
+C|2|E000|R23|#00           ->  69D4   CL69D4:      ldi    R23,0x00             
+C|4|92000000|D=DL0692|R23  ->  69D6                sts    DL0692,R23           
+C|4|92000000|D=DL0691|R22  ->  69DA                sts    DL0691,R22           
+C|2|C000|C=CL6850          ->  69DE                rjmp   CL6850               
+
+
+Function "CL69E0" (150):
+------------------------
+C|4|92000000|D=DL0693|R4  ->  69E0   CL69E0:      sts    DL0693,R4            
+C|4|92000000|D=DL0694|R5  ->  69E4                sts    DL0694,R5            
+C|4|92000000|D=DL0695|R6  ->  69E8                sts    DL0695,R6            
+C|4|92000000|D=DL0696|R7  ->  69EC                sts    DL0696,R7            
+C|2|C000|C=CL6850         ->  69F0                rjmp   CL6850               
+
+
+Function "CL69F2" (151):
+------------------------
+C|4|92000000|D=DL067F|R4  ->  69F2   CL69F2:      sts    DL067F,R4            
+C|4|92000000|D=DL0680|R5  ->  69F6                sts    DL0680,R5            
+C|4|92000000|D=DL0681|R6  ->  69FA                sts    DL0681,R6            
+C|4|92000000|D=DL0682|R7  ->  69FE                sts    DL0682,R7            
+C|4|940E0000|C=CL129C     ->  6A02   CL6A02:      call   CL129C               
+C|2|C000|C=CL6850         ->  6A06                rjmp   CL6850               
+
+
+Function "CL6A08" (152):
+------------------------
+C|4|92000000|D=DL0683|R4  ->  6A08   CL6A08:      sts    DL0683,R4            
+C|4|92000000|D=DL0684|R5  ->  6A0C                sts    DL0684,R5            
+C|4|92000000|D=DL0685|R6  ->  6A10                sts    DL0685,R6            
+C|4|92000000|D=DL0686|R7  ->  6A14                sts    DL0686,R7            
+C|2|C000|C=CL6A02         ->  6A18                rjmp   CL6A02               
+
+
+Function "CL6A1A" (153):
+------------------------
+C|4|90000000|R24|D=DL0687  ->  6A1A   CL6A1A:      lds    R24,DL0687           
+C|2|2000|R22               ->  6A1E                tst    R22                  
+C|2|F001|C^+4              ->  6A20                breq   CL6A26               
+C|2|6000|R24|#02           ->  6A22                ori    R24,0x02             
+C|2|C000|C=CL68F8          ->  6A24                rjmp   CL68F8               
+C|2|7000|R24|#FD           ->  6A26   CL6A26:      andi   R24,0xFD             
+C|2|C000|C=CL68F8          ->  6A28                rjmp   CL68F8               
+C|2|E000|R17|#08           ->  6A2A   CL6A2A:      ldi    R17,0x08             
+C|2|C000|C=CL630E          ->  6A2C                rjmp   CL630E               
+C|2|E000|R17|#04           ->  6A2E   CL6A2E:      ldi    R17,0x04             
+C|2|C000|C=CL630E          ->  6A30                rjmp   CL630E               
+C|2|E000|R17|#06           ->  6A32   CL6A32:      ldi    R17,0x06             
+C|2|C000|C=CL630E          ->  6A34                rjmp   CL630E               
+C|2|E000|R17|#0A           ->  6A36   CL6A36:      ldi    R17,0x0A             
+C|2|C000|C=CL630E          ->  6A38                rjmp   CL630E               
 C|4|90000000|R24|D=DL0631  ->  6A3A   CL6A3A:      lds    R24,DL0631           
 C|2|7000|R24|#21           ->  6A3E                andi   R24,0x21             
 C|2|F001|C^+8              ->  6A40                breq   CL6A4A               
@@ -24721,12 +25224,12 @@ C|2|E000|R16|#00           ->  6AEC                ldi    R16,0x00
 C|2|C000|C=CL6222          ->  6AEE                rjmp   CL6222               
 
 
-Function "CL6AF0" (105):
+Function "CL6AF0" (154):
 ------------------------
 C|2|5000|R21|#80  ->  6AF0   CL6AF0:      subi   R21,0x80             
 
 
-Function "CL6AF2" (106):
+Function "CL6AF2" (155):
 ------------------------
 C|2|2400|R27           ->  6AF2   CL6AF2:      clr    R27                  
 C|2|2400|R26           ->  6AF4                clr    R26                  
@@ -24747,7 +25250,7 @@ C|2|FA00|R30,7         ->  6B1A   CL6B1A:      bst    R30,7
 C|4|940C0000|C=CL6F30  ->  6B1C                jmp    CL6F30               
 
 
-Function "CL6B20" (107):
+Function "CL6B20" (156):
 ------------------------
 C|2|2C00|R30|R25       ->  6B20   CL6B20:      mov    R30,R25              
 C|4|940E0000|C=CL709E  ->  6B22                call   CL709E               
@@ -24849,7 +25352,7 @@ C|4|940C0000|C=CL6F8E  ->  6BE8   CL6BE8:      jmp    CL6F8E
 C|4|940C0000|C=CL7112  ->  6BEC   CL6BEC:      jmp    CL7112               
 
 
-Function "CL6BF0" (108):
+Function "CL6BF0" (157):
 ------------------------
 C|2|2C00|R30|R25       ->  6BF0   CL6BF0:      mov    R30,R25              
 C|2|7000|R30|#80       ->  6BF2                andi   R30,0x80             
@@ -24896,7 +25399,7 @@ C|4|940C0000|C=CL6AF2  ->  6C4A                jmp    CL6AF2
 C|2|9508               ->  6C4E   CL6C4E:      ret                         
 
 
-Function "CL6C50" (109):
+Function "CL6C50" (158):
 ------------------------
 C|2|920F|R29           ->  6C50   CL6C50:      push   R29                  
 C|2|2400|R29           ->  6C52                clr    R29                  
@@ -24940,7 +25443,7 @@ C|2|900F|R29           ->  6CA8   CL6CA8:      pop    R29
 C|4|940C0000|C=CL7054  ->  6CAA                jmp    CL7054               
 
 
-Function "CL6CAE" (110):
+Function "CL6CAE" (159):
 ------------------------
 C|4|940E0000|C=CL70E2  ->  6CAE   CL6CAE:      call   CL70E2               
 C|2|F000|C^+24         ->  6CB2                brcs   CL6CD8               
@@ -24963,7 +25466,7 @@ C|4|940C0000|C=CL6F3C  ->  6CD4   CL6CD4:      jmp    CL6F3C
 C|4|940C0000|C=CL6F72  ->  6CD8   CL6CD8:      jmp    CL6F72               
 
 
-Function "CL6CDC" (111):
+Function "CL6CDC" (160):
 ------------------------
 C|4|940E0000|C=CL6EE8  ->  6CDC   CL6CDC:      call   CL6EE8               
 C|2|F400|C^+2          ->  6CE0                brcc   CL6CE4               
@@ -24971,14 +25474,14 @@ C|2|E000|R24|#01       ->  6CE2                ldi    R24,0x01
 C|2|9508               ->  6CE4   CL6CE4:      ret                         
 
 
-Function "CL6CE6" (112):
+Function "CL6CE6" (161):
 ------------------------
 C|4|940E0000|C=CL7002  ->  6CE6   CL6CE6:      call   CL7002               
 C|2|9403|R30           ->  6CEA                inc    R30                  
 C|4|940C0000|C=CL7076  ->  6CEC                jmp    CL7076               
 
 
-Function "CL6CF0" (113):
+Function "CL6CF0" (162):
 ------------------------
 C|4|940E0000|C=CL6D18  ->  6CF0   CL6CF0:      call   CL6D18               
 C|4|940C0000|C=CL7054  ->  6CF4                jmp    CL7054               
@@ -24995,13 +25498,13 @@ C|4|940C0000|C=CL7114  ->  6D10   CL6D10:      jmp    CL7114
 C|4|940C0000|C=CL6F8E  ->  6D14   CL6D14:      jmp    CL6F8E               
 
 
-Function "CL6D18" (114):
+Function "CL6D18" (163):
 ------------------------
 C|4|940E0000|C=CL709E  ->  6D18   CL6D18:      call   CL709E               
 C|2|F000|C=CL6CF8      ->  6D1C                brcs   CL6CF8               
 
 
-Function "CL6D1E" (115):
+Function "CL6D1E" (164):
 ------------------------
 C|2|2000|R25           ->  6D1E   CL6D1E:      tst    R25                  
 C|2|F001|C=CL6D0E      ->  6D20                breq   CL6D0E               
@@ -25076,12 +25579,12 @@ C|2|F800|R25,7         ->  6DAC                bld    R25,7
 C|2|9508               ->  6DAE                ret                         
 
 
-Function "CL6DB0" (116):
+Function "CL6DB0" (165):
 ------------------------
 C|2|E000|R30|#01  ->  6DB0   CL6DB0:      ldi    R30,0x01             
 
 
-Function "CL6DB2" (117):
+Function "CL6DB2" (166):
 ------------------------
 C|2|0C00|R22      ->  6DB2   CL6DB2:      lsl    R22                  
 C|2|1C00|R23      ->  6DB4                rol    R23                  
@@ -25102,7 +25605,7 @@ C|2|9400|R30      ->  6DD0                com    R30
 C|2|9508          ->  6DD2                ret                         
 
 
-Function "CL6DD4" (118):
+Function "CL6DD4" (167):
 ------------------------
 C|4|940E0000|C=CL6DE2  ->  6DD4   CL6DD4:      call   CL6DE2               
 C|2|9468               ->  6DD8                set                         
@@ -25111,7 +25614,7 @@ C|4|940C0000|C=CL7114  ->  6DDC                jmp    CL7114
 C|2|9508               ->  6DE0                ret                         
 
 
-Function "CL6DE2" (119):
+Function "CL6DE2" (168):
 ------------------------
 C|4|940E0000|C=CL70AE  ->  6DE2   CL6DE2:      call   CL70AE               
 C|2|F000|C^+22         ->  6DE6                brcs   CL6E0A               
@@ -25159,13 +25662,13 @@ C|2|4000|R25|#FF       ->  6E3C                sbci   R25,0xFF
 C|2|9508               ->  6E3E   CL6E3E:      ret                         
 
 
-Function "CL6E40" (120):
+Function "CL6E40" (169):
 ------------------------
 C|2|94E8           ->  6E40   CL6E40:      clt                         
 C|2|C000|C=CL6E56  ->  6E42                rjmp   CL6E56               
 
 
-Function "CL6E44" (121):
+Function "CL6E44" (170):
 ------------------------
 C|2|FA00|R25,7    ->  6E44   CL6E44:      bst    R25,7                
 C|2|F406|C^+E     ->  6E46                brtc   CL6E56               
@@ -25228,7 +25731,7 @@ C|2|F800|R25,7    ->  6EB6                bld    R25,7
 C|2|9508          ->  6EB8   CL6EB8:      ret                         
 
 
-Function "CL6EBA" (122):
+Function "CL6EBA" (171):
 ------------------------
 C|4|940E0000|C=CL70E2  ->  6EBA   CL6EBA:      call   CL70E2               
 C|2|F000|C^+24         ->  6EBE                brcs   CL6EE4               
@@ -25251,7 +25754,7 @@ C|4|940C0000|C=CL6F3C  ->  6EE0   CL6EE0:      jmp    CL6F3C
 C|4|940C0000|C=CL6F72  ->  6EE4   CL6EE4:      jmp    CL6F72               
 
 
-Function "CL6EE8" (123):
+Function "CL6EE8" (172):
 ------------------------
 C|2|0C00|R25      ->  6EE8   CL6EE8:      lsl    R25                  
 C|2|0800|R0|R0    ->  6EEA                sbc    R0,R0                
@@ -25341,7 +25844,7 @@ C|2|E000|R24|#C0  ->  6F90                ldi    R24,0xC0
 C|2|9508          ->  6F92                ret                         
 
 
-Function "CL6F94" (124):
+Function "CL6F94" (173):
 ------------------------
 C|2|920F|R29           ->  6F94   CL6F94:      push   R29                  
 C|2|920F|R28           ->  6F96                push   R28                  
@@ -25382,7 +25885,7 @@ C|2|900F|R29           ->  6FDE                pop    R29
 C|2|9508               ->  6FE0                ret                         
 
 
-Function "CL6FE2" (125):
+Function "CL6FE2" (174):
 ------------------------
 C|2|2400|R0      ->  6FE2   CL6FE2:      clr    R0                   
 C|2|940A|R0      ->  6FE4                dec    R0                   
@@ -25393,7 +25896,7 @@ C|2|0400|R0|R25  ->  6FEC                cpc    R0,R25
 C|2|9508         ->  6FEE                ret                         
 
 
-Function "CL6FF0" (126):
+Function "CL6FF0" (175):
 ------------------------
 C|2|2400|R0            ->  6FF0   CL6FF0:      clr    R0                   
 C|2|940A|R0            ->  6FF2                dec    R0                   
@@ -25405,7 +25908,7 @@ C|2|9508               ->  6FFC                ret
 C|4|940C0000|C=CL6F8E  ->  6FFE   CL6FFE:      jmp    CL6F8E               
 
 
-Function "CL7002" (127):
+Function "CL7002" (176):
 ------------------------
 C|4|940E0000|C=CL70AE  ->  7002   CL7002:      call   CL70AE               
 C|2|F000|C=CL6FFE      ->  7006                brcs   CL6FFE               
@@ -25448,7 +25951,7 @@ C|2|4000|R25|#80       ->  704E   CL704E:      sbci   R25,0x80
 C|4|940C0000|C=CL6F76  ->  7050                jmp    CL6F76               
 
 
-Function "CL7054" (128):
+Function "CL7054" (177):
 ------------------------
 C|2|2C00|R0|R25        ->  7054   CL7054:      mov    R0,R25               
 C|2|9403|R0            ->  7056                inc    R0                   
@@ -25486,7 +25989,7 @@ C|2|E000|R31|#00       ->  7098                ldi    R31,0x00
 C|4|940C0000|C=CL738A  ->  709A                jmp    CL738A               
 
 
-Function "CL709E" (129):
+Function "CL709E" (178):
 ------------------------
 C|2|FC00|R21,7     ->  709E   CL709E:      sbrc   R21,7                
 C|2|5000|R25|#80   ->  70A0                subi   R25,0x80             
@@ -25498,7 +26001,7 @@ C|2|F001|C=CL70C8  ->  70AA                breq   CL70C8
 C|2|9407|R20       ->  70AC   CL70AC:      ror    R20                  
 
 
-Function "CL70AE" (130):
+Function "CL70AE" (179):
 ------------------------
 C|2|0C00|R24       ->  70AE   CL70AE:      lsl    R24                  
 C|2|FA00|R25,7     ->  70B0                bst    R25,7                
@@ -25528,7 +26031,7 @@ C|2|9408           ->  70DE   CL70DE:      sec
 C|2|9508           ->  70E0                ret                         
 
 
-Function "CL70E2" (131):
+Function "CL70E2" (180):
 ------------------------
 C|4|940E0000|C=CL70AE  ->  70E2   CL70E2:      call   CL70AE               
 C|2|F000|C^+28         ->  70E6                brcs   CL7110               
@@ -25555,7 +26058,7 @@ C|2|F000|C^-E          ->  710E                brcs   CL7102
 C|2|9508               ->  7110   CL7110:      ret                         
 
 
-Function "CL7112" (132):
+Function "CL7112" (181):
 ------------------------
 C|2|94E8          ->  7112   CL7112:      clt                         
 C|2|2400|R27      ->  7114   CL7114:      clr    R27                  
@@ -25566,7 +26069,7 @@ C|2|F800|R25,7    ->  711C                bld    R25,7
 C|2|9508          ->  711E                ret                         
 
 
-Function "CL7120" (133):
+Function "CL7120" (182):
 ------------------------
 C|4|940E0000|C=CL6EE8  ->  7120   CL7120:      call   CL6EE8               
 C|2|F400|C^+2          ->  7124                brcc   CL7128               
@@ -25574,7 +26077,7 @@ C|2|EF0F|R24           ->  7126                ser    R24
 C|2|9508               ->  7128   CL7128:      ret                         
 
 
-Function "CL712A" (134):
+Function "CL712A" (183):
 ------------------------
 C|2|0100|R18|R22       ->  712A   CL712A:      movw   R18,R22              
 C|2|0100|R20|R24       ->  712C                movw   R20,R24              
@@ -25585,7 +26088,7 @@ C|2|E000|R25|#3F       ->  7134                ldi    R25,0x3F
 C|4|940C0000|C=CL6CF0  ->  7136                jmp    CL6CF0               
 
 
-Function "CL713A" (135):
+Function "CL713A" (184):
 ------------------------
 C|4|940E0000|C=CL70AE  ->  713A   CL713A:      call   CL70AE               
 C|2|F000|C^+56         ->  713E                brcs   CL7196               
@@ -25637,7 +26140,7 @@ C|4|940C0000|C=CL7114  ->  7198                jmp    CL7114
 C|4|940C0000|C=CL7112  ->  719C   CL719C:      jmp    CL7112               
 
 
-Function "CL71A0" (136):
+Function "CL71A0" (185):
 ------------------------
 C|4|940E0000|C=CL71C6  ->  71A0   CL71A0:      call   CL71C6               
 C|4|940C0000|C=CL7054  ->  71A4                jmp    CL7054               
@@ -25653,7 +26156,7 @@ C|2|2400|R1            ->  71C0   CL71C0:      clr    R1
 C|4|940C0000|C=CL7114  ->  71C2                jmp    CL7114               
 
 
-Function "CL71C6" (137):
+Function "CL71C6" (186):
 ------------------------
 C|4|940E0000|C=CL709E  ->  71C6   CL71C6:      call   CL709E               
 C|2|F000|C=CL71A8      ->  71CA                brcs   CL71A8               
@@ -25744,7 +26247,7 @@ C|2|F800|R25,7         ->  7276                bld    R25,7
 C|2|9508               ->  7278                ret                         
 
 
-Function "CL727A" (138):
+Function "CL727A" (187):
 ------------------------
 C|4|940E0000|C=CL70AE  ->  727A   CL727A:      call   CL70AE               
 C|2|F000|C^+3A         ->  727E                brcs   CL72BA               
@@ -25780,7 +26283,7 @@ C|4|940C0000|C=CL6F72  ->  72BA   CL72BA:      jmp    CL6F72
 C|4|940C0000|C=CL7114  ->  72BE   CL72BE:      jmp    CL7114               
 
 
-Function "CL72C2" (139):
+Function "CL72C2" (188):
 ------------------------
 C|2|920F|R25           ->  72C2   CL72C2:      push   R25                  
 C|4|940E0000|C=CL7002  ->  72C4                call   CL7002               
@@ -25794,7 +26297,7 @@ C|4|940C0000|C=CL6F8E  ->  72D6   CL72D6:      jmp    CL6F8E
 C|4|940C0000|C=CL6F72  ->  72DA   CL72DA:      jmp    CL6F72               
 
 
-Function "CL72DE" (140):
+Function "CL72DE" (189):
 ------------------------
 C|4|940E0000|C=CL70AE  ->  72DE   CL72DE:      call   CL70AE               
 C|2|F000|C=CL72D2      ->  72E2                brcs   CL72D2               
@@ -25860,14 +26363,14 @@ C|2|9407|R24           ->  735A                ror    R24
 C|2|9508               ->  735C                ret                         
 
 
-Function "CL735E" (141):
+Function "CL735E" (190):
 ------------------------
 C|2|0100|R18|R22       ->  735E   CL735E:      movw   R18,R22              
 C|2|0100|R20|R24       ->  7360                movw   R20,R24              
 C|4|940C0000|C=CL71A0  ->  7362                jmp    CL71A0               
 
 
-Function "CL7366" (142):
+Function "CL7366" (191):
 ------------------------
 C|4|940E0000|C=CL70E2  ->  7366   CL7366:      call   CL70E2               
 C|2|F000|C^+C          ->  736A                brcs   CL7378               
@@ -25878,7 +26381,7 @@ C|4|940C0000|C=CL6F3C  ->  7374   CL7374:      jmp    CL6F3C
 C|4|940C0000|C=CL6F72  ->  7378   CL7378:      jmp    CL6F72               
 
 
-Function "CL737C" (143):
+Function "CL737C" (192):
 ------------------------
 C|2|5000|R25|#01       ->  737C   CL737C:      subi   R25,0x01             
 C|2|4000|R21|#00       ->  737E                sbci   R21,0x00             
@@ -25906,7 +26409,7 @@ C|2|900F|R21           ->  73AC                pop    R21
 C|4|940C0000|C=CL71A0  ->  73AE                jmp    CL71A0               
 
 
-Function "CL73B2" (144):
+Function "CL73B2" (193):
 ------------------------
 C|2|1800|R25|R25  ->  73B2   CL73B2:      sub    R25,R25              
 C|2|E000|R23|#09  ->  73B4                ldi    R23,0x09             
@@ -25922,7 +26425,7 @@ C|2|9400|R24      ->  73C6                com    R24
 C|2|9508          ->  73C8                ret                         
 
 
-Function "CL73CA" (145):
+Function "CL73CA" (194):
 ------------------------
 C|2|1800|R26|R26  ->  73CA   CL73CA:      sub    R26,R26              
 C|2|1800|R27|R27  ->  73CC                sub    R27,R27              
@@ -25946,7 +26449,7 @@ C|2|0100|R24|R26  ->  73EE                movw   R24,R26
 C|2|9508          ->  73F0                ret                         
 
 
-Function "CL73F2" (146):
+Function "CL73F2" (195):
 ------------------------
 C|2|E000|R26|#21      ->  73F2   CL73F2:      ldi    R26,0x21             
 C|2|2C00|R1|R26       ->  73F4                mov    R1,R26               
@@ -25990,7 +26493,7 @@ C|2|2C00|R30|R0       ->  743E                mov    R30,R0
 C|2|9409|C&00(Z)      ->  7440                ijmp                        
 
 
-Function "CL7442" (147):
+Function "CL7442" (196):
 ------------------------
 C|4|940E0000|C=CL7458  ->  7442   CL7442:      call   CL7458               
 C|2|9C00|R26|R21       ->  7446                mul    R26,R21              
@@ -26004,7 +26507,7 @@ C|2|2400|R1            ->  7454                clr    R1
 C|2|9508               ->  7456                ret                         
 
 
-Function "CL7458" (148):
+Function "CL7458" (197):
 ------------------------
 C|2|9C00|R26|R18  ->  7458   CL7458:      mul    R26,R18              
 C|2|0100|R22|R0   ->  745A                movw   R22,R0               
@@ -26023,7 +26526,7 @@ C|2|1C00|R25|R1   ->  7472                adc    R25,R1
 C|2|9508          ->  7474                ret                         
 
 
-Function "CL7476" (149):
+Function "CL7476" (198):
 ------------------------
 C|2|0100|R30|R22  ->  7476   CL7476:      movw   R30,R22              
 C|2|0100|R26|R24  ->  7478                movw   R26,R24              
