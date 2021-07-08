@@ -911,6 +911,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 	TAddress nAddress;
 	TSize nSize;
 	std::shared_ptr<CFuncDesc> pCurrentFunction;
+	CFuncDescArray::size_type nCurrentFunctionIndex = 0;
 
 	constexpr int BUSY_CALLBACK_RATE = 50;
 
@@ -939,6 +940,9 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 			case '-':				// FuncAnal Command
 			{
+				if (pCurrentFunction) {
+					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+				}
 				pCurrentFunction = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
@@ -992,6 +996,9 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 			case '#':			// Memory Mapping
 			{
+				if (pCurrentFunction) {
+					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+				}
 				pCurrentFunction = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
@@ -1033,6 +1040,9 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 			case '!':			// Label
 			{
+				if (pCurrentFunction) {
+					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+				}
 				pCurrentFunction = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
@@ -1057,6 +1067,9 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 			}
 
 			case '@':			// New Function declaration:
+				if (pCurrentFunction) {
+					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+				}
 				pCurrentFunction = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
@@ -1068,6 +1081,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 
 				nAddress = strtoul(argv.at(0).c_str(), nullptr, 16);
 
+				nCurrentFunctionIndex = m_arrFunctions.size();
 				m_arrFunctions.push_back(std::make_shared<CFuncDesc>(nAddress, argv.at(1)));
 				pCurrentFunction = m_arrFunctions.back();
 				break;
@@ -1109,6 +1123,10 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				break;
 		}
 	}
+	if (pCurrentFunction) {
+		m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+	}
+	assert(m_mapSortedFunctionMap.size() == m_arrFunctions.size());
 
 	if ((bRetVal) && (msgFile)) {
 		if (allowMemRangeOverlap()) {

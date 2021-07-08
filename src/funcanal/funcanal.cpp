@@ -741,23 +741,35 @@ int main(int argc, char* argv[])
 			} else {
 				// First compute the results (multi-threaded):
 				CFuncDescArray::size_type nThreadGroupSize = pFuncFile1->GetFuncCount() / threadCount();	// How many things each thread will be processing
+				CFuncDescArray::size_type nRemainingSize = pFuncFile1->GetFuncCount() - (nThreadGroupSize * threadCount());		// Remaining functions not covered by threads
 				std::vector<std::unique_ptr<std::thread>> arrThreads;
-				auto const &&fnCompare = [&](CFuncDescArray::size_type nStart, CFuncDescArray::size_type nEnd)->void {
-					for (CFuncDescArray::size_type ndxFile1 = nStart; ndxFile1 < nEnd; ++ndxFile1) {
+				// "stripe" the function list giving an equal number of large and small functions
+				//		to each thread.  The SortedFunctionMap of the function files have them
+				//		in order, so we assign the first function to the first thread, the second
+				//		to the second thread, and so on.  The main thread will bring up the rear,
+				//		handling the last "stripe" and any remaining functions not evenly divisible
+				//		by the number of threads:
+				auto const &&fnCompare = [&](CFuncDescArray::size_type nStartOffset, CFuncDescArray::size_type nAdvance, CFuncDescArray::size_type nCount)->void {
+					CFunctionSizeMultimap::const_iterator itrFuncMap = pFuncFile1->GetSortedFunctionMap().cbegin();
+					std::advance(itrFuncMap, nStartOffset);
+					while (nCount > 0) {
 						std::cerr << ".";		// On C++20, these are synchronized for multi-thread writes, only the data order isn't guaranteed, but just printing "." should be fine
 						for (CFuncDescArray::size_type ndxFile2 = 0; ndxFile2 < pFuncFile2->GetFuncCount(); ++ndxFile2) {
-							m_matrixCompResult[ndxFile1][ndxFile2] = CompareFunctions(nCompMethod, *pFuncFile1, ndxFile1, *pFuncFile2, ndxFile2, false);
+							m_matrixCompResult[itrFuncMap->second][ndxFile2] = CompareFunctions(nCompMethod, *pFuncFile1, itrFuncMap->second, *pFuncFile2, ndxFile2, false);
 						}
+						std::advance(itrFuncMap, nAdvance);
+						--nCount;
 					}
 				};
 
 				// Spawn the threads:
 				unsigned int nThreadCount = threadCount() - 1;
 				for (unsigned int nThread = 0; nThread < nThreadCount; ++nThread) {
-					arrThreads.push_back(std::make_unique<std::thread>(fnCompare, nThread*nThreadGroupSize, (nThread+1)*nThreadGroupSize));
+					arrThreads.push_back(std::make_unique<std::thread>(fnCompare, nThread, nThreadCount+1, nThreadGroupSize));
 				}
 				// Compute remaining on main-thread:
-				fnCompare(nThreadCount*nThreadGroupSize, pFuncFile1->GetFuncCount());
+				fnCompare(nThreadCount, nThreadCount+1, nThreadGroupSize);
+				if (nRemainingSize) fnCompare((nThreadCount+1)*nThreadGroupSize, 1, nRemainingSize);
 				// Wait for other threads to finish:
 				for (auto &pThread : arrThreads) {
 					pThread->join();

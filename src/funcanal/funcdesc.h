@@ -214,6 +214,7 @@ protected:
 	CLabelTableMap m_mapLabelTable;					// Table of labels in this function.  First entry is typical default
 };
 typedef std::vector< std::shared_ptr<CFuncDesc> > CFuncDescArray;
+typedef std::multimap< CFuncDesc::size_type, CFuncDescArray::size_type, std::greater<CFuncDesc::size_type> > CFunctionSizeMultimap;	// MultiMap of Function Length to Function Index
 
 // ============================================================================
 
@@ -239,6 +240,7 @@ public:
 
 	virtual CFuncDescArray::size_type GetFuncCount() const { return m_arrFunctions.size(); }
 	virtual const CFuncDesc &GetFunc(CFuncDescArray::size_type nIndex) const { return *m_arrFunctions.at(nIndex); }
+	virtual const CFunctionSizeMultimap &GetSortedFunctionMap() const { return m_mapSortedFunctionMap; }
 
 	TString GetFuncPathName() const { return m_strFilePathName; }
 	TString GetFuncFileName() const { return m_strFileName; }
@@ -272,6 +274,7 @@ protected:
 	//			include 'L' names.
 	CLabelTableMap m_mapLabelTable[MEMORY_TYPE::NUM_MEMORY_TYPES];		// Table of labels.  First entry is typical default
 	CFuncDescArray m_arrFunctions;						// Array of functions in the file
+	CFunctionSizeMultimap m_mapSortedFunctionMap;		// Mapping of functions by size
 };
 
 // ============================================================================
