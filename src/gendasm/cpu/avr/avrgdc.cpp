@@ -1594,6 +1594,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 	TAddress nIntermediatePC;
 	int nCount;
 	bool bFlag;							// 'Done' flag for outputting data for a given line
+	bool bOddStop;						// 'Done' flag for odd output word counts (workaround for https://github.com/Ro5bert/avra/issues/39)
 	bool bFirstOutput;					// 'True' if still doing first byte of a given line (used for printing separators)
 	bool bHadAscii;						// 'True' if any ASCII output was done on a line to decide if we need to do the ASCIIBYTES output for the line
 	bool bTransitionBreak;				// 'True' whenever we go from data->ascii or ascii->data
@@ -1643,6 +1644,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 					maTempOpMemoryAscii.clear();
 					maTempOpMemoryData.clear();
 					bFlag = false;
+					bOddStop = false;
 					bFirstOutput = true;
 					bHadAscii = false;
 					bTransitionBreak = false;
@@ -1681,13 +1683,22 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 						// Stop on this line when we've either run out of data,
 						//	hit the specified line limit, hit another label, or
 						//	hit another user-declared DataBlock range:
-						if (!bHadAscii && (nCount >= nMaxNonPrint) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
-						if (bHadAscii && (nCount >= m_nMaxPrint) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
-						if (m_LabelTable[nMemoryType].contains(m_PC) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
+						bool bNeedStop = false;
+						if (!bHadAscii && (nCount >= nMaxNonPrint)) bNeedStop = true;
+						if (bHadAscii && (nCount >= m_nMaxPrint)) bNeedStop = true;
+						if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
 						// First transition from data->ascii on the correct boundary will trigger a break:
-						if ((nDesc == DMEM_DATA) && bTransitionBreak && ((m_PC % nSymbolSize) == 0)) bFlag = true;
-						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;
-						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
+						if ((nDesc == DMEM_DATA) && bTransitionBreak) bNeedStop = true;
+						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
+						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bNeedStop = true;
+						if (bOddStop) bNeedStop = true;		// Next time through loop, bOddStop will trigger bFlag
+						if (bNeedStop) {
+							if ((m_PC % nSymbolSize) == 0) {
+								bFlag = true;
+							} else {
+								bOddStop = true;
+							}
+						}
 					}
 
 					// First, print a line of the output bytes for reference:
@@ -1728,6 +1739,24 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 					// Already done FC_OPERANDS
 					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
 					outFile << MakeOutputLine(saOutLine) << "\n";
+
+					if (bOddStop) {
+						// Workaround for:
+						//	https://github.com/Ro5bert/avra/issues/39
+						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC-1);
+						if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+							ClearOutputLine(saOutLine);
+							saOutLine[FC_ADDRESS] = FormatAddress(m_PC-1);
+							for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
+								saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrLabels->second.at(i), m_PC-1);
+								if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+								saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC-1);
+								saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC-1);
+								saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC-1);
+								outFile << MakeOutputLine(saOutLine) << "\n";
+							}
+						}
+					}
 					break;
 
 				case DMEM_CODEINDIRECT:
