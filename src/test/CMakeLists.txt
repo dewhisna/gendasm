@@ -18,10 +18,9 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/hex2bin/build-hex2bin/
 
 # Configure data for grbl-v-sainsmart3018:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/grbl_v1.1f.20170801.hex COPYONLY)
-configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.ctl ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/grbl_v1.1f.20170801.ctl COPYONLY)
-
 configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.hex ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.hex COPYONLY)
-configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.ctl ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.ctl COPYONLY)
+configure_file(data/avr/grbl/grbl-v-sainsmart3018/grbl_v1.1f.20170801.ctl ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/grbl_v1.1f.20170801.ctl COPYONLY)
+configure_file(data/avr/grbl/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.ctl ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/SainSmart3018Pro_m328p_flash_original.ctl COPYONLY)
 
 # Disassemble grbl_v1.1f.20170801 firmware for grbl-v-sainsmart3018:
 add_test(NAME "grbl-v-sainsmart3018,dasm_grbl" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/grbl_v1.1f.20170801.ctl > grbl_v1.1f.20170801.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
@@ -112,7 +111,7 @@ add_test(NAME "grbl-roundtrip,diff_sainsmart3018" COMMAND ${CMAKE_COMMAND} -E co
 set_property(TEST "grbl-roundtrip,diff_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip,hex2bin_sainsmart3018")
 
 # Configure data for grbl-elf:
-configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf COPYONLY)
+configure_file(data/avr/grbl/grbl_v1.1f.20170801_arduino_v1.8.8/grbl_v1.1f.20170801_arduino_v1.8.8.elf ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf COPYONLY)
 configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl COPYONLY)
 
 # Disassemble grbl_v1.1f.20170801_arduino_v1.8.8.elf
