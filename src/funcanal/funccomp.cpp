@@ -46,7 +46,7 @@ static CStringArray g_EditScript;
 static bool g_bEditScriptValid = false;
 
 
-double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
+double CompareFunctions(FUNC_COMPARE_TYPE nCompareType, FUNC_COMPARE_METHOD nMethod,
 											const CFuncDescFile &file1, std::size_t nFile1FuncNdx,
 											const CFuncDescFile &file2, std::size_t nFile2FuncNdx,
 											bool bBuildEditScript)
@@ -61,10 +61,10 @@ double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 	g_bEditScriptValid = false;
 	g_EditScript.clear();
 
-	assert(nFile1FuncNdx < file1.GetFuncCount());
-	const CFuncDesc &function1 = file1.GetFunc(nFile1FuncNdx);
-	assert(nFile2FuncNdx < file2.GetFuncCount());
-	const CFuncDesc &function2 = file2.GetFunc(nFile2FuncNdx);
+	assert(nFile1FuncNdx < ((nCompareType == FCT_FUNCTIONS) ? file1.GetFuncCount() : file1.GetDataBlockCount()));
+	const CFuncDesc &function1 = ((nCompareType == FCT_FUNCTIONS) ? file1.GetFunc(nFile1FuncNdx) : file1.GetDataBlock(nFile1FuncNdx));
+	assert(nFile2FuncNdx < ((nCompareType == FCT_FUNCTIONS) ? file2.GetFuncCount() : file2.GetDataBlockCount()));
+	const CFuncDesc &function2 = ((nCompareType == FCT_FUNCTIONS) ? file2.GetFunc(nFile2FuncNdx) : file2.GetDataBlock(nFile2FuncNdx));
 
 	for (int nLevel = 0; nLevel < NUM_FUNC_DIFF_LEVELS; ++nLevel) {
 		function1.ExportToDiff(static_cast<FUNC_DIFF_LEVEL>(nLevel), zFunc1[nLevel]);
@@ -660,7 +660,7 @@ bool GetLastEditScript(CStringArray &anArray)
 	return true;
 }
 
-TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
+TString DiffFunctions(FUNC_COMPARE_TYPE nCompareType, FUNC_COMPARE_METHOD nMethod,
 						const CFuncDescFile &file1, std::size_t nFile1FuncNdx,
 						const CFuncDescFile &file2, std::size_t nFile2FuncNdx,
 						OUTPUT_OPTIONS nOutputOptions,
@@ -673,12 +673,12 @@ TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
 	CStringArray Func1Lines;
 	CStringArray Func2Lines;
 
-	assert(nFile1FuncNdx < file1.GetFuncCount());
-	const CFuncDesc &function1 = file1.GetFunc(nFile1FuncNdx);
-	assert(nFile2FuncNdx < file2.GetFuncCount());
-	const CFuncDesc &function2 = file2.GetFunc(nFile2FuncNdx);
+	assert(nFile1FuncNdx < ((nCompareType == FCT_FUNCTIONS) ? file1.GetFuncCount() : file1.GetDataBlockCount()));
+	const CFuncDesc &function1 = ((nCompareType == FCT_FUNCTIONS) ? file1.GetFunc(nFile1FuncNdx) : file1.GetDataBlock(nFile1FuncNdx));
+	assert(nFile2FuncNdx < ((nCompareType == FCT_FUNCTIONS) ? file2.GetFuncCount() : file2.GetDataBlockCount()));
+	const CFuncDesc &function2 = ((nCompareType == FCT_FUNCTIONS) ? file2.GetFunc(nFile2FuncNdx) : file2.GetDataBlock(nFile2FuncNdx));
 
-	nMatchPercent = CompareFunctions(nMethod, file1, nFile1FuncNdx, file2, nFile2FuncNdx, true);
+	nMatchPercent = CompareFunctions(nCompareType, nMethod, file1, nFile1FuncNdx, file2, nFile2FuncNdx, true);
 	if (!GetLastEditScript(oes)) return strRetVal;
 
 

@@ -30,6 +30,25 @@
 //			   |    |____ Label(s) for this address(comma separated)
 //			   |_________ Absolute Address (hex)
 //
+//		Indirect Address:
+//			=type|addr|name|value
+//			   |    |    |    |___  Indirect Address (in proper endian and scaling for MCU)
+//			   |    |    |________  Label(s) for this address (comma separated) -- labels for this indirect, NOT the target
+//			   |    |_____________  Absolute address of the indirect vector (hex)
+//			   |__________________  Indirect Type, C=Code, D=Data
+//
+//		Start of Data Block:
+//			$addr|name
+//			   |    |____ Name(s) of Data Block (comma separated list) from labels
+//			   |_________ Absolute Adddress of Data Block Start
+//
+//		Data Byte Line (inside Data Block):
+//			xxxx|xxxx|label|xx
+//			  |    |    |    |____  Data Bytes (hex) -- multiple of 2-digits per bytes without separation characters (any size)
+//			  |    |    |_________  Label(s) for this address (comma separated)
+//			  |    |______________  Absolute address of data bytes (hex)
+//			  |___________________  Relative address of data bytes to the Data Block (hex)
+//
 //		Start of New Function:
 //			@xxxx|name
 //			   |    |____ Name(s) of Function (comma separated list)
@@ -206,6 +225,50 @@ static void ParseLine(const TString &line, TString::value_type cSepChar, CString
 
 
 //////////////////////////////////////////////////////////////////////
+// CIndirectEntry Class
+//////////////////////////////////////////////////////////////////////
+
+CIndirectEntry::CIndirectEntry(TAddress nAddress, TAddress nTargetAddress, const TString &strLabels)
+	:	m_nAddress(nAddress),
+		m_nTargetAddress(nTargetAddress)
+{
+	CStringArray argv;
+
+	ParseLine(strLabels, ',', argv);
+	for (auto const &label : argv) AddLabel(label);
+}
+
+TLabel CIndirectEntry::GetMainLabel() const
+{
+	TString strRetVal;
+	char arrTemp[30];
+
+	// Ideally, these would be "L" or "DL" based on CFuncDescFile::allowMemRangeOverlap(),
+	//	but we don't have a pointer to the parent function file.  So just default to the
+	//	unambiguous "DL":
+	std::sprintf(arrTemp, "DL%0X", m_nAddress);
+	strRetVal = arrTemp;
+
+	if (m_arrLabels.empty()) return strRetVal;
+	if (m_arrLabels.at(0) == "???") return strRetVal;		// Special case for unnamed entities
+	return m_arrLabels.at(0);
+
+	return strRetVal;
+}
+
+bool CIndirectEntry::AddLabel(const TLabel &strLabel)
+{
+	if (strLabel.empty()) return false;
+
+	for (auto const &itrLabel : m_arrLabels) {
+		if (compareNoCase(strLabel, itrLabel) == 0) return false;	// Skip if we have the label already
+	}
+	m_arrLabels.push_back(strLabel);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////
 // CFuncObject Class
 //////////////////////////////////////////////////////////////////////
 
@@ -224,7 +287,6 @@ CFuncObject::CFuncObject(std::shared_ptr<const CFuncDescFile> pParentFuncFile, s
 	}
 	if (argv.size() >= 4) {
 		TString strTemp = argv.at(3);
-		// TODO : Fix this to be TOpcodeSymbol instead of TMemoryElement
 		for (TString::size_type ndx = 0; ndx < strTemp.size()/2; ++ndx) {
 			m_Bytes.push_back(strtoul(strTemp.substr(ndx*2, 2).c_str(), nullptr, 16));
 		}
@@ -302,14 +364,12 @@ CFuncAsmInstObject::CFuncAsmInstObject(std::shared_ptr<const CFuncDescFile> pPar
 
 	if (argv.size() >= 5) {
 		TString strTemp = argv.at(4);
-		// TODO : Fix this to be TOpcodeSymbol instead of TMemoryElement
 		for (TString::size_type ndx = 0; ndx < strTemp.size()/2; ++ndx) {
 			m_OpCodeBytes.push_back(strtoul(strTemp.substr(ndx*2, 2).c_str(), nullptr, 16));
 		}
 	}
 	if (argv.size() >= 6) {
 		TString strTemp = argv.at(5);
-		// TODO : Fix this to be TOpcodeSymbol instead of TMemoryElement
 		for (TString::size_type ndx = 0; ndx < strTemp.size()/2; ++ndx) {
 			m_OperandBytes.push_back(strtoul(strTemp.substr(ndx*2, 2).c_str(), nullptr, 16));
 		}
@@ -912,6 +972,7 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 	TSize nSize;
 	std::shared_ptr<CFuncDesc> pCurrentFunction;
 	CFuncDescArray::size_type nCurrentFunctionIndex = 0;
+	std::shared_ptr<CFuncDesc> pCurrentDataBlock;
 
 	constexpr int BUSY_CALLBACK_RATE = 50;
 
@@ -944,6 +1005,8 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
 				}
 				pCurrentFunction = nullptr;
+
+				pCurrentDataBlock = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 2) {
@@ -1001,6 +1064,8 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				}
 				pCurrentFunction = nullptr;
 
+				pCurrentDataBlock = nullptr;
+
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 3) {
 					strError = g_strSyntaxError;
@@ -1045,6 +1110,8 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				}
 				pCurrentFunction = nullptr;
 
+				pCurrentDataBlock = nullptr;
+
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 3) {
 					strError = g_strSyntaxError;
@@ -1066,11 +1133,63 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				break;
 			}
 
+			case '=':			// Indirect Vector
+			{
+				if (pCurrentFunction) {
+					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+				}
+				pCurrentFunction = nullptr;
+
+				pCurrentDataBlock = nullptr;
+
+				ParseLine(strLine.substr(1), '|', argv);
+				if ((argv.size() != 4) ||
+					((argv.at(0) != "C") && (argv.at(0) != "D"))) {
+					strError = g_strSyntaxError;
+					bRetVal = false;
+					break;
+				}
+
+				nAddress = strtoul(argv.at(1).c_str(), nullptr, 16);
+				TAddress nTargetAddress = strtoul(argv.at(3).c_str(), nullptr, 16);
+
+				if (argv.at(0) == "C") {
+					m_mapCodeIndirects[nAddress] = CIndirectEntry(nAddress, nTargetAddress, argv.at(2));
+				} else {
+					m_mapDataIndirects[nAddress] = CIndirectEntry(nAddress, nTargetAddress, argv.at(2));
+				}
+
+				break;
+			}
+
+			case '$':			// New Data Block declaration:
+				if (pCurrentFunction) {
+					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
+				}
+				pCurrentFunction = nullptr;
+
+				pCurrentDataBlock = nullptr;
+
+				ParseLine(strLine.substr(1), '|', argv);
+				if (argv.size() != 2) {
+					strError = g_strSyntaxError;
+					bRetVal = false;
+					break;
+				}
+
+				nAddress = strtoul(argv.at(0).c_str(), nullptr, 16);
+
+				m_arrDataBlocks.push_back(std::make_shared<CFuncDesc>(nAddress, argv.at(1)));
+				pCurrentDataBlock = m_arrDataBlocks.back();
+				break;
+
 			case '@':			// New Function declaration:
 				if (pCurrentFunction) {
 					m_mapSortedFunctionMap.insert(std::pair<CFuncDesc::size_type, CFuncDescArray::size_type>(pCurrentFunction->size(), nCurrentFunctionIndex));
 				}
 				pCurrentFunction = nullptr;
+
+				pCurrentDataBlock = nullptr;
 
 				ParseLine(strLine.substr(1), '|', argv);
 				if (argv.size() != 2) {
@@ -1087,38 +1206,54 @@ bool CFuncDescFile::ReadFuncDescFile(std::shared_ptr<CFuncDescFile> pThis, ifstr
 				break;
 
 			default:
-				// See if we are in the middle of a function declaration:
-				if (pCurrentFunction == nullptr) {
+				// See if we are in the middle of a Function declaration or Data Block declaration:
+				if ((pCurrentFunction == nullptr) && (pCurrentDataBlock == nullptr)) {
 					// If we aren't in a function, it's a syntax error:
 					strError = g_strSyntaxError;
 					bRetVal = false;
 					break;
 				}
 
-				// If we are in a function, parse entry:
-				if (isxdigit(strLine.at(0))) {
-					ParseLine(strLine, '|', argv);
-					if ((argv.size() != 4) &&
-						(argv.size() != 10)) {
+				if (pCurrentFunction) {
+					// If we are in a function, parse entry:
+					if (isxdigit(strLine.at(0))) {
+						ParseLine(strLine, '|', argv);
+						if ((argv.size() != 4) &&
+							(argv.size() != 10)) {
+							strError = g_strSyntaxError;
+							bRetVal = false;
+							break;
+						}
+
+						if (argv.size() == 4) {
+							pCurrentFunction->Add(std::make_shared<CFuncDataByteObject>(pThis, pCurrentFunction, argv));
+						} else {
+							std::shared_ptr<CFuncAsmInstObject> pAsmInst = std::make_shared<CFuncAsmInstObject>(pThis, pCurrentFunction, argv);
+							pCurrentFunction->Add(pAsmInst);
+							assert(pThis->opcodeSymbolSize() > 0);
+							if (pAsmInst->GetOpCodeByteCount() % pThis->opcodeSymbolSize()) {
+								strError = g_strInvalidOpcodeLength;
+								bRetVal = false;
+							}
+						}
+					} else {
 						strError = g_strSyntaxError;
 						bRetVal = false;
-						break;
-					}
-
-					if (argv.size() == 4) {
-						pCurrentFunction->Add(std::make_shared<CFuncDataByteObject>(pThis, pCurrentFunction, argv));
-					} else {
-						std::shared_ptr<CFuncAsmInstObject> pAsmInst = std::make_shared<CFuncAsmInstObject>(pThis, pCurrentFunction, argv);
-						pCurrentFunction->Add(pAsmInst);
-						assert(pThis->opcodeSymbolSize() > 0);
-						if (pAsmInst->GetOpCodeByteCount() % pThis->opcodeSymbolSize()) {
-							strError = g_strInvalidOpcodeLength;
-							bRetVal = false;
-						}
 					}
 				} else {
-					strError = g_strSyntaxError;
-					bRetVal = false;
+					// If we are in a Data Block, parse entry:
+					if (isxdigit(strLine.at(0))) {
+						ParseLine(strLine, '|', argv);
+						if (argv.size() != 4) {
+							strError = g_strSyntaxError;
+							bRetVal = false;
+							break;
+						}
+						pCurrentDataBlock->Add(std::make_shared<CFuncDataByteObject>(pThis, pCurrentDataBlock, argv));
+					} else {
+						strError = g_strSyntaxError;
+						bRetVal = false;
+					}
 				}
 				break;
 		}
@@ -1272,14 +1407,14 @@ CFuncDescArray::size_type CFuncDescFileArray::GetFuncCount() const
 	return nRetVal;
 }
 
-double CFuncDescFileArray::CompareFunctions(FUNC_COMPARE_METHOD nMethod,
+double CFuncDescFileArray::CompareFunctions(FUNC_COMPARE_TYPE nCompareType, FUNC_COMPARE_METHOD nMethod,
 											size_type nFile1Ndx, std::size_t nFile1FuncNdx,
 											size_type nFile2Ndx, std::size_t nFile2FuncNdx,
 											bool bBuildEditScript) const
 {
 	try
 	{
-		return ::CompareFunctions(nMethod, *at(nFile1Ndx), nFile1FuncNdx, *at(nFile2Ndx), nFile2FuncNdx, bBuildEditScript);
+		return ::CompareFunctions(nCompareType, nMethod, *at(nFile1Ndx), nFile1FuncNdx, *at(nFile2Ndx), nFile2FuncNdx, bBuildEditScript);
 	}
 	catch (const EXCEPTION_ERROR &aErr)
 	{
@@ -1292,14 +1427,14 @@ double CFuncDescFileArray::CompareFunctions(FUNC_COMPARE_METHOD nMethod,
 	return 0.0;
 }
 
-TString CFuncDescFileArray::DiffFunctions(FUNC_COMPARE_METHOD nMethod,
+TString CFuncDescFileArray::DiffFunctions(FUNC_COMPARE_TYPE nCompareType, FUNC_COMPARE_METHOD nMethod,
 									int nFile1Ndx, int nFile1FuncNdx,
 									int nFile2Ndx, int nFile2FuncNdx,
 									OUTPUT_OPTIONS nOutputOptions,
 									double &nMatchPercent,
 									CSymbolMap *pSymbolMap) const
 {
-	return ::DiffFunctions(nMethod, *at(nFile1Ndx), nFile1FuncNdx, *at(nFile2Ndx), nFile2FuncNdx,
+	return ::DiffFunctions(nCompareType, nMethod, *at(nFile1Ndx), nFile1FuncNdx, *at(nFile2Ndx), nFile2FuncNdx,
 							nOutputOptions, nMatchPercent, pSymbolMap);
 }
 

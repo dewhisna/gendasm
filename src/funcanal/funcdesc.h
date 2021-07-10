@@ -39,6 +39,25 @@ typedef std::size_t THitCount;
 typedef std::vector<THitCount> CHitCountArray;
 typedef std::map<TSymbol, THitCount> CSymbolHitMap;
 
+class CIndirectEntry
+{
+public:
+	CIndirectEntry() = default;
+	CIndirectEntry(TAddress nAddress, TAddress nTargetAddress, const TString &strLabels);
+
+	virtual bool AddLabel(const TLabel &strLabel);
+	virtual TLabel GetMainLabel() const;
+	virtual TAddress GetAddress() const { return m_nAddress; }
+	virtual TAddress GetTargetAddress() const { return m_nTargetAddress; }
+	virtual const CLabelArray &GetLabels() const { return m_arrLabels; }
+
+private:
+	TAddress m_nAddress;
+	TAddress m_nTargetAddress;
+	CLabelArray m_arrLabels;		// Labels of source indirect, not the target
+};
+typedef std::map<TAddress, CIndirectEntry> CIndirectEntryMap;
+
 // ============================================================================
 
 class ifstreamFuncDescFile : public std::ifstream
@@ -242,6 +261,12 @@ public:
 	virtual const CFuncDesc &GetFunc(CFuncDescArray::size_type nIndex) const { return *m_arrFunctions.at(nIndex); }
 	virtual const CFunctionSizeMultimap &GetSortedFunctionMap() const { return m_mapSortedFunctionMap; }
 
+	virtual CFuncDescArray::size_type GetDataBlockCount() const { return m_arrDataBlocks.size(); }
+	virtual const CFuncDesc &GetDataBlock(CFuncDescArray::size_type nIndex) const { return *m_arrDataBlocks.at(nIndex); }
+
+	virtual const CIndirectEntryMap &GetCodeIndirects() const { return m_mapCodeIndirects; }
+	virtual const CIndirectEntryMap &GetDataIndirects() const { return m_mapDataIndirects; }
+
 	TString GetFuncPathName() const { return m_strFilePathName; }
 	TString GetFuncFileName() const { return m_strFileName; }
 
@@ -275,6 +300,11 @@ protected:
 	CLabelTableMap m_mapLabelTable[MEMORY_TYPE::NUM_MEMORY_TYPES];		// Table of labels.  First entry is typical default
 	CFuncDescArray m_arrFunctions;						// Array of functions in the file
 	CFunctionSizeMultimap m_mapSortedFunctionMap;		// Mapping of functions by size
+
+	CFuncDescArray m_arrDataBlocks;						// Array of data blocks in the file
+
+	CIndirectEntryMap m_mapCodeIndirects;
+	CIndirectEntryMap m_mapDataIndirects;
 };
 
 // ============================================================================
@@ -289,11 +319,12 @@ class CFuncDescFileArray : public std::vector< std::shared_ptr<CFuncDescFile> >
 public:
 	virtual CFuncDescArray::size_type GetFuncCount() const;
 
-	virtual double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
+	virtual double CompareFunctions(FUNC_COMPARE_TYPE nCompareType,
+									FUNC_COMPARE_METHOD nMethod,
 									size_type nFile1Ndx, std::size_t nFile1FuncNdx,
 									size_type nFile2Ndx, std::size_t nFile2FuncNdx,
 									bool bBuildEditScript) const;
-	virtual TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
+	virtual TString DiffFunctions(FUNC_COMPARE_TYPE nCompareType, FUNC_COMPARE_METHOD nMethod,
 									int nFile1Ndx, int nFile1FuncNdx,
 									int nFile2Ndx, int nFile2FuncNdx,
 									OUTPUT_OPTIONS nOutputOptions,

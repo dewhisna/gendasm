@@ -31,6 +31,11 @@ enum FUNC_DIFF_LEVEL {
 	NUM_FUNC_DIFF_LEVELS,
 };
 
+enum FUNC_COMPARE_TYPE {
+	FCT_FUNCTIONS = 0,		// Comparison of Function objects
+	FCT_DATABLOCKS = 1,		// Comparison of Data Block objects
+};
+
 // Output Options:
 //		These are OR'd bit fields of output-options used
 //		in diff and CreateOutputLine methods
@@ -40,12 +45,13 @@ enum OUTPUT_OPTIONS {
 };
 DEFINE_ENUM_FLAG_OPERATORS(OUTPUT_OPTIONS);
 
-double CompareFunctions(FUNC_COMPARE_METHOD nMethod,
+double CompareFunctions(FUNC_COMPARE_TYPE nCompareType,
+						FUNC_COMPARE_METHOD nMethod,
 						const CFuncDescFile &file1, std::size_t nFile1FuncNdx,
 						const CFuncDescFile &file2, std::size_t nFile2FuncNdx,
 						bool bBuildEditScript);
 bool GetLastEditScript(CStringArray &anArray);
-TString DiffFunctions(FUNC_COMPARE_METHOD nMethod,
+TString DiffFunctions(FUNC_COMPARE_TYPE nCompareType, FUNC_COMPARE_METHOD nMethod,
 						const CFuncDescFile &file1, std::size_t nFile1FuncNdx,
 						const CFuncDescFile &file2, std::size_t nFile2FuncNdx,
 						OUTPUT_OPTIONS nOutputOptions,

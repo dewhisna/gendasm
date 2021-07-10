@@ -123,6 +123,25 @@
 //			   |    |_________  Absolute Address (hex)
 //			   |______________  Type of Mapped area (One of following: ROM, RAM, IO)
 //
+//		Indirect Address:
+//			=type|addr|name|value
+//			   |    |    |    |___  Indirect Address (in proper endian and scaling for MCU)
+//			   |    |    |________  Label(s) for this address (comma separated) -- labels for this indirect, NOT the target
+//			   |    |_____________  Absolute address of the indirect vector (hex)
+//			   |__________________  Indirect Type, C=Code, D=Data
+//
+//		Start of Data Block:
+//			$addr|name
+//			   |    |____ Name(s) of Data Block (comma separated list) from labels
+//			   |_________ Absolute Adddress of Data Block Start
+//
+//		Data Byte Line (inside Data Block):
+//			xxxx|xxxx|label|xx
+//			  |    |    |    |____  Data Bytes (hex) -- multiple of 2-digits per bytes without separation characters (any size)
+//			  |    |    |_________  Label(s) for this address (comma separated)
+//			  |    |______________  Absolute address of data bytes (hex)
+//			  |___________________  Relative address of data bytes to the Data Block (hex)
+//
 //		Start of New Function:
 //			@xxxx|name
 //			   |    |____ Name(s) of Function (comma separated list)
@@ -142,7 +161,7 @@
 //
 //		Data Byte Line (inside function):
 //			xxxx|xxxx|label|xx
-//			  |    |    |    |____  Data Byte (hex)
+//			  |    |    |    |____  Data Bytes (hex) -- multiple of 2-digits per bytes without separation characters (any size)
 //			  |    |    |_________  Label(s) for this address (comma separated)
 //			  |    |______________  Absolute address of data byte (hex)
 //			  |___________________  Relative address of data byte to the function (hex)
@@ -1194,9 +1213,16 @@ bool CAVRDisassembler::RetrieveIndirect(MEMORY_TYPE nMemoryType, std::ostream *m
 
 	MEM_DESC b1d, b2d;
 
+	TAddress nVector = (m_Memory[nMemoryType].element(m_PC) + m_Memory[nMemoryType].element(m_PC + 1) * 256ul) * 2;
+	std::ostringstream sstrTemp;
+	sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nVector
+				<< std::nouppercase << std::setbase(0);
+	m_sFunctionalOpcode += sstrTemp.str();
+
 	m_OpMemory.clear();
 	m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
 	m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC+1));
+
 	// We'll assume all indirects are little endian and are 2-bytes in length,
 	//	though someday we may need support for 22-bit addresses.
 	b1d = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));

@@ -1467,13 +1467,17 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 		if (bTempFlag) aFunctionsFile << "\n";
 	}
 
-	// Output Functions:
-	TAddress nFuncAddr = 0;			// Start PC of current function
+	// Output Functions and Data Blocks:
+	TAddress nFuncAddr = 0;			// Start PC of current function or Data Block
 	TAddress nSavedPC = 0;			// nSavedPC will be the last PC for the last memory evaluated below
-	bool bInFunc = false;
-	m_PC = 0;						// init to zero for test below that clears bInFunc (as we can't be "in a function" across discontiguous memory)
+	bool bInFunc = false;			// In Function
+	bool bInDataBlock = false;		// In Data Block
+	m_PC = 0;						// init to zero for test below that clears bInFunc and bInDataBlock (as we can't be "in a function" or "in a data block" across discontiguous memory)
 	for (auto const & itrMemory : m_Memory[nMemType]) {
-		if (m_PC != itrMemory.logicalAddr()) bInFunc = false;		// Can't be "in a function" across discontiguous memory
+		if (m_PC != itrMemory.logicalAddr()) {
+			bInFunc = false;		// Can't be "in a function" across discontiguous memory
+			bInDataBlock = false;	// Can't be "in a data block" across discontiguous memory
+		}
 		m_PC = itrMemory.logicalAddr();
 		for (TSize nSize = 0; ((nSize < itrMemory.size()) && bRetVal);  ) {
 			bool bLastFlag = false;			// Flag for last instruction of a function
@@ -1490,6 +1494,11 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					case FUNCF_INDIRECT:
 					case FUNCF_CALL:
 					{
+						if (bInDataBlock) {
+							aFunctionsFile << "\n";
+							bInDataBlock = false;
+						}
+
 						std::ostringstream sstrTemp;
 						sstrTemp << "@" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 						m_sFunctionalOpcode = sstrTemp.str();
@@ -1549,8 +1558,10 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 				case DMEM_NOTLOADED:
 					++m_PC;
 					++nSize;
+					if (bInDataBlock && !bInFunc) aFunctionsFile << "\n";
 					bLastFlag = bInFunc;
 					bInFunc = false;
+					bInDataBlock = false;
 					break;
 				case DMEM_LOADED:
 					assert(false);		// WARNING!  All loaded code should have been evaluated.  Check override code!
@@ -1558,12 +1569,57 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					++m_PC;
 					++nSize;
 					break;
-				case DMEM_DATA:
-				case DMEM_PRINTDATA:
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
+					if (!bInFunc && !bLastFlag && !bInDataBlock) {
+						std::ostringstream sstrTemp;
+						sstrTemp << "=" << ((itrMemory.descriptor(m_PC) == DMEM_CODEINDIRECT) ? "C" : "D") << "|"
+										<< std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
+						m_sFunctionalOpcode = sstrTemp.str();
+
+						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
+						if (itrLabels != m_LabelTable[nMemType].cend()) {
+							for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
+								if (i != 0) m_sFunctionalOpcode += ",";
+								m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
+							}
+						}
+						m_sFunctionalOpcode += "|";
+
+						RetrieveIndirect(nMemType, msgFile, errFile);		// This increments m_PC and populates m_OpMemory
+						nSize += (m_PC-nSavedPC);
+
+						aFunctionsFile << m_sFunctionalOpcode;
+						aFunctionsFile << "\n\n";
+					}
+					break;
+				case DMEM_DATA:
+				case DMEM_PRINTDATA:
+					if (!bInFunc && !bLastFlag && !bInDataBlock) {
+						std::ostringstream sstrTemp;
+						sstrTemp << "$" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
+						m_sFunctionalOpcode = sstrTemp.str();
+
+						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
+						if (itrLabels != m_LabelTable[nMemType].cend()) {
+							for (CLabelArray::size_type i = 0; i < itrLabels->second.size(); ++i) {
+								if (i != 0) m_sFunctionalOpcode += ",";
+								m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
+							}
+						} else {
+							m_sFunctionalOpcode += "???";
+						}
+
+						aFunctionsFile << m_sFunctionalOpcode;
+						aFunctionsFile << "\n";
+
+						nFuncAddr = m_PC;
+						bInDataBlock = true;
+					}
+					[[fallthrough]];
 				case DMEM_ILLEGALCODE:
 				{
+					static const std::set<MEM_DESC> setData = { DMEM_DATA, DMEM_PRINTDATA };
 					std::ostringstream sstrTemp;
 					sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 					m_sFunctionalOpcode = sstrTemp.str();
@@ -1575,13 +1631,20 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 							m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
 						}
 					}
+					m_sFunctionalOpcode += "|";
 
-					sstrTemp.str(std::string());
-					sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_Memory[nMemType].element(m_PC)) << "|";
-					m_sFunctionalOpcode += sstrTemp.str();
+					do {
+						sstrTemp.str(std::string());
+						sstrTemp << std::uppercase << std::setfill('0') << std::setw(2) << std::setbase(16) << static_cast<unsigned int>(m_Memory[nMemType].element(m_PC));
+						m_sFunctionalOpcode += sstrTemp.str();
 
-					++m_PC;
-					++nSize;
+						++m_PC;
+						++nSize;
+					} while ((nSize < itrMemory.size())
+							 && (!m_LabelTable[nMemType].contains(m_PC))
+							 && ((itrMemory.descriptor(m_PC) == itrMemory.descriptor(nSavedPC)) ||
+								 (setData.contains(static_cast<MEM_DESC>(itrMemory.descriptor(m_PC))) && setData.contains(static_cast<MEM_DESC>(itrMemory.descriptor(nSavedPC)))))
+							 && ((m_PC-nSavedPC) < opcodeSymbolSize()));
 					break;
 				}
 				case DMEM_CODE:
@@ -1590,6 +1653,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					break;
 				default:
 					bInFunc = false;
+					bInDataBlock = false;
 					bRetVal = false;
 					break;
 			}
@@ -1633,7 +1697,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 				}
 			}
 
-			if ((bInFunc) || (bLastFlag)) {
+			if (bInFunc || bLastFlag || bInDataBlock) {
 				if (!m_sFunctionalOpcode.empty()) {
 					aFunctionsFile << m_sFunctionalOpcode;
 					aFunctionsFile << "\n";
