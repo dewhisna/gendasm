@@ -1684,7 +1684,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 						if (bInDataBlock && !rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) {
 							aFunctionsFile << "\n";
 							bInDataBlock = false;
-							// We'll update rngDataBlock below
+							rngDataBlock = CMemRange();
 						}
 						if (!bInDataBlock) {
 							std::ostringstream sstrTemp;
@@ -1706,7 +1706,9 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 
 							nFuncAddr = m_PC;
 							bInDataBlock = true;
-							rngDataBlock = m_rngDataBlocks.firstMatchingRange(m_PC);
+							if (nMemType == MT_ROM) {
+								rngDataBlock = m_rngDataBlocks.firstMatchingRange(m_PC);
+							}
 						}
 					}
 					[[fallthrough]];
@@ -2653,6 +2655,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
+			CMemRange rngDataBlock = ((nMemoryType == MT_ROM) ? m_rngDataBlocks.firstMatchingRange(m_PC) : CMemRange());
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
 			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 			if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
@@ -2666,13 +2669,16 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 						pushBackOpMemory(m_PC, m_Memory[nMemoryType].element(m_PC));
 						++m_PC;
 						++nCount;
-						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
+						// Stop on this line when we've either run out of data,
+						//	hit the specified line limit, hit another label, or
+						//	hit another user-declared DataBlock range:
 						if (nCount >= m_nMaxNonPrint) bFlag = true;
 						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
 						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						if (nDesc != DMEM_DATA) bFlag = true;
 						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;
+						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
 					}
 					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_DATABYTE, nSavedPC);
 					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_DATABYTE, nSavedPC);
@@ -2689,10 +2695,13 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 						maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
 						++m_PC;
 						++nCount;
-						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
+						// Stop on this line when we've either run out of data,
+						//	hit the specified line limit, hit another label, or
+						//	hit another user-declared DataBlock range:
 						if (nCount >= m_nMaxPrint) bFlag = true;
 						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
 						if (m_Memory[nMemoryType].descriptor(m_PC) != DMEM_PRINTDATA) bFlag = true;
+						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
 					}
 					// First, print a line of the output bytes for reference:
 					if (m_bAsciiBytesFlag) {

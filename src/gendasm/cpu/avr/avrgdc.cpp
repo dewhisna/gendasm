@@ -1630,6 +1630,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
+			CMemRange rngDataBlock = ((nMemoryType == MT_ROM) ? m_rngDataBlocks.firstMatchingRange(m_PC) : CMemRange());
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
 			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 			nLastDesc = nDesc;
@@ -1677,13 +1678,16 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 
 						++m_PC;
 						++nCount;
-						// Stop on this line when we've either run out of data, hit the specified line limit, or hit another label
+						// Stop on this line when we've either run out of data,
+						//	hit the specified line limit, hit another label, or
+						//	hit another user-declared DataBlock range:
 						if (!bHadAscii && (nCount >= nMaxNonPrint) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
 						if (bHadAscii && (nCount >= m_nMaxPrint) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
 						if (m_LabelTable[nMemoryType].contains(m_PC) && ((m_PC % nSymbolSize) == 0)) bFlag = true;
 						// First transition from data->ascii on the correct boundary will trigger a break:
 						if ((nDesc == DMEM_DATA) && bTransitionBreak && ((m_PC % nSymbolSize) == 0)) bFlag = true;
 						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;
+						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
 					}
 
 					// First, print a line of the output bytes for reference:
