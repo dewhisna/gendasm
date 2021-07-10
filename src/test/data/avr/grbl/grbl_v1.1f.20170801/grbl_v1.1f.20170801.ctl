@@ -100,4 +100,12 @@ indirect code 0108
 indirect code 010a
 indirect code 010c
 
-
+; Data Blocks:
+; 010E-020B:
+datablock 010e 00FE
+; 020C-02A8:
+datablock 020c 009D
+; 02A9-0320:
+datablock 02a9 0078
+; 0321 (alignment):
+datablock 0321 0001

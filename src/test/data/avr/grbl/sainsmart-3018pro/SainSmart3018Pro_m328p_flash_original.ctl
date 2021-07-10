@@ -100,6 +100,16 @@ indirect code 7534
 indirect code 7536
 indirect code 7538
 
+; Data Blocks:
+; 0068-0165:
+datablock 0068 00FE
+; 0166-01DD:
+datablock 0166 0078
+; 01DE-027A:
+datablock 01DE 009D
+; 027B (alignment):
+datablock 027B 0001
+
 ; This image has a bootloader at 0x7800
 ; But it will only be in conflict with the
 ;	original grbl code which doesn't

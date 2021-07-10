@@ -643,6 +643,8 @@ protected:
 	CAddressLabelMap m_CodeIndirectTable;	// (Always MT_ROM) Table of indirect code vectors with labels specified by the user and from disassembly
 	CAddressLabelMap m_DataIndirectTable;	// (Always MT_ROM) Table of indirect data vectors with labels specified by the user and from disassembly
 
+	CMemRanges		m_rngDataBlocks;		// Explicitly added Data Block declarations from the Control File, used to split discovered Data Blocks from declared Data Blocks
+
 	TAddress		m_PC;				// Program counter
 
 	CMemBlocks		m_Memory[NUM_MEMORY_TYPES];			// Memory object for the processor.

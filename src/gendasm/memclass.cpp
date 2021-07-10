@@ -232,6 +232,18 @@ bool CMemRanges::rangesOverlap(const CMemRange &range) const
 }
 
 
+// firstMatchingRange : Returns the first contained range
+//	containing the specified address or a null range if
+//	the address isn't contained:
+CMemRange CMemRanges::firstMatchingRange(TAddress nAddr) const
+{
+	for (auto const & itr : *this) {
+		if (itr.addressInRange(nAddr)) return itr;
+	}
+	return CMemRange();
+}
+
+
 TAddress CMemRanges::lowestAddress() const
 {
 	TAddress nLowest = (empty() ? 0 : at(0).startAddr());

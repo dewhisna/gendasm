@@ -813,10 +813,10 @@ Reading Function Definition File "SainSmart3018Pro_m328p_flash_original.fnc"...
         0x003F=SREG_
 
 Cross-Comparing Functions...
-Please Wait......................................................................................................................................................................................................
+Computing Function Comparison : Please Wait......................................................................................................................................................................................................
 
-
-Best Matches (Left->Right):
+Computing Data Block Comparison : Please Wait....
+Best Function Matches (Left->Right):
     RESET_vect    : RESET_vect : (100%)
     INT0_vect     : INT0_vect : (100%)
     INT1_vect     : INT1_vect : (100%)
@@ -1013,7 +1013,7 @@ Best Matches (Left->Right):
     CL76E0        : CL7458 : (100%)
     CL76FE        : CL7476 : (100%)
 
-Best Matches (Right->Left):
+Best Function Matches (Right->Left):
     CL0428        : CL3994 : (25%)
     CL08C4        : CL39C6 : (14.8438%)
     CL0990        : CL6198 : (5.26316%)
@@ -1048,6 +1048,20 @@ Functions in "SainSmart3018Pro_m328p_flash_original.fnc" with No Matches:
     CL0F56
     CL1302
     CL6304
+
+Best Data Block Matches (Left->Right):
+    CL010E        : CL0068 : (100%)
+    CL020C        : CL01DE : (100%)
+    CL02A9        : CL0166 : (100%)
+    CL0321        : CL027B : (100%)
+
+Best Data Block Matches (Right->Left):
+
+Data Blocks in "grbl_v1.1f.20170801.fnc" with No Matches:
+    <None>
+
+Data Blocks in "SainSmart3018Pro_m328p_flash_original.fnc" with No Matches:
+    CL753A
 
 Cross-Comparing Symbol Tables...
 
@@ -2183,13 +2197,19 @@ Right-Side Code Symbol Matches:
 -------------------------------
 ACSR : ACSR (100.000000%)
 ACSR_ : ACSR_ (100.000000%)
+ADCL : ??? (100.000000%)
+ADCSRA : ??? (100.000000%)
+ADMUX : ??? (100.000000%)
 ANALOG_COMP_vect : ANALOG_COMP_vect (100.000000%)
+ASSR : ??? (100.000000%)
 DDRB_ : DDRB_ (100.000000%)
+DIDR0 : ??? (100.000000%)
 EEDR : EEDR (100.000000%)
 EEDR_ : EEDR_ (100.000000%)
 EE_READY_vect : EE_READY_vect (100.000000%)
 EIFR : EIFR (100.000000%)
 EIFR_ : EIFR_ (100.000000%)
+ICR1L : ??? (100.000000%)
 L027C : L0322 (100.000000%)
 L0290 : L0336 (100.000000%)
 L0292 : L0338 (100.000000%)
@@ -3037,8 +3057,13 @@ L7490 : L7718 (100.000000%)
 L7492 : L771A (100.000000%)
 MCUSR : MCUSR (100.000000%)
 MCUSR_ : MCUSR_ (100.000000%)
+OCR1AL : ??? (100.000000%)
+OCR1BL : ??? (100.000000%)
+OCR2B : ??? (100.000000%)
 OCRB0 : OCRB0 (100.000000%)
 OCRB0_ : OCRB0_ (100.000000%)
+PCICR : ??? (100.000000%)
+PCMSK1 : ??? (100.000000%)
 PORTC_ : PORTC_ (100.000000%)
 PRR0 : PRR0 (100.000000%)
 R0 : R0 (100.000000%)
@@ -3051,7 +3076,21 @@ SPCR0 : SPCR0 (100.000000%)
 SPCR0_ : SPCR0_ (100.000000%)
 TCCR0A : TCCR0A (100.000000%)
 TCCR0A_ : TCCR0A_ (100.000000%)
+TCCR1A : ??? (100.000000%)
+TCCR1C : ??? (100.000000%)
+TCCR2A : ??? (100.000000%)
+TCNT1L : ??? (100.000000%)
+TCNT2 : ??? (100.000000%)
 TIMER0_COMPA_vect : TIMER0_COMPA_vect (100.000000%)
+TIMSK0 : ??? (100.000000%)
+TIMSK2 : ??? (100.000000%)
+TWAR0 : ??? (100.000000%)
+TWBR0 : ??? (100.000000%)
+TWCR0 : ??? (100.000000%)
+UBRR0L : ??? (100.000000%)
+UCSR0A : ??? (100.000000%)
+UCSR0C : ??? (100.000000%)
+UDR0 : ??? (100.000000%)
 WDTCSR : WDTCSR (100.000000%)
 
 Right-Side Data Symbol Matches:

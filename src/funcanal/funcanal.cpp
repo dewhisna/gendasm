@@ -212,7 +212,7 @@ static void dumpComparison(FUNC_COMPARE_TYPE nCompareType,
 		fileComp << "--------------------------------------------------------------------------------\n";
 	}
 
-	if (fileOES.is_open()) {
+	if (fileOES.is_open() && (nCompareType == FCT_FUNCTIONS)) {
 		if (GetLastEditScript(oes)) {
 			fileOES << "\n";
 			fileOES << "@" << function1.GetMainName() << "(" << (ndxFile1+1)

@@ -2,7 +2,7 @@ Left Filename  : grbl_v1.1f.20170801.fnc
 Right Filename : SainSmart3018Pro_m328p_flash_original.fnc
 
 ================================================================================
-                          Best Matches (Left->Right):
+                      Best Function Matches (Left->Right):
 ================================================================================
 
 ================================================================================
@@ -19525,7 +19525,7 @@ Right Filename : SainSmart3018Pro_m328p_flash_original.fnc
 
 
 ================================================================================
-                          Best Matches (Right->Left):
+                      Best Function Matches (Right->Left):
 ================================================================================
 
 ================================================================================
@@ -24829,4 +24829,327 @@ Right Filename : SainSmart3018Pro_m328p_flash_original.fnc
 --------------------------------------------------------------------------------
 ================================================================================
 
+
+================================================================================
+                     Best Data Block Matches (Left->Right):
+================================================================================
+
+================================================================================
+--------------------------------------------------------------------------------
+    Left Data Block  : CL010E (1)
+    Right Data Block : CL0068 (1)
+    Matches by       : 100%
+--------------------------------------------------------------------------------
+                     CL010E                                                CL0068                     
+------------------------------------------------      ------------------------------------------------
+010E                .data  0x08, 0x4A             ==  0068                .data  0x08, 0x4A           
+0110                .data  0xD7, 0x3B             ==  006A                .data  0xD7, 0x3B           
+0112                .data  0x3B, 0xCE             ==  006C                .data  0x3B, 0xCE           
+0114                .data  0x01, 0x6E             ==  006E                .data  0x01, 0x6E           
+0116                .data  0x84, 0xBC             ==  0070                .data  0x84, 0xBC           
+0118                .data  0xBF, 0xFD             ==  0072                .data  0xBF, 0xFD           
+011A                .data  0xC1, 0x2F             ==  0074                .data  0xC1, 0x2F           
+011C                .data  0x3D, 0x6C             ==  0076                .data  0x3D, 0x6C           
+011E                .data  0x74, 0x31             ==  0078                .data  0x74, 0x31           
+0120                .data  0x9A, 0xBD             ==  007A                .data  0x9A, 0xBD           
+0122                .data  0x56, 0x83             ==  007C                .data  0x56, 0x83           
+0124                .data  0x3D, 0xDA             ==  007E                .data  0x3D, 0xDA           
+0126                .data  0x3D, 0x00             ==  0080                .data  0x3D, 0x00           
+0128                .data  0xC7, 0x7F             ==  0082                .data  0xC7, 0x7F           
+012A                .data  0x11, 0xBE             ==  0084                .data  0x11, 0xBE           
+012C                .data  0xD9, 0xE4             ==  0086                .data  0xD9, 0xE4           
+012E                .data  0xBB, 0x4C             ==  0088                .data  0xBB, 0x4C           
+0130                .data  0x3E, 0x91             ==  008A                .data  0x3E, 0x91           
+0132                .data  0x6B, 0xAA             ==  008C                .data  0x6B, 0xAA           
+0134                .data  0xAA, 0xBE             ==  008E                .data  0xAA, 0xBE           
+0136                .data  0x00, 0x00             ==  0090                .data  0x00, 0x00           
+0138                .data  0x00, 0x80             ==  0092                .data  0x00, 0x80           
+013A                .data  0x3F, 0x05             ==  0094                .data  0x3F, 0x05           
+013C                .data  0xA8, 0x4C             ==  0096                .data  0xA8, 0x4C           
+013E                .data  0xCD, 0xB2             ==  0098                .data  0xCD, 0xB2           
+0140                .data  0xD4, 0x4E             ==  009A                .data  0xD4, 0x4E           
+0142                .data  0xB9, 0x38             ==  009C                .data  0xB9, 0x38           
+0144                .data  0x36, 0xA9             ==  009E                .data  0x36, 0xA9           
+0146                .data  0x02, 0x0C             ==  00A0                .data  0x02, 0x0C           
+0148                .data  0x50, 0xB9             ==  00A2                .data  0x50, 0xB9           
+014A                .data  0x91, 0x86             ==  00A4                .data  0x91, 0x86           
+014C                .data  0x88, 0x08             ==  00A6                .data  0x88, 0x08           
+014E                .data  0x3C, 0xA6             ==  00A8                .data  0x3C, 0xA6           
+0150                .data  0xAA, 0xAA             ==  00AA                .data  0xAA, 0xAA           
+0152                .data  0x2A, 0xBE             ==  00AC                .data  0x2A, 0xBE           
+0154                .data  0x00, 0x00             ==  00AE                .data  0x00, 0x00           
+0156                .data  0x00, 0x80             ==  00B0                .data  0x00, 0x80           
+0158                .data  0x3F, 0x00             ==  00B2                .data  0x3F, 0x00           
+015A                .data  0x0D, 0x0A             ==  00B4                .data  0x0D, 0x0A           
+015C                .data  0x47, 0x72             ==  00B6                .data  0x47, 0x72           
+015E                .data  0x62, 0x6C             ==  00B8                .data  0x62, 0x6C           
+0160                .data  0x20, 0x31             ==  00BA                .data  0x20, 0x31           
+0162                .data  0x2E, 0x31             ==  00BC                .data  0x2E, 0x31           
+0164                .data  0x66, 0x20             ==  00BE                .data  0x66, 0x20           
+0166                .data  0x5B, 0x27             ==  00C0                .data  0x5B, 0x27           
+0168                .data  0x24, 0x27             ==  00C2                .data  0x24, 0x27           
+016A                .data  0x20, 0x66             ==  00C4                .data  0x20, 0x66           
+016C                .data  0x6F, 0x72             ==  00C6                .data  0x6F, 0x72           
+016E                .data  0x20, 0x68             ==  00C8                .data  0x20, 0x68           
+0170                .data  0x65, 0x6C             ==  00CA                .data  0x65, 0x6C           
+0172                .data  0x70, 0x5D             ==  00CC                .data  0x70, 0x5D           
+0174                .data  0x0D, 0x0A             ==  00CE                .data  0x0D, 0x0A           
+0176                .data  0x00, 0x24             ==  00D0                .data  0x00, 0x24           
+0178                .data  0x4E, 0x00             ==  00D2                .data  0x4E, 0x00           
+017A                .data  0x5B, 0x4F             ==  00D4                .data  0x5B, 0x4F           
+017C                .data  0x50, 0x54             ==  00D6                .data  0x50, 0x54           
+017E                .data  0x3A, 0x00             ==  00D8                .data  0x3A, 0x00           
+0180                .data  0x5B, 0x56             ==  00DA                .data  0x5B, 0x56           
+0182                .data  0x45, 0x52             ==  00DC                .data  0x45, 0x52           
+0184                .data  0x3A, 0x31             ==  00DE                .data  0x3A, 0x31           
+0186                .data  0x2E, 0x31             ==  00E0                .data  0x2E, 0x31           
+0188                .data  0x66, 0x2E             ==  00E2                .data  0x66, 0x2E           
+018A                .data  0x32, 0x30             ==  00E4                .data  0x32, 0x30           
+018C                .data  0x31, 0x37             ==  00E6                .data  0x31, 0x37           
+018E                .data  0x30, 0x38             ==  00E8                .data  0x30, 0x38           
+0190                .data  0x30, 0x31             ==  00EA                .data  0x30, 0x31           
+0192                .data  0x3A, 0x00             ==  00EC                .data  0x3A, 0x00           
+0194                .data  0x5B, 0x54             ==  00EE                .data  0x5B, 0x54           
+0196                .data  0x4C, 0x4F             ==  00F0                .data  0x4C, 0x4F           
+0198                .data  0x3A, 0x00             ==  00F2                .data  0x3A, 0x00           
+019A                .data  0x5B, 0x47             ==  00F4                .data  0x5B, 0x47           
+019C                .data  0x39, 0x32             ==  00F6                .data  0x39, 0x32           
+019E                .data  0x3A, 0x00             ==  00F8                .data  0x3A, 0x00           
+01A0                .data  0x33, 0x30             ==  00FA                .data  0x33, 0x30           
+01A2                .data  0x00, 0x32             ==  00FC                .data  0x00, 0x32           
+01A4                .data  0x38, 0x00             ==  00FE                .data  0x38, 0x00           
+01A6                .data  0x5B, 0x47             ==  0100                .data  0x5B, 0x47           
+01A8                .data  0x00, 0x20             ==  0102                .data  0x00, 0x20           
+01AA                .data  0x47, 0x00             ==  0104                .data  0x47, 0x00           
+01AC                .data  0x20, 0x4D             ==  0106                .data  0x20, 0x4D           
+01AE                .data  0x00, 0x20             ==  0108                .data  0x00, 0x20           
+01B0                .data  0x53, 0x00             ==  010A                .data  0x53, 0x00           
+01B2                .data  0x20, 0x46             ==  010C                .data  0x20, 0x46           
+01B4                .data  0x00, 0x20             ==  010E                .data  0x00, 0x20           
+01B6                .data  0x54, 0x00             ==  0110                .data  0x54, 0x00           
+01B8                .data  0x33, 0x38             ==  0112                .data  0x33, 0x38           
+01BA                .data  0x2E, 0x00             ==  0114                .data  0x2E, 0x00           
+01BC                .data  0x5B, 0x47             ==  0116                .data  0x5B, 0x47           
+01BE                .data  0x43, 0x3A             ==  0118                .data  0x43, 0x3A           
+01C0                .data  0x47, 0x00             ==  011A                .data  0x47, 0x00           
+01C2                .data  0x5B, 0x48             ==  011C                .data  0x5B, 0x48           
+01C4                .data  0x4C, 0x50             ==  011E                .data  0x4C, 0x50           
+01C6                .data  0x3A, 0x24             ==  0120                .data  0x3A, 0x24           
+01C8                .data  0x24, 0x20             ==  0122                .data  0x24, 0x20           
+01CA                .data  0x24, 0x23             ==  0124                .data  0x24, 0x23           
+01CC                .data  0x20, 0x24             ==  0126                .data  0x20, 0x24           
+01CE                .data  0x47, 0x20             ==  0128                .data  0x47, 0x20           
+01D0                .data  0x24, 0x49             ==  012A                .data  0x24, 0x49           
+01D2                .data  0x20, 0x24             ==  012C                .data  0x20, 0x24           
+01D4                .data  0x4E, 0x20             ==  012E                .data  0x4E, 0x20           
+01D6                .data  0x24, 0x78             ==  0130                .data  0x24, 0x78           
+01D8                .data  0x3D, 0x76             ==  0132                .data  0x3D, 0x76           
+01DA                .data  0x61, 0x6C             ==  0134                .data  0x61, 0x6C           
+01DC                .data  0x20, 0x24             ==  0136                .data  0x20, 0x24           
+01DE                .data  0x4E, 0x78             ==  0138                .data  0x4E, 0x78           
+01E0                .data  0x3D, 0x6C             ==  013A                .data  0x3D, 0x6C           
+01E2                .data  0x69, 0x6E             ==  013C                .data  0x69, 0x6E           
+01E4                .data  0x65, 0x20             ==  013E                .data  0x65, 0x20           
+01E6                .data  0x24, 0x4A             ==  0140                .data  0x24, 0x4A           
+01E8                .data  0x3D, 0x6C             ==  0142                .data  0x3D, 0x6C           
+01EA                .data  0x69, 0x6E             ==  0144                .data  0x69, 0x6E           
+01EC                .data  0x65, 0x20             ==  0146                .data  0x65, 0x20           
+01EE                .data  0x24, 0x53             ==  0148                .data  0x24, 0x53           
+01F0                .data  0x4C, 0x50             ==  014A                .data  0x4C, 0x50           
+01F2                .data  0x20, 0x24             ==  014C                .data  0x20, 0x24           
+01F4                .data  0x43, 0x20             ==  014E                .data  0x43, 0x20           
+01F6                .data  0x24, 0x58             ==  0150                .data  0x24, 0x58           
+01F8                .data  0x20, 0x24             ==  0152                .data  0x20, 0x24           
+01FA                .data  0x48, 0x20             ==  0154                .data  0x48, 0x20           
+01FC                .data  0x7E, 0x20             ==  0156                .data  0x7E, 0x20           
+01FE                .data  0x21, 0x20             ==  0158                .data  0x21, 0x20           
+0200                .data  0x3F, 0x20             ==  015A                .data  0x3F, 0x20           
+0202                .data  0x63, 0x74             ==  015C                .data  0x63, 0x74           
+0204                .data  0x72, 0x6C             ==  015E                .data  0x72, 0x6C           
+0206                .data  0x2D, 0x78             ==  0160                .data  0x2D, 0x78           
+0208                .data  0x5D, 0x0D             ==  0162                .data  0x5D, 0x0D           
+020A                .data  0x0A, 0x00             ==  0164                .data  0x0A, 0x00           
+--------------------------------------------------------------------------------
+================================================================================
+
+
+================================================================================
+--------------------------------------------------------------------------------
+    Left Data Block  : CL020C (2)
+    Right Data Block : CL01DE (3)
+    Matches by       : 100%
+--------------------------------------------------------------------------------
+                     CL020C                                                CL01DE                     
+------------------------------------------------      ------------------------------------------------
+020C                .data  0x53, 0x6C             ==  01DE                .data  0x53, 0x6C           
+020E                .data  0x65, 0x65             ==  01E0                .data  0x65, 0x65           
+0210                .data  0x70, 0x69             ==  01E2                .data  0x70, 0x69           
+0212                .data  0x6E, 0x67             ==  01E4                .data  0x6E, 0x67           
+0214                .data  0x00, 0x52             ==  01E6                .data  0x00, 0x52           
+0216                .data  0x65, 0x73             ==  01E8                .data  0x65, 0x73           
+0218                .data  0x74, 0x6F             ==  01EA                .data  0x74, 0x6F           
+021A                .data  0x72, 0x69             ==  01EC                .data  0x72, 0x69           
+021C                .data  0x6E, 0x67             ==  01EE                .data  0x6E, 0x67           
+021E                .data  0x20, 0x73             ==  01F0                .data  0x20, 0x73           
+0220                .data  0x70, 0x69             ==  01F2                .data  0x70, 0x69           
+0222                .data  0x6E, 0x64             ==  01F4                .data  0x6E, 0x64           
+0224                .data  0x6C, 0x65             ==  01F6                .data  0x6C, 0x65           
+0226                .data  0x00, 0x52             ==  01F8                .data  0x00, 0x52           
+0228                .data  0x65, 0x73             ==  01FA                .data  0x65, 0x73           
+022A                .data  0x74, 0x6F             ==  01FC                .data  0x74, 0x6F           
+022C                .data  0x72, 0x69             ==  01FE                .data  0x72, 0x69           
+022E                .data  0x6E, 0x67             ==  0200                .data  0x6E, 0x67           
+0230                .data  0x20, 0x64             ==  0202                .data  0x20, 0x64           
+0232                .data  0x65, 0x66             ==  0204                .data  0x65, 0x66           
+0234                .data  0x61, 0x75             ==  0206                .data  0x61, 0x75           
+0236                .data  0x6C, 0x74             ==  0208                .data  0x6C, 0x74           
+0238                .data  0x73, 0x00             ==  020A                .data  0x73, 0x00           
+023A                .data  0x50, 0x67             ==  020C                .data  0x50, 0x67           
+023C                .data  0x6D, 0x20             ==  020E                .data  0x6D, 0x20           
+023E                .data  0x45, 0x6E             ==  0210                .data  0x45, 0x6E           
+0240                .data  0x64, 0x00             ==  0212                .data  0x64, 0x00           
+0242                .data  0x43, 0x68             ==  0214                .data  0x43, 0x68           
+0244                .data  0x65, 0x63             ==  0216                .data  0x65, 0x63           
+0246                .data  0x6B, 0x20             ==  0218                .data  0x6B, 0x20           
+0248                .data  0x4C, 0x69             ==  021A                .data  0x4C, 0x69           
+024A                .data  0x6D, 0x69             ==  021C                .data  0x6D, 0x69           
+024C                .data  0x74, 0x73             ==  021E                .data  0x74, 0x73           
+024E                .data  0x00, 0x43             ==  0220                .data  0x00, 0x43           
+0250                .data  0x68, 0x65             ==  0222                .data  0x68, 0x65           
+0252                .data  0x63, 0x6B             ==  0224                .data  0x63, 0x6B           
+0254                .data  0x20, 0x44             ==  0226                .data  0x20, 0x44           
+0256                .data  0x6F, 0x6F             ==  0228                .data  0x6F, 0x6F           
+0258                .data  0x72, 0x00             ==  022A                .data  0x72, 0x00           
+025A                .data  0x44, 0x69             ==  022C                .data  0x44, 0x69           
+025C                .data  0x73, 0x61             ==  022E                .data  0x73, 0x61           
+025E                .data  0x62, 0x6C             ==  0230                .data  0x62, 0x6C           
+0260                .data  0x65, 0x64             ==  0232                .data  0x65, 0x64           
+0262                .data  0x00, 0x45             ==  0234                .data  0x00, 0x45           
+0264                .data  0x6E, 0x61             ==  0236                .data  0x6E, 0x61           
+0266                .data  0x62, 0x6C             ==  0238                .data  0x62, 0x6C           
+0268                .data  0x65, 0x64             ==  023A                .data  0x65, 0x64           
+026A                .data  0x00, 0x43             ==  023C                .data  0x00, 0x43           
+026C                .data  0x61, 0x75             ==  023E                .data  0x61, 0x75           
+026E                .data  0x74, 0x69             ==  0240                .data  0x74, 0x69           
+0270                .data  0x6F, 0x6E             ==  0242                .data  0x6F, 0x6E           
+0272                .data  0x3A, 0x20             ==  0244                .data  0x3A, 0x20           
+0274                .data  0x55, 0x6E             ==  0246                .data  0x55, 0x6E           
+0276                .data  0x6C, 0x6F             ==  0248                .data  0x6C, 0x6F           
+0278                .data  0x63, 0x6B             ==  024A                .data  0x63, 0x6B           
+027A                .data  0x65, 0x64             ==  024C                .data  0x65, 0x64           
+027C                .data  0x00, 0x27             ==  024E                .data  0x00, 0x27           
+027E                .data  0x24, 0x48             ==  0250                .data  0x24, 0x48           
+0280                .data  0x27, 0x7C             ==  0252                .data  0x27, 0x7C           
+0282                .data  0x27, 0x24             ==  0254                .data  0x27, 0x24           
+0284                .data  0x58, 0x27             ==  0256                .data  0x58, 0x27           
+0286                .data  0x20, 0x74             ==  0258                .data  0x20, 0x74           
+0288                .data  0x6F, 0x20             ==  025A                .data  0x6F, 0x20           
+028A                .data  0x75, 0x6E             ==  025C                .data  0x75, 0x6E           
+028C                .data  0x6C, 0x6F             ==  025E                .data  0x6C, 0x6F           
+028E                .data  0x63, 0x6B             ==  0260                .data  0x63, 0x6B           
+0290                .data  0x00, 0x52             ==  0262                .data  0x00, 0x52           
+0292                .data  0x65, 0x73             ==  0264                .data  0x65, 0x73           
+0294                .data  0x65, 0x74             ==  0266                .data  0x65, 0x74           
+0296                .data  0x20, 0x74             ==  0268                .data  0x20, 0x74           
+0298                .data  0x6F, 0x20             ==  026A                .data  0x6F, 0x20           
+029A                .data  0x63, 0x6F             ==  026C                .data  0x63, 0x6F           
+029C                .data  0x6E, 0x74             ==  026E                .data  0x6E, 0x74           
+029E                .data  0x69, 0x6E             ==  0270                .data  0x69, 0x6E           
+02A0                .data  0x75, 0x65             ==  0272                .data  0x75, 0x65           
+02A2                .data  0x00, 0x5B             ==  0274                .data  0x00, 0x5B           
+02A4                .data  0x4D, 0x53             ==  0276                .data  0x4D, 0x53           
+02A6                .data  0x47, 0x3A             ==  0278                .data  0x47, 0x3A           
+02A8                .data  0x00                   ==  027A                .data  0x00                 
+--------------------------------------------------------------------------------
+================================================================================
+
+
+================================================================================
+--------------------------------------------------------------------------------
+    Left Data Block  : CL02A9 (3)
+    Right Data Block : CL0166 (2)
+    Matches by       : 100%
+--------------------------------------------------------------------------------
+                     CL02A9                                                CL0166                     
+------------------------------------------------      ------------------------------------------------
+02A9                .data  0x41, 0x4C             ==  0166                .data  0x41, 0x4C           
+02AB                .data  0x41, 0x52             ==  0168                .data  0x41, 0x52           
+02AD                .data  0x4D, 0x3A             ==  016A                .data  0x4D, 0x3A           
+02AF                .data  0x00, 0x7C             ==  016C                .data  0x00, 0x7C           
+02B1                .data  0x41, 0x3A             ==  016E                .data  0x41, 0x3A           
+02B3                .data  0x00, 0x7C             ==  0170                .data  0x00, 0x7C           
+02B5                .data  0x4F, 0x76             ==  0172                .data  0x4F, 0x76           
+02B7                .data  0x3A, 0x00             ==  0174                .data  0x3A, 0x00           
+02B9                .data  0x7C, 0x57             ==  0176                .data  0x7C, 0x57           
+02BB                .data  0x43, 0x4F             ==  0178                .data  0x43, 0x4F           
+02BD                .data  0x3A, 0x00             ==  017A                .data  0x3A, 0x00           
+02BF                .data  0x7C, 0x50             ==  017C                .data  0x7C, 0x50           
+02C1                .data  0x6E, 0x3A             ==  017E                .data  0x6E, 0x3A           
+02C3                .data  0x00, 0x7C             ==  0180                .data  0x00, 0x7C           
+02C5                .data  0x46, 0x53             ==  0182                .data  0x46, 0x53           
+02C7                .data  0x3A, 0x00             ==  0184                .data  0x3A, 0x00           
+02C9                .data  0x7C, 0x42             ==  0186                .data  0x7C, 0x42           
+02CB                .data  0x66, 0x3A             ==  0188                .data  0x66, 0x3A           
+02CD                .data  0x00, 0x7C             ==  018A                .data  0x00, 0x7C           
+02CF                .data  0x57, 0x50             ==  018C                .data  0x57, 0x50           
+02D1                .data  0x6F, 0x73             ==  018E                .data  0x6F, 0x73           
+02D3                .data  0x3A, 0x00             ==  0190                .data  0x3A, 0x00           
+02D5                .data  0x7C, 0x4D             ==  0192                .data  0x7C, 0x4D           
+02D7                .data  0x50, 0x6F             ==  0194                .data  0x50, 0x6F           
+02D9                .data  0x73, 0x3A             ==  0196                .data  0x73, 0x3A           
+02DB                .data  0x00, 0x53             ==  0198                .data  0x00, 0x53           
+02DD                .data  0x6C, 0x65             ==  019A                .data  0x6C, 0x65           
+02DF                .data  0x65, 0x70             ==  019C                .data  0x65, 0x70           
+02E1                .data  0x00, 0x44             ==  019E                .data  0x00, 0x44           
+02E3                .data  0x6F, 0x6F             ==  01A0                .data  0x6F, 0x6F           
+02E5                .data  0x72, 0x3A             ==  01A2                .data  0x72, 0x3A           
+02E7                .data  0x00, 0x43             ==  01A4                .data  0x00, 0x43           
+02E9                .data  0x68, 0x65             ==  01A6                .data  0x68, 0x65           
+02EB                .data  0x63, 0x6B             ==  01A8                .data  0x63, 0x6B           
+02ED                .data  0x00, 0x41             ==  01AA                .data  0x00, 0x41           
+02EF                .data  0x6C, 0x61             ==  01AC                .data  0x6C, 0x61           
+02F1                .data  0x72, 0x6D             ==  01AE                .data  0x72, 0x6D           
+02F3                .data  0x00, 0x48             ==  01B0                .data  0x00, 0x48           
+02F5                .data  0x6F, 0x6D             ==  01B2                .data  0x6F, 0x6D           
+02F7                .data  0x65, 0x00             ==  01B4                .data  0x65, 0x00           
+02F9                .data  0x4A, 0x6F             ==  01B6                .data  0x4A, 0x6F           
+02FB                .data  0x67, 0x00             ==  01B8                .data  0x67, 0x00           
+02FD                .data  0x48, 0x6F             ==  01BA                .data  0x48, 0x6F           
+02FF                .data  0x6C, 0x64             ==  01BC                .data  0x6C, 0x64           
+0301                .data  0x3A, 0x00             ==  01BE                .data  0x3A, 0x00           
+0303                .data  0x52, 0x75             ==  01C0                .data  0x52, 0x75           
+0305                .data  0x6E, 0x00             ==  01C2                .data  0x6E, 0x00           
+0307                .data  0x49, 0x64             ==  01C4                .data  0x49, 0x64           
+0309                .data  0x6C, 0x65             ==  01C6                .data  0x6C, 0x65           
+030B                .data  0x00, 0x0D             ==  01C8                .data  0x00, 0x0D           
+030D                .data  0x0A, 0x00             ==  01CA                .data  0x0A, 0x00           
+030F                .data  0x5B, 0x50             ==  01CC                .data  0x5B, 0x50           
+0311                .data  0x52, 0x42             ==  01CE                .data  0x52, 0x42           
+0313                .data  0x3A, 0x00             ==  01D0                .data  0x3A, 0x00           
+0315                .data  0x65, 0x72             ==  01D2                .data  0x65, 0x72           
+0317                .data  0x72, 0x6F             ==  01D4                .data  0x72, 0x6F           
+0319                .data  0x72, 0x3A             ==  01D6                .data  0x72, 0x3A           
+031B                .data  0x00, 0x6F             ==  01D8                .data  0x00, 0x6F           
+031D                .data  0x6B, 0x0D             ==  01DA                .data  0x6B, 0x0D           
+031F                .data  0x0A, 0x00             ==  01DC                .data  0x0A, 0x00           
+--------------------------------------------------------------------------------
+================================================================================
+
+
+================================================================================
+--------------------------------------------------------------------------------
+    Left Data Block  : CL0321 (4)
+    Right Data Block : CL027B (4)
+    Matches by       : 100%
+--------------------------------------------------------------------------------
+                     CL0321                                                CL027B                     
+------------------------------------------------      ------------------------------------------------
+0321                .data  0x00                   ==  027B                .data  0x00                 
+--------------------------------------------------------------------------------
+================================================================================
+
+
+================================================================================
+                     Best Data Block Matches (Right->Left):
+================================================================================
 

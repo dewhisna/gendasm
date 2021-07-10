@@ -87,6 +87,8 @@ public:
 
 	bool rangesOverlap(const CMemRange &range) const;
 
+	CMemRange firstMatchingRange(TAddress nAddr) const;
+
 	TAddress lowestAddress() const;			// Returns 0 if there's no memory defined
 	TAddress highestAddress() const;		// Returns 0 if there's no memory defined
 

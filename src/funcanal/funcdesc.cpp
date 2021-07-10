@@ -246,7 +246,7 @@ TLabel CIndirectEntry::GetMainLabel() const
 	// Ideally, these would be "L" or "DL" based on CFuncDescFile::allowMemRangeOverlap(),
 	//	but we don't have a pointer to the parent function file.  So just default to the
 	//	unambiguous "DL":
-	std::sprintf(arrTemp, "DL%0X", m_nAddress);
+	std::sprintf(arrTemp, "DL%04X", m_nAddress);
 	strRetVal = arrTemp;
 
 	if (m_arrLabels.empty()) return strRetVal;
@@ -874,7 +874,7 @@ TLabel CFuncDesc::GetMainName() const
 	// Ideally, these would be "L" or "CL" based on CFuncDescFile::allowMemRangeOverlap(),
 	//	but we don't have a pointer to the parent function.  So just default to the
 	//	unambiguous "CL":
-	std::sprintf(arrTemp, "CL%0X", m_nMainAddress);
+	std::sprintf(arrTemp, "CL%04X", m_nMainAddress);
 	strRetVal = arrTemp;
 
 	CLabelTableMap::const_iterator itrFuncNames = m_mapFuncNameTable.find(m_nMainAddress);

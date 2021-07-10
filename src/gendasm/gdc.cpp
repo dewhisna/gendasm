@@ -62,6 +62,7 @@ namespace {
 		CCE_MEMMAP,
 		CCE_COMMENT,
 		CCE_MCU,
+		CCE_DATABLOCK,
 	};
 
 	enum OUTPUT_TYPE_ENUM {
@@ -93,6 +94,7 @@ namespace {
 		{ "^MEMMAP$", CCE_MEMMAP },
 		{ "^COMMENT$", CCE_COMMENT },
 		{ "^MCU|CPU$", CCE_MCU },
+		{ "^DATABLOCK$", CCE_DATABLOCK },
 	};
 
 	static const TKeywordMap g_mapParseTrueFalse = {
@@ -1046,6 +1048,28 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				}
 			}
 			break;
+		case CCE_DATABLOCK:		// DATABLOCK <addr> <size>  (implies: MT_ROM)
+		{
+			if (argv.size() != 3) {
+				nArgError = (argv.size() < 3) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
+				break;
+			}
+
+			nAddress = strtoul(argv.at(1).c_str(), nullptr, m_nBase);
+			nSize = strtoul(argv.at(2).c_str(), nullptr, m_nBase);
+
+			CMemRange range(nAddress, nSize);
+
+			if (m_rngDataBlocks.rangesOverlap(range)) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Data Block Range overlaps existing Data Blocks Ranges.  They will be merged.";
+			}
+			m_rngDataBlocks.push_back(range);
+			m_rngDataBlocks.compact();
+			m_rngDataBlocks.removeOverlaps();
+			m_rngDataBlocks.sort();
+			break;
+		}
 
 		default:
 			m_ParseError = "*** Error: Unknown command";
@@ -1182,13 +1206,43 @@ bool CDisassembler::ScanBranches(std::ostream *msgFile, std::ostream *errFile)
 
 bool CDisassembler::ScanData(const std::string & strExcludeChars, std::ostream *msgFile, std::ostream *errFile)
 {
-	UNUSED(msgFile);
 	UNUSED(errFile);
 
 	TMemoryElement c;
 
 	// Note that we use an argument passed in so that the caller has a chance to change the
 	//	list passed in by the GetExcludedPrintChars function!
+
+	if (!m_bSpitFlag) {		// We've already done this in spit mode
+		for (auto & itrDataBlock : m_rngDataBlocks) {
+			m_PC = itrDataBlock.startAddr();
+			for (TSize nSize = 0; nSize < itrDataBlock.size(); ++nSize, ++m_PC) {
+				if (!m_Memory[MT_ROM].containsAddress(m_PC)) continue;
+
+				if (m_Memory[MT_ROM].descriptor(m_PC) != DMEM_LOADED) {
+					if (msgFile) {
+						(*msgFile) << "*** Warning: Address "
+									<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC
+									<< std::nouppercase << std::setbase(0)
+									<< " in declared Data Block Range "
+									<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrDataBlock.startAddr()
+									<< std::nouppercase << std::setbase(0)
+									<< "-"
+									<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << (itrDataBlock.startAddr()+itrDataBlock.size()-1)
+									<< std::nouppercase << std::setbase(0)
+									<< " conflicts with discovered code.\n";
+					}
+				} else {
+					c = m_Memory[MT_ROM].element(m_PC);
+					if (isprint(c) && (strExcludeChars.find(c) == std::string::npos)) {
+						m_Memory[MT_ROM].setDescriptor(m_PC, DMEM_PRINTDATA);
+					} else {
+						m_Memory[MT_ROM].setDescriptor(m_PC, DMEM_DATA);
+					}
+				}
+			}
+		}
+	}
 
 	for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
 		if (m_Memory[nMemType].empty()) continue;
@@ -1275,10 +1329,30 @@ bool CDisassembler::Pass1(std::ostream& outFile, std::ostream *msgFile, std::ost
 
 	bool bRetVal = true;
 
+	const std::string strExcludeChars = GetExcludedPrintChars();
+
+	// If in "spit" mode, first tag everything explicitly declared as a Data Block
+	//	so that it doesn't get converted incorrectly to code:
+	if (m_bSpitFlag) {
+		for (auto & itrDataBlock : m_rngDataBlocks) {
+			m_PC = itrDataBlock.startAddr();
+			for (TSize nSize = 0; nSize < itrDataBlock.size(); ++nSize, ++m_PC) {
+				if (!m_Memory[MT_ROM].containsAddress(m_PC)) continue;
+				TMemoryElement c = m_Memory[MT_ROM].element(m_PC);
+				if (isprint(c) && (strExcludeChars.find(c) == std::string::npos)) {
+					m_Memory[MT_ROM].setDescriptor(m_PC, DMEM_PRINTDATA);
+				} else {
+					m_Memory[MT_ROM].setDescriptor(m_PC, DMEM_DATA);
+				}
+
+			}
+		}
+	}
+
 	// Note that Short-Circuiting will keep following process stages from being called in the event of an error!
 	bRetVal = bRetVal && ScanEntries(msgFile, errFile);
 	bRetVal = bRetVal && ScanBranches(msgFile, errFile);
-	bRetVal = bRetVal && ScanData(GetExcludedPrintChars(), msgFile, errFile);
+	bRetVal = bRetVal && ScanData(strExcludeChars, msgFile, errFile);
 
 	return bRetVal;
 }
@@ -1472,11 +1546,13 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 	TAddress nSavedPC = 0;			// nSavedPC will be the last PC for the last memory evaluated below
 	bool bInFunc = false;			// In Function
 	bool bInDataBlock = false;		// In Data Block
+	CMemRange rngDataBlock;			// Current declared Data Block matching current Data Block being traversed (or null range if none matches)
 	m_PC = 0;						// init to zero for test below that clears bInFunc and bInDataBlock (as we can't be "in a function" or "in a data block" across discontiguous memory)
 	for (auto const & itrMemory : m_Memory[nMemType]) {
 		if (m_PC != itrMemory.logicalAddr()) {
 			bInFunc = false;		// Can't be "in a function" across discontiguous memory
 			bInDataBlock = false;	// Can't be "in a data block" across discontiguous memory
+			rngDataBlock = CMemRange();
 		}
 		m_PC = itrMemory.logicalAddr();
 		for (TSize nSize = 0; ((nSize < itrMemory.size()) && bRetVal);  ) {
@@ -1497,6 +1573,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 						if (bInDataBlock) {
 							aFunctionsFile << "\n";
 							bInDataBlock = false;
+							rngDataBlock = CMemRange();
 						}
 
 						std::ostringstream sstrTemp;
@@ -1562,6 +1639,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					bLastFlag = bInFunc;
 					bInFunc = false;
 					bInDataBlock = false;
+					rngDataBlock = CMemRange();
 					break;
 				case DMEM_LOADED:
 					assert(false);		// WARNING!  All loaded code should have been evaluated.  Check override code!
@@ -1571,7 +1649,11 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					break;
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
-					if (!bInFunc && !bLastFlag && !bInDataBlock) {
+					if (!bInFunc && !bLastFlag) {
+						if (bInDataBlock) aFunctionsFile << "\n";
+						bInDataBlock = false;
+						rngDataBlock = CMemRange();
+
 						std::ostringstream sstrTemp;
 						sstrTemp << "=" << ((itrMemory.descriptor(m_PC) == DMEM_CODEINDIRECT) ? "C" : "D") << "|"
 										<< std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
@@ -1591,30 +1673,41 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 
 						aFunctionsFile << m_sFunctionalOpcode;
 						aFunctionsFile << "\n\n";
+						break;
 					}
-					break;
+					// If inside of function, output it as inline function data
+					//	as before the Data Block reorg:
+					[[fallthrough]];
 				case DMEM_DATA:
 				case DMEM_PRINTDATA:
-					if (!bInFunc && !bLastFlag && !bInDataBlock) {
-						std::ostringstream sstrTemp;
-						sstrTemp << "$" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
-						m_sFunctionalOpcode = sstrTemp.str();
-
-						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
-						if (itrLabels != m_LabelTable[nMemType].cend()) {
-							for (CLabelArray::size_type i = 0; i < itrLabels->second.size(); ++i) {
-								if (i != 0) m_sFunctionalOpcode += ",";
-								m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
-							}
-						} else {
-							m_sFunctionalOpcode += "???";
+					if (!bInFunc && !bLastFlag) {
+						if (bInDataBlock && !rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) {
+							aFunctionsFile << "\n";
+							bInDataBlock = false;
+							// We'll update rngDataBlock below
 						}
+						if (!bInDataBlock) {
+							std::ostringstream sstrTemp;
+							sstrTemp << "$" << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
+							m_sFunctionalOpcode = sstrTemp.str();
 
-						aFunctionsFile << m_sFunctionalOpcode;
-						aFunctionsFile << "\n";
+							CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemType].find(m_PC);
+							if (itrLabels != m_LabelTable[nMemType].cend()) {
+								for (CLabelArray::size_type i = 0; i < itrLabels->second.size(); ++i) {
+									if (i != 0) m_sFunctionalOpcode += ",";
+									m_sFunctionalOpcode += FormatLabel(nMemType, LC_REF, itrLabels->second.at(i), m_PC);
+								}
+							} else {
+								m_sFunctionalOpcode += "???";
+							}
 
-						nFuncAddr = m_PC;
-						bInDataBlock = true;
+							aFunctionsFile << m_sFunctionalOpcode;
+							aFunctionsFile << "\n";
+
+							nFuncAddr = m_PC;
+							bInDataBlock = true;
+							rngDataBlock = m_rngDataBlocks.firstMatchingRange(m_PC);
+						}
 					}
 					[[fallthrough]];
 				case DMEM_ILLEGALCODE:
@@ -1644,7 +1737,8 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 							 && (!m_LabelTable[nMemType].contains(m_PC))
 							 && ((itrMemory.descriptor(m_PC) == itrMemory.descriptor(nSavedPC)) ||
 								 (setData.contains(static_cast<MEM_DESC>(itrMemory.descriptor(m_PC))) && setData.contains(static_cast<MEM_DESC>(itrMemory.descriptor(nSavedPC)))))
-							 && ((m_PC-nSavedPC) < opcodeSymbolSize()));
+							 && ((m_PC-nSavedPC) < opcodeSymbolSize())
+							 && (rngDataBlock.isNullRange() || rngDataBlock.addressInRange(m_PC)));
 					break;
 				}
 				case DMEM_CODE:
@@ -1654,6 +1748,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 				default:
 					bInFunc = false;
 					bInDataBlock = false;
+					rngDataBlock = CMemRange();
 					bRetVal = false;
 					break;
 			}
@@ -1726,8 +1821,13 @@ bool CDisassembler::FindCode(std::ostream *msgFile, std::ostream *errFile)
 		// See if m_PC is in an area of memory that doesn't exist:
 		if (!m_Memory[nMemType].containsAddress(m_PC)) {
 			if (m_bSpitFlag) {
-				// In spit mode, find next address inside memory:
-				while (!m_Memory[nMemType].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;
+				// In spit mode, find next address inside memory that hasn't been "looked at":
+				while (!m_Memory[nMemType].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;	// Skip non-existant addresses
+				while (m_Memory[nMemType].containsAddress(m_PC) && (m_PC <= nHighestAddress) &&
+					   (m_Memory[nMemType].descriptor(m_PC) != DMEM_LOADED)) {
+					++m_PC;		// Skip "observed" locations (such as those from declared Data Blocks)
+					while (!m_Memory[nMemType].containsAddress(m_PC) && (m_PC <= nHighestAddress)) ++m_PC;	// Skip non-existant addresses
+				}
 			} else {
 				bDoneFlag = true;			// We are done with this find if there's nothing here in memory
 				continue;
