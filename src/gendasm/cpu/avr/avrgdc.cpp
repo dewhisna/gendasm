@@ -1634,6 +1634,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 			CMemRange rngDataBlock = ((nMemoryType == MT_ROM) ? m_rngDataBlocks.firstMatchingRange(m_PC) : CMemRange());
 			nSavedPC = m_PC;		// Keep a copy of the PC for this line because some calls will be incrementing our m_PC
 			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
+			if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 			nLastDesc = nDesc;
 			switch (nDesc) {
 				case DMEM_DATA:
@@ -1650,8 +1651,8 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 					bTransitionBreak = false;
 					nIntermediatePC = m_PC;
 					while (!bFlag) {
-						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
+						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 
 						maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
 						if (nDesc == DMEM_DATA) {
@@ -1663,19 +1664,21 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 
 						if (nDesc != nLastDesc) {
 							CMemoryArray &arrData = (nLastDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
-							clearOpMemory();
-							pushBackOpMemory(nIntermediatePC, arrData);
-							if (m_bDataOpBytesFlag) {
-								if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
-								saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+							if (!arrData.empty()) {
+								clearOpMemory();
+								pushBackOpMemory(nIntermediatePC, arrData);
+								if (m_bDataOpBytesFlag) {
+									if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
+									saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+								}
+								if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
+								saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+								bFirstOutput = false;
+								nIntermediatePC += arrData.size();
+								arrData.clear();
+								nLastDesc = nDesc;
+								bTransitionBreak = true;
 							}
-							if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
-							saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
-							bFirstOutput = false;
-							nIntermediatePC += arrData.size();
-							arrData.clear();
-							nLastDesc = nDesc;
-							bTransitionBreak = true;
 						}
 
 						++m_PC;
@@ -1718,7 +1721,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 					// Finish remaining output:
 					if (!maTempOpMemoryAscii.empty() || !maTempOpMemoryData.empty()) {
 						CMemoryArray &arrData = (nDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
-						assert((nDesc != DMEM_DATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed
+						assert((nDesc != DMEM_DATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed up
 						clearOpMemory();
 						pushBackOpMemory(nIntermediatePC, arrData);
 						if (m_bDataOpBytesFlag) {
@@ -1737,7 +1740,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 					// Already done FC_OPBYTES
 					saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
 					// Already done FC_OPERANDS
-					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC);	// Won't matter if this is MC_DATABYTE or MC_ASCII
+					saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC);		// Won't matter if this is MC_DATABYTE or MC_ASCII
 					outFile << MakeOutputLine(saOutLine) << "\n";
 
 					if (bOddStop) {
