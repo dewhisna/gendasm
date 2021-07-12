@@ -11,10 +11,13 @@ set(GRBL_STAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/grbl")
 
 # Copy support binary files - Note: You MUST first run the 'get' scripts to retrieve them
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/ASxxxx/asxv5p40/build-asxv5p40/as6811" "${CMAKE_CURRENT_BINARY_DIR}/as6811" COPYONLY)
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/ASxxxx/asxv5p40/build-asxv5p40/asavr" "${CMAKE_CURRENT_BINARY_DIR}/asavr" COPYONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/ASxxxx/asxv5p40/build-asxv5p40/aslink" "${CMAKE_CURRENT_BINARY_DIR}/aslink" COPYONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/avra/build-avra/avra" "${CMAKE_CURRENT_BINARY_DIR}/avra" COPYONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/hex2bin/build-hex2bin/hex2bin" "${CMAKE_CURRENT_BINARY_DIR}/hex2bin" COPYONLY)
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/hex2bin/build-hex2bin/mot2bin" "${CMAKE_CURRENT_BINARY_DIR}/mot2bin" COPYONLY)
+
+# -----------------------------------------------------------------------------
 
 # Configure data for grbl-v-sainsmart3018:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/grbl_v1.1f.20170801.hex COPYONLY)
@@ -70,6 +73,8 @@ set_property(TEST "grbl-v-sainsmart3018,funcanal,oes" APPEND PROPERTY DEPENDS "g
 add_test(NAME "grbl-v-sainsmart3018,funcanal,sym" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl-v-sainsmart3018.sym" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-v-sainsmart3018/grbl-v-sainsmart3018.sym" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-v-sainsmart3018")
 set_property(TEST "grbl-v-sainsmart3018,funcanal,sym" APPEND PROPERTY DEPENDS "grbl-v-sainsmart3018,funcanal")
 
+# -----------------------------------------------------------------------------
+
 # Configure data for grbl-roundtrip:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-roundtrip/grbl_v1.1f.20170801.hex COPYONLY)
 configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.hex ${GRBL_STAGE_DIR}/grbl-roundtrip/SainSmart3018Pro_m328p_flash_original.hex COPYONLY)
@@ -110,6 +115,63 @@ set_property(TEST "grbl-roundtrip,diff_grbl" APPEND PROPERTY DEPENDS "grbl-round
 add_test(NAME "grbl-roundtrip,diff_sainsmart3018" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.bin" "SainSmart3018Pro_m328p_flash_original.dis.bin" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip")
 set_property(TEST "grbl-roundtrip,diff_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip,hex2bin_sainsmart3018")
 
+# -----------------------------------------------------------------------------
+
+# Configure data for grbl-roundtrip-asavr:
+configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/grbl_v1.1f.20170801.hex COPYONLY)
+configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.hex ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/SainSmart3018Pro_m328p_flash_original.hex COPYONLY)
+configure_file(data/avr/grbl/roundtrip-asavr/grbl_v1.1f.20170801.ctl ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/grbl_v1.1f.20170801.ctl COPYONLY)
+configure_file(data/avr/grbl/roundtrip-asavr/SainSmart3018Pro_m328p_flash_original.ctl ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/SainSmart3018Pro_m328p_flash_original.ctl COPYONLY)
+
+# Disassemble grbl_v1.1f.20170801 firmware for grbl-roundtrip-asavr:
+add_test(NAME "grbl-roundtrip-asavr,dasm_grbl" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/grbl_v1.1f.20170801.ctl > grbl_v1.1f.20170801.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,dasm_grbl" APPEND PROPERTY FIXTURES_REQUIRED grbl_v1.1f.20170801.ctl)
+set_property(TEST "grbl-roundtrip-asavr,dasm_grbl" APPEND PROPERTY FIXTURES_REQUIRED grbl_v1.1f.20170801.hex)
+
+# Disassemble SainSmart3018Pro_m328p_flash_original firmware for grbl-roundtrip-asavr:
+add_test(NAME "grbl-roundtrip-asavr,dasm_sainsmart3018" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/SainSmart3018Pro_m328p_flash_original.ctl > SainSmart3018Pro_m328p_flash_original.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,dasm_sainsmart3018" APPEND PROPERTY FIXTURES_REQUIRED SainSmart3018Pro_m328p_flash_original.ctl)
+set_property(TEST "grbl-roundtrip-asavr,dasm_sainsmart3018" APPEND PROPERTY FIXTURES_REQUIRED SainSmart3018Pro_m328p_flash_original.hex)
+
+# Compare grbl_v1.1f.20170801.dis for grbl-roundtrip-asavr:
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "grbl-roundtrip-asavr,diff_grbl,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-roundtrip-asavr/grbl_v1.1f.20170801.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,diff_grbl,dis" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,dasm_grbl")
+endif()
+
+# Compare SainSmart3018Pro_m328p_flash_original.dis for grbl-roundtrip-asavr:
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "grbl-roundtrip-asavr,diff_sainsmart3018,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-roundtrip-asavr/SainSmart3018Pro_m328p_flash_original.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,diff_sainsmart3018,dis" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,dasm_sainsmart3018")
+endif()
+
+# Reassemble grbl_v1.1f.20170801 firmware for grbl-roundtrip-asavr:
+add_test(NAME "grbl-roundtrip-asavr,asm_grbl" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/asavr -o grbl_v1.1f.20170801.dis;${CMAKE_CURRENT_BINARY_DIR}/aslink -i grbl_v1.1f.20170801.rel" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,asm_grbl" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,dasm_grbl")
+
+# Reassemble SainSmart3018Pro_m328p_flash_original firmware for grbl-roundtrip-asavr:
+add_test(NAME "grbl-roundtrip-asavr,asm_sainsmart3018" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/asavr -o SainSmart3018Pro_m328p_flash_original_dis.rel SainSmart3018Pro_m328p_flash_original.dis;${CMAKE_CURRENT_BINARY_DIR}/aslink -i SainSmart3018Pro_m328p_flash_original_dis.rel" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,asm_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,dasm_sainsmart3018")
+
+# Convert grbl_v1.1f.20170801 files from hex to bin:
+#	Note: aslink has a bug that drops two '.ext' off the name ... so grbl_v1.1f.20170801.rel becomes grbl_v1.1f.i86 in the link step above
+add_test(NAME "grbl-roundtrip-asavr,hex2bin_grbl" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b grbl_v1.1f.20170801.hex;${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b grbl_v1.1f.i86" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,hex2bin_grbl" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,asm_grbl")
+
+# Convert SainSmart3018Pro_m328p_flash_original files from hex to bin:
+add_test(NAME "grbl-roundtrip-asavr,hex2bin_sainsmart3018" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b SainSmart3018Pro_m328p_flash_original.hex;${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b SainSmart3018Pro_m328p_flash_original_dis.i86" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,hex2bin_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,asm_sainsmart3018")
+
+# Compare grbl_v1.1f.20170801 files:
+add_test(NAME "grbl-roundtrip-asavr,diff_grbl,bin" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801.bin" "grbl_v1.1f.bin" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,diff_grbl,bin" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,hex2bin_grbl")
+
+# Compare SainSmart3018Pro_m328p_flash_original files:
+add_test(NAME "grbl-roundtrip-asavr,diff_sainsmart3018,bin" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.bin" "SainSmart3018Pro_m328p_flash_original_dis.bin" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip-asavr")
+set_property(TEST "grbl-roundtrip-asavr,diff_sainsmart3018,bin" APPEND PROPERTY DEPENDS "grbl-roundtrip-asavr,hex2bin_sainsmart3018")
+
+# -----------------------------------------------------------------------------
+
 # Configure data for grbl-elf:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801_arduino_v1.8.8/grbl_v1.1f.20170801_arduino_v1.8.8.elf ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf COPYONLY)
 configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl COPYONLY)
@@ -136,6 +198,8 @@ if(FUNC_FLAG_COMMENT)
 add_test(NAME "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801_arduino_v1.8.8.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
 set_property(TEST "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" APPEND PROPERTY DEPENDS "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8")
 endif()
+
+# -----------------------------------------------------------------------------
 
 if(NOT FUNC_FLAG_COMMENT)
 	message(WARNING "Without FUNC_FLAG_COMMENT support enabled, tests comparing actual disassembler text output can't be performed and will be skipped...")
