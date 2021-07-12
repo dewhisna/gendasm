@@ -104,11 +104,15 @@ int main(int argc, char *argv[])
 		std::cout << "Valid <disassembler> types:" << std::endl;
 		for (auto const & itrDisassemblers : disassemblers) {
 			CStringArray arrMCUs = itrDisassemblers->GetMCUList();
+			CStringArray arrAssemblers = itrDisassemblers->GetTargetAssemblerList();
 			std::cout << "    " << itrDisassemblers->GetGDCShortName() << " - " << itrDisassemblers->GetGDCLongName() <<
 						" (v" << formatDisassemblerVersion(itrDisassemblers->GetVersionNumber()) << ")";
 			if (!arrMCUs.empty()) std::cout << " [MCUs:";
 			for (auto const & strMCU : arrMCUs) std::cout << " " << strMCU;
 			if (!arrMCUs.empty()) std::cout <<  "]";
+			if (!arrAssemblers.empty()) std::cout << " [Assemblers:";
+			for (auto const & strAssembler : arrAssemblers) std::cout << " " << strAssembler;
+			if (!arrAssemblers.empty()) std::cout << "]";
 			std::cout << std::endl;
 		}
 		std::cout << std::endl;

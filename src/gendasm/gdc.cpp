@@ -63,6 +63,7 @@ namespace {
 		CCE_COMMENT,
 		CCE_MCU,
 		CCE_DATABLOCK,
+		CCE_ASSEMBLER,
 	};
 
 	enum OUTPUT_TYPE_ENUM {
@@ -95,6 +96,7 @@ namespace {
 		{ "^COMMENT$", CCE_COMMENT },
 		{ "^MCU|CPU$", CCE_MCU },
 		{ "^DATABLOCK$", CCE_DATABLOCK },
+		{ "^ASSEMBLER$", CCE_ASSEMBLER },
 	};
 
 	static const TKeywordMap g_mapParseTrueFalse = {
@@ -194,6 +196,19 @@ CStringArray CDisassembler::GetMCUList() const
 bool CDisassembler::SetMCU(const std::string &strMCUName)
 {
 	UNUSED(strMCUName);
+	return false;
+}
+
+// ----------------------------------------------------------------------------
+
+CStringArray CDisassembler::GetTargetAssemblerList() const
+{
+	return CStringArray();
+}
+
+bool CDisassembler::SetTargetAssembler(const std:: string &strTargetAssembler)
+{
+	UNUSED(strTargetAssembler);
 	return false;
 }
 
@@ -1070,6 +1085,24 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			m_rngDataBlocks.sort();
 			break;
 		}
+		case CCE_ASSEMBLER:		// ASSEMBLER <assembler>
+								//	Where <assembler> is GDC specific Target Assembler name
+			if (argv.size() != 2) {
+				nArgError = (argv.size() < 2) ? ARGERR_Not_Enough_Args : ARGERR_Too_Many_Args;
+				break;
+			}
+			if (!contains(GetTargetAssemblerList(), argv.at(1))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Invalid Target Assembler name \"" + argv.at(1) + "\" specified";
+			} else if (!SetTargetAssembler(argv.at(1))) {
+				bRetVal = false;
+				m_ParseError = "*** Warning: Failed to set Target Assembler name \"" + argv.at(1) + "\"";
+			} else {
+				if (msgFile) {
+					(*msgFile) << "Setting Target Assembler to: " << argv.at(1) << "\n";
+				}
+			}
+			break;
 
 		default:
 			m_ParseError = "*** Error: Unknown command";

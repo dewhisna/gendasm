@@ -95,6 +95,11 @@ class CAVRDisassembler : public CDisassembler,
 		protected CDisassemblerData<CAVRDisassembler, TAVRDisassembler, COpcodeTableArray<TAVRDisassembler> >
 {
 public:
+	enum AVR_ASSEMBLERS_ENUM {
+		AAE_AVRA = 0,			// https://github.com/Ro5bert/avra
+		AAE_ASAVR = 1,			// https://shop-pdp.net/ashtml/asxxxx.php (https://shop-pdp.net/ashtml/asavr.htm)
+	};
+
 	CAVRDisassembler();
 
 	virtual unsigned int GetVersionNumber() const override;
@@ -103,6 +108,9 @@ public:
 
 	virtual CStringArray GetMCUList() const override;
 	virtual bool SetMCU(const std::string &strMCUName) override;
+
+	virtual CStringArray GetTargetAssemblerList() const override;
+	virtual bool SetTargetAssembler(const std:: string &strTargetAssembler) override;
 
 	// --------------------------------
 
@@ -188,6 +196,8 @@ private:
 
 	// --------------------------------
 
+	AVR_ASSEMBLERS_ENUM m_nAssembler;		// Assembler to target
+
 	std::string m_strDevice;				// Device Directive for avra assembler, set via mcu setting
 
 	TAddress m_nSkipOpcodePC;				// Address for the Skip opcode -- used to add a branch reference
@@ -196,7 +206,8 @@ private:
 
 	TAddress m_nStartPC;					// Address for first instruction word for m_CurrentOpcode during DecodeOpcode(), CreateOperand(), etc.
 
-	int m_nSectionCount;
+	int m_nCodeSectionCount;
+	int m_nDataSectionCount;
 };
 
 // ============================================================================

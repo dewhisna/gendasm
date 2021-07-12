@@ -407,6 +407,9 @@ public:
 	virtual CStringArray GetMCUList() const;
 	virtual bool SetMCU(const std::string &strMCUName);
 
+	virtual CStringArray GetTargetAssemblerList() const;	// List of target assemblers
+	virtual bool SetTargetAssembler(const std:: string &strTargetAssembler);
+
 	virtual bool ReadControlFile(ifstreamControlFile& inFile, bool bLastFile = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, int nStartLineCount = 0);	// Read already open control file 'infile', outputs messages to 'msgFile' and errors to 'errFile', nStartLineCount = initial m_nCtrlLine value
 	virtual bool ReadSourceFile(const std::string & strFilename, TAddress nLoadAddress, const std::string & strDFCLibrary, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Reads source file named strFilename using DFC strDFCLibrary
 	virtual bool Disassemble(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr, std::ostream *outFile = nullptr);		// Disassembles entire loaded memory and outputs info to outFile if non-nullptr or opens and writes the file specified by m_sOutputFilename -- calls Pass1 and Pass2 to perform this processing
