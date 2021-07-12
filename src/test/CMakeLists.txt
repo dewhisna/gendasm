@@ -95,11 +95,11 @@ add_test(NAME "grbl-roundtrip,asm_sainsmart3018" COMMAND bash -c "${CMAKE_CURREN
 set_property(TEST "grbl-roundtrip,asm_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip,dasm_sainsmart3018")
 
 # Convert grbl_v1.1f.20170801 files from hex to bin:
-add_test(NAME "grbl-roundtrip,hex2bin_grbl" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin grbl_v1.1f.20170801.hex;${CMAKE_CURRENT_BINARY_DIR}/hex2bin grbl_v1.1f.20170801.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip")
+add_test(NAME "grbl-roundtrip,hex2bin_grbl" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b grbl_v1.1f.20170801.hex;${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b grbl_v1.1f.20170801.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip")
 set_property(TEST "grbl-roundtrip,hex2bin_grbl" APPEND PROPERTY DEPENDS "grbl-roundtrip,asm_grbl")
 
 # Convert SainSmart3018Pro_m328p_flash_original files from hex to bin:
-add_test(NAME "grbl-roundtrip,hex2bin_sainsmart3018" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin SainSmart3018Pro_m328p_flash_original.hex;${CMAKE_CURRENT_BINARY_DIR}/hex2bin SainSmart3018Pro_m328p_flash_original.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip")
+add_test(NAME "grbl-roundtrip,hex2bin_sainsmart3018" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b SainSmart3018Pro_m328p_flash_original.hex;${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b SainSmart3018Pro_m328p_flash_original.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-roundtrip")
 set_property(TEST "grbl-roundtrip,hex2bin_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip,asm_sainsmart3018")
 
 # Compare grbl_v1.1f.20170801 files:
@@ -124,7 +124,7 @@ add_test(NAME "grbl-elf,asm_v1.1f.20170801_arduino_v1.8.8" COMMAND bash -c "${CM
 set_property(TEST "grbl-elf,asm_v1.1f.20170801_arduino_v1.8.8" APPEND PROPERTY DEPENDS "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8")
 
 # Convert grbl_v1.1f.20170801_arduino_v1.8.8 reassembly files from hex to bin:
-add_test(NAME "grbl-elf,hex2bin_v1.1f.20170801_arduino_v1.8.8" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin grbl_v1.1f.20170801_arduino_v1.8.8.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
+add_test(NAME "grbl-elf,hex2bin_v1.1f.20170801_arduino_v1.8.8" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/hex2bin -b grbl_v1.1f.20170801_arduino_v1.8.8.dis.hex" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
 set_property(TEST "grbl-elf,hex2bin_v1.1f.20170801_arduino_v1.8.8" APPEND PROPERTY DEPENDS "grbl-elf,asm_v1.1f.20170801_arduino_v1.8.8")
 
 # Compare grbl_v1.1f.20170801_arduino_v1.8.8 firmware files:
