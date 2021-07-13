@@ -11,8 +11,8 @@ output functions SainSmart3018Pro_m328p_flash_original.fnc
 
 tabs off
 addresses on
-ascii on
-dataopbytes on
+ascii off
+dataopbytes off
 opbytes on
 
 ; Jump Table:

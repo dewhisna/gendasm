@@ -815,7 +815,7 @@ Reading Function Definition File "SainSmart3018Pro_m328p_flash_original.fnc"...
 Cross-Comparing Functions...
 Computing Function Comparison : Please Wait......................................................................................................................................................................................................
 
-Computing Data Block Comparison : Please Wait....
+Computing Data Block Comparison : Please Wait........
 Best Function Matches (Left->Right):
     RESET_vect    : RESET_vect : (100%)
     INT0_vect     : INT0_vect : (100%)
@@ -1051,8 +1051,12 @@ Functions in "SainSmart3018Pro_m328p_flash_original.fnc" with No Matches:
 
 Best Data Block Matches (Left->Right):
     CL010E        : CL0068 : (100%)
+    CL015A        : CL00B4 : (100%)
+    CL0177        : CL00D1 : (100%)
     CL020C        : CL01DE : (100%)
     CL02A9        : CL0166 : (100%)
+    CL030C        : CL01C9 : (100%)
+    CL030F        : CL01CC : (100%)
     CL0321        : CL027B : (100%)
 
 Best Data Block Matches (Right->Left):

@@ -1,0 +1,3395 @@
+Generic Code-Seeking Disassembler
+Fuzzy Function Analyzer
+Using Comparison Algorithm: DynProg X-Drop
+
+Reading Function Definition File "grbl1.1f-cnc3.fnc"...
+
+    Allowing Memory Range Overlaps
+
+    Opcode Symbol Size: 2
+
+    Memory Mappings:
+        ROM Memory Map:
+            0x0000 - 0x7FFF  (Size: 0x8000)
+        RAM Memory Map:
+            0x0000 - 0x00FF  (Size: 0x0100)
+            0x0100 - 0x08FF  (Size: 0x0800)
+         IO Memory Map:
+            0x0000 - 0x003F  (Size: 0x0040)
+
+    208 Functions Defined:
+        0x0000 -> RESET_vect
+        0x0004 -> INT0_vect
+        0x0008 -> INT1_vect
+        0x000C -> PCINT0_vect
+        0x0010 -> PCINT1_vect
+        0x0014 -> PCINT2_vect
+        0x0018 -> WDT_vect
+        0x001C -> TIMER2_COMPA_vect
+        0x0020 -> TIMER2_COMPB_vect
+        0x0024 -> TIMER2_OVF_vect
+        0x0028 -> TIMER1_CAPT_vect
+        0x002C -> TIMER1_COMPA_vect
+        0x0030 -> TIMER1_COMPB_vect
+        0x0034 -> TIMER1_OVF_vect
+        0x0038 -> TIMER0_COMPA_vect
+        0x003C -> TIMER0_COMPB_vect
+        0x0040 -> TIMER0_OVF_vect
+        0x0044 -> SPI0_STC_vect
+        0x0048 -> USART0_RX_vect
+        0x004C -> USART0_UDRE_vect
+        0x0050 -> USART0_TX_vect
+        0x0054 -> ADC_vect
+        0x0058 -> EE_READY_vect
+        0x005C -> ANALOG_COMP_vect
+        0x0060 -> TWI0_vect
+        0x0064 -> SPM_Ready_vect
+        0x0322 -> CL0322
+        0x034A -> CL034A
+        0x03FE -> CL03FE
+        0x040E -> CL040E
+        0x046C -> CL046C
+        0x04A4 -> CL04A4
+        0x04C4 -> CL04C4
+        0x04DE -> CL04DE
+        0x04E4 -> CL04E4
+        0x0628 -> CL0628
+        0x0644 -> CL0644
+        0x069A -> CL069A
+        0x08B2 -> CL08B2
+        0x08D4 -> CL08D4
+        0x0924 -> CL0924
+        0x098A -> CL098A
+        0x0996 -> CL0996
+        0x09BA -> CL09BA
+        0x0A6E -> CL0A6E
+        0x0A72 -> CL0A72
+        0x0A7E -> CL0A7E
+        0x0A82 -> CL0A82
+        0x0A86 -> CL0A86
+        0x0A8A -> CL0A8A
+        0x0A8E -> CL0A8E
+        0x0A92 -> CL0A92
+        0x0A96 -> CL0A96
+        0x0A9A -> CL0A9A
+        0x0AA2 -> CL0AA2
+        0x0AA6 -> CL0AA6
+        0x0AAA -> CL0AAA
+        0x0AAE -> CL0AAE
+        0x0AB2 -> CL0AB2
+        0x0AB6 -> CL0AB6
+        0x0ABA -> CL0ABA
+        0x0AE4 -> CL0AE4
+        0x0B06 -> CL0B06
+        0x0BDE -> CL0BDE
+        0x1366 -> CL1366
+        0x1372 -> CL1372
+        0x1378 -> CL1378
+        0x137E -> CL137E
+        0x1388 -> CL1388
+        0x1398 -> CL1398
+        0x13A8 -> CL13A8
+        0x13C2 -> CL13C2
+        0x13C8 -> CL13C8
+        0x13DA -> CL13DA
+        0x13EC -> CL13EC
+        0x1404 -> CL1404
+        0x1418 -> CL1418
+        0x1430 -> CL1430
+        0x1440 -> CL1440
+        0x1446 -> CL1446
+        0x1458 -> CL1458
+        0x146A -> CL146A
+        0x1476 -> CL1476
+        0x1488 -> CL1488
+        0x149A -> CL149A
+        0x14B0 -> CL14B0
+        0x14DE -> CL14DE
+        0x158A -> CL158A
+        0x1936 -> CL1936
+        0x194A -> CL194A
+        0x1964 -> CL1964
+        0x197E -> CL197E
+        0x1998 -> CL1998
+        0x19A0 -> CL19A0
+        0x19BC -> CL19BC
+        0x19D0 -> CL19D0
+        0x19E4 -> CL19E4
+        0x19F8 -> CL19F8
+        0x1A18 -> CL1A18
+        0x1A32 -> CL1A32
+        0x1A4C -> CL1A4C
+        0x307A -> CL307A
+        0x30FE -> CL30FE
+        0x31AA -> CL31AA
+        0x32A2 -> CL32A2
+        0x32BC -> CL32BC
+        0x3300 -> CL3300
+        0x3312 -> CL3312
+        0x3324 -> CL3324
+        0x3330 -> CL3330
+        0x3344 -> CL3344
+        0x3356 -> CL3356
+        0x33CC -> CL33CC
+        0x345C -> CL345C
+        0x3466 -> CL3466
+        0x34F4 -> CL34F4
+        0x3516 -> CL3516
+        0x353A -> CL353A
+        0x3544 -> CL3544
+        0x3680 -> CL3680
+        0x369E -> CL369E
+        0x36BC -> CL36BC
+        0x36F6 -> CL36F6
+        0x3742 -> CL3742
+        0x3760 -> CL3760
+        0x3768 -> CL3768
+        0x3770 -> CL3770
+        0x3788 -> CL3788
+        0x3798 -> CL3798
+        0x37F6 -> CL37F6
+        0x3844 -> CL3844
+        0x387A -> CL387A
+        0x3A9E -> CL3A9E
+        0x3AA8 -> CL3AA8
+        0x3B5A -> CL3B5A
+        0x3B84 -> CL3B84
+        0x3B9A -> CL3B9A
+        0x3BC8 -> CL3BC8
+        0x3C2A -> CL3C2A
+        0x3C6E -> CL3C6E
+        0x3D54 -> CL3D54
+        0x4300 -> CL4300
+        0x4320 -> CL4320
+        0x4342 -> CL4342
+        0x4736 -> CL4736
+        0x4796 -> CL4796
+        0x4C92 -> CL4C92
+        0x4CC2 -> CL4CC2
+        0x551C -> CL551C
+        0x5536 -> CL5536
+        0x556E -> CL556E
+        0x55B0 -> CL55B0
+        0x5808 -> CL5808
+        0x583A -> CL583A
+        0x6810 -> CL6810
+        0x6858 -> CL6858
+        0x6AEE -> CL6AEE
+        0x6B32 -> CL6B32
+        0x6B98 -> CL6B98
+        0x6CFA -> CL6CFA
+        0x6D0A -> CL6D0A
+        0x6D4E -> CL6D4E
+        0x6DCE -> CL6DCE
+        0x6E5C -> CL6E5C
+        0x6E5E -> CL6E5E
+        0x6E80 -> CL6E80
+        0x6F44 -> CL6F44
+        0x6F9A -> CL6F9A
+        0x6FEA -> CL6FEA
+        0x7010 -> CL7010
+        0x7018 -> CL7018
+        0x701E -> CL701E
+        0x7038 -> CL7038
+        0x703C -> CL703C
+        0x70CA -> CL70CA
+        0x70CC -> CL70CC
+        0x70EE -> CL70EE
+        0x70F8 -> CL70F8
+        0x7150 -> CL7150
+        0x7154 -> CL7154
+        0x71CA -> CL71CA
+        0x71F0 -> CL71F0
+        0x729C -> CL729C
+        0x72E6 -> CL72E6
+        0x72F4 -> CL72F4
+        0x7304 -> CL7304
+        0x7352 -> CL7352
+        0x7396 -> CL7396
+        0x73A6 -> CL73A6
+        0x73DA -> CL73DA
+        0x7408 -> CL7408
+        0x7416 -> CL7416
+        0x741E -> CL741E
+        0x742C -> CL742C
+        0x748C -> CL748C
+        0x74A4 -> CL74A4
+        0x7552 -> CL7552
+        0x7592 -> CL7592
+        0x75A6 -> CL75A6
+        0x7622 -> CL7622
+        0x7628 -> CL7628
+        0x7636 -> CL7636
+        0x7666 -> CL7666
+        0x767C -> CL767C
+        0x7694 -> CL7694
+        0x76BC -> CL76BC
+        0x770C -> CL770C
+        0x772A -> CL772A
+
+    26 Unique ROM Labels Defined:
+        0x0000=RESET_vect
+        0x0004=INT0_vect
+        0x0008=INT1_vect
+        0x000C=PCINT0_vect
+        0x0010=PCINT1_vect
+        0x0014=PCINT2_vect
+        0x0018=WDT_vect
+        0x001C=TIMER2_COMPA_vect
+        0x0020=TIMER2_COMPB_vect
+        0x0024=TIMER2_OVF_vect
+        0x0028=TIMER1_CAPT_vect
+        0x002C=TIMER1_COMPA_vect
+        0x0030=TIMER1_COMPB_vect
+        0x0034=TIMER1_OVF_vect
+        0x0038=TIMER0_COMPA_vect
+        0x003C=TIMER0_COMPB_vect
+        0x0040=TIMER0_OVF_vect
+        0x0044=SPI0_STC_vect
+        0x0048=USART0_RX_vect
+        0x004C=USART0_UDRE_vect
+        0x0050=USART0_TX_vect
+        0x0054=ADC_vect
+        0x0058=EE_READY_vect
+        0x005C=ANALOG_COMP_vect
+        0x0060=TWI0_vect
+        0x0064=SPM_Ready_vect
+
+    119 Unique RAM Labels Defined:
+        0x0000=R0
+        0x0001=R1
+        0x0002=R2
+        0x0003=R3
+        0x0004=R4
+        0x0005=R5
+        0x0006=R6
+        0x0007=R7
+        0x0008=R8
+        0x0009=R9
+        0x000A=R10
+        0x000B=R11
+        0x000C=R12
+        0x000D=R13
+        0x000E=R14
+        0x000F=R15
+        0x0010=R16
+        0x0011=R17
+        0x0012=R18
+        0x0013=R19
+        0x0014=R20
+        0x0015=R21
+        0x0016=R22
+        0x0017=R23
+        0x0018=R24
+        0x0019=R25
+        0x001A=R26
+        0x001B=R27
+        0x001C=R28
+        0x001D=R29
+        0x001E=R30
+        0x001F=R31
+        0x0023=PINB
+        0x0024=DDRB
+        0x0025=PORTB
+        0x0026=PINC
+        0x0027=DDRC
+        0x0028=PORTC
+        0x0029=PIND
+        0x002A=DDRD
+        0x002B=PORTD
+        0x0035=TIFR0
+        0x0036=TIFR1
+        0x0037=TIFR2
+        0x003B=PCIFR
+        0x003C=EIFR
+        0x003D=EIMSK
+        0x003E=GPIOR0
+        0x003F=EECR
+        0x0040=EEDR
+        0x0041=EEADL
+        0x0042=EEADH
+        0x0043=GTCCR
+        0x0044=TCCR0A
+        0x0045=TCCR0B
+        0x0046=TCNT0
+        0x0047=OCRA0
+        0x0048=OCRB0
+        0x004A=GPIOR1
+        0x004B=GPIOR2
+        0x004C=SPCR0
+        0x004D=SPSR0
+        0x004E=SPDR0
+        0x0050=ACSR
+        0x0053=SMCR
+        0x0054=MCUSR
+        0x0055=MCUCR
+        0x0057=SPMCSR
+        0x005D=SPL
+        0x005E=SPH
+        0x005F=SREG
+        0x0060=WDTCSR
+        0x0061=CLKPR
+        0x0064=PRR0
+        0x0066=OSCCAL
+        0x0068=PCICR
+        0x0069=EICRA
+        0x006B=PCMSK0
+        0x006C=PCMSK1
+        0x006D=PCMSK2
+        0x006E=TIMSK0
+        0x006F=TIMSK1
+        0x0070=TIMSK2
+        0x0078=ADCL
+        0x0079=ADCH
+        0x007A=ADCSRA
+        0x007B=ADCSRB
+        0x007C=ADMUX
+        0x007E=DIDR0
+        0x007F=DIDR1
+        0x0080=TCCR1A
+        0x0081=TCCR1B
+        0x0082=TCCR1C
+        0x0084=TCNT1L
+        0x0085=TCNT1H
+        0x0086=ICR1L
+        0x0087=ICR1H
+        0x0088=OCR1AL
+        0x0089=OCR1AH
+        0x008A=OCR1BL
+        0x008B=OCR1BH
+        0x00B0=TCCR2A
+        0x00B1=TCCR2B
+        0x00B2=TCNT2
+        0x00B3=OCR2A
+        0x00B4=OCR2B
+        0x00B6=ASSR
+        0x00B8=TWBR0
+        0x00B9=TWSR0
+        0x00BA=TWAR0
+        0x00BB=TWDR0
+        0x00BC=TWCR0
+        0x00BD=TWAMR0
+        0x00C0=UCSR0A
+        0x00C1=UCSR0B
+        0x00C2=UCSR0C
+        0x00C4=UBRR0L
+        0x00C5=UBRR0H
+        0x00C6=UDR0
+
+    39 Unique IO Labels Defined:
+        0x0003=PINB_
+        0x0004=DDRB_
+        0x0005=PORTB_
+        0x0006=PINC_
+        0x0007=DDRC_
+        0x0008=PORTC_
+        0x0009=PIND_
+        0x000A=DDRD_
+        0x000B=PORTD_
+        0x0015=TIFR0_
+        0x0016=TIFR1_
+        0x0017=TIFR2_
+        0x001B=PCIFR_
+        0x001C=EIFR_
+        0x001D=EIMSK_
+        0x001E=GPIOR0_
+        0x001F=EECR_
+        0x0020=EEDR_
+        0x0021=EEADL_
+        0x0022=EEADH_
+        0x0023=GTCCR_
+        0x0024=TCCR0A_
+        0x0025=TCCR0B_
+        0x0026=TCNT0_
+        0x0027=OCRA0_
+        0x0028=OCRB0_
+        0x002A=GPIOR1_
+        0x002B=GPIOR2_
+        0x002C=SPCR0_
+        0x002D=SPSR0_
+        0x002E=SPDR0_
+        0x0030=ACSR_
+        0x0033=SMCR_
+        0x0034=MCUSR_
+        0x0035=MCUCR_
+        0x0037=SPMCSR_
+        0x003D=SPL_
+        0x003E=SPH_
+        0x003F=SREG_
+
+Reading Function Definition File "SainSmart3018Pro_m328p_flash_original.fnc"...
+
+    Allowing Memory Range Overlaps
+
+    Opcode Symbol Size: 2
+
+    Memory Mappings:
+        ROM Memory Map:
+            0x0000 - 0x7FFF  (Size: 0x8000)
+        RAM Memory Map:
+            0x0000 - 0x00FF  (Size: 0x0100)
+            0x0100 - 0x08FF  (Size: 0x0800)
+         IO Memory Map:
+            0x0000 - 0x003F  (Size: 0x0040)
+
+    198 Functions Defined:
+        0x0000 -> RESET_vect
+        0x0004 -> INT0_vect
+        0x0008 -> INT1_vect
+        0x000C -> PCINT0_vect
+        0x0010 -> PCINT1_vect
+        0x0014 -> PCINT2_vect
+        0x0018 -> WDT_vect
+        0x001C -> TIMER2_COMPA_vect
+        0x0020 -> TIMER2_COMPB_vect
+        0x0024 -> TIMER2_OVF_vect
+        0x0028 -> TIMER1_CAPT_vect
+        0x002C -> TIMER1_COMPA_vect
+        0x0030 -> TIMER1_COMPB_vect
+        0x0034 -> TIMER1_OVF_vect
+        0x0038 -> TIMER0_COMPA_vect
+        0x003C -> TIMER0_COMPB_vect
+        0x0040 -> TIMER0_OVF_vect
+        0x0044 -> SPI0_STC_vect
+        0x0048 -> USART0_RX_vect
+        0x004C -> USART0_UDRE_vect
+        0x0050 -> USART0_TX_vect
+        0x0054 -> ADC_vect
+        0x0058 -> EE_READY_vect
+        0x005C -> ANALOG_COMP_vect
+        0x0060 -> TWI0_vect
+        0x0064 -> SPM_Ready_vect
+        0x027C -> CL027C
+        0x02A4 -> CL02A4
+        0x03F8 -> CL03F8
+        0x040A -> CL040A
+        0x041C -> CL041C
+        0x0428 -> CL0428
+        0x043C -> CL043C
+        0x044E -> CL044E
+        0x04C4 -> CL04C4
+        0x053C -> CL053C
+        0x0554 -> CL0554
+        0x0578 -> CL0578
+        0x05A0 -> CL05A0
+        0x05B6 -> CL05B6
+        0x05E4 -> CL05E4
+        0x0692 -> CL0692
+        0x06D6 -> CL06D6
+        0x07BC -> CL07BC
+        0x07DC -> CL07DC
+        0x081C -> CL081C
+        0x089A -> CL089A
+        0x08B4 -> CL08B4
+        0x08C4 -> CL08C4
+        0x0948 -> CL0948
+        0x0990 -> CL0990
+        0x0C64 -> CL0C64
+        0x0C9E -> CL0C9E
+        0x0CD0 -> CL0CD0
+        0x0CE0 -> CL0CE0
+        0x0D18 -> CL0D18
+        0x0D32 -> CL0D32
+        0x0E86 -> CL0E86
+        0x0EA2 -> CL0EA2
+        0x0EBE -> CL0EBE
+        0x0EF0 -> CL0EF0
+        0x0F3A -> CL0F3A
+        0x0F56 -> CL0F56
+        0x0F5E -> CL0F5E
+        0x0F76 -> CL0F76
+        0x0F86 -> CL0F86
+        0x0FC6 -> CL0FC6
+        0x0FEE -> CL0FEE
+        0x1206 -> CL1206
+        0x1210 -> CL1210
+        0x1264 -> CL1264
+        0x1280 -> CL1280
+        0x129C -> CL129C
+        0x1302 -> CL1302
+        0x130E -> CL130E
+        0x1330 -> CL1330
+        0x1406 -> CL1406
+        0x1544 -> CL1544
+        0x159A -> CL159A
+        0x1AFC -> CL1AFC
+        0x1B64 -> CL1B64
+        0x1BCA -> CL1BCA
+        0x1C12 -> CL1C12
+        0x2B26 -> CL2B26
+        0x338E -> CL338E
+        0x35A8 -> CL35A8
+        0x396A -> CL396A
+        0x39C6 -> CL39C6
+        0x39E8 -> CL39E8
+        0x3A2A -> CL3A2A
+        0x3A34 -> CL3A34
+        0x3A5C -> CL3A5C
+        0x3A9E -> CL3A9E
+        0x3CF6 -> CL3CF6
+        0x3D32 -> CL3D32
+        0x3DF6 -> CL3DF6
+        0x3F3C -> CL3F3C
+        0x4232 -> CL4232
+        0x428C -> CL428C
+        0x42A2 -> CL42A2
+        0x42B8 -> CL42B8
+        0x42CE -> CL42CE
+        0x42D6 -> CL42D6
+        0x42F2 -> CL42F2
+        0x4306 -> CL4306
+        0x431A -> CL431A
+        0x432E -> CL432E
+        0x434E -> CL434E
+        0x4368 -> CL4368
+        0x4382 -> CL4382
+        0x5946 -> CL5946
+        0x5F60 -> CL5F60
+        0x5F8A -> CL5F8A
+        0x5F8E -> CL5F8E
+        0x5F9A -> CL5F9A
+        0x5FA2 -> CL5FA2
+        0x5FA6 -> CL5FA6
+        0x5FAA -> CL5FAA
+        0x5FAE -> CL5FAE
+        0x5FB2 -> CL5FB2
+        0x5FB6 -> CL5FB6
+        0x5FBA -> CL5FBA
+        0x5FBE -> CL5FBE
+        0x5FC6 -> CL5FC6
+        0x5FCA -> CL5FCA
+        0x5FCE -> CL5FCE
+        0x5FD2 -> CL5FD2
+        0x5FD6 -> CL5FD6
+        0x5FDA -> CL5FDA
+        0x604E -> CL604E
+        0x6304 -> CL6304
+        0x68CC -> CL68CC
+        0x68D8 -> CL68D8
+        0x68DE -> CL68DE
+        0x68E8 -> CL68E8
+        0x68EE -> CL68EE
+        0x6902 -> CL6902
+        0x6912 -> CL6912
+        0x692C -> CL692C
+        0x6932 -> CL6932
+        0x6944 -> CL6944
+        0x6956 -> CL6956
+        0x696E -> CL696E
+        0x6982 -> CL6982
+        0x699A -> CL699A
+        0x69AA -> CL69AA
+        0x69B0 -> CL69B0
+        0x69C2 -> CL69C2
+        0x69D4 -> CL69D4
+        0x69E0 -> CL69E0
+        0x69F2 -> CL69F2
+        0x6A08 -> CL6A08
+        0x6A1A -> CL6A1A
+        0x6AF0 -> CL6AF0
+        0x6AF2 -> CL6AF2
+        0x6B20 -> CL6B20
+        0x6BF0 -> CL6BF0
+        0x6C50 -> CL6C50
+        0x6CAE -> CL6CAE
+        0x6CDC -> CL6CDC
+        0x6CE6 -> CL6CE6
+        0x6CF0 -> CL6CF0
+        0x6D18 -> CL6D18
+        0x6D1E -> CL6D1E
+        0x6DB0 -> CL6DB0
+        0x6DB2 -> CL6DB2
+        0x6DD4 -> CL6DD4
+        0x6DE2 -> CL6DE2
+        0x6E40 -> CL6E40
+        0x6E44 -> CL6E44
+        0x6EBA -> CL6EBA
+        0x6EE8 -> CL6EE8
+        0x6F94 -> CL6F94
+        0x6FE2 -> CL6FE2
+        0x6FF0 -> CL6FF0
+        0x7002 -> CL7002
+        0x7054 -> CL7054
+        0x709E -> CL709E
+        0x70AE -> CL70AE
+        0x70E2 -> CL70E2
+        0x7112 -> CL7112
+        0x7120 -> CL7120
+        0x712A -> CL712A
+        0x713A -> CL713A
+        0x71A0 -> CL71A0
+        0x71C6 -> CL71C6
+        0x727A -> CL727A
+        0x72C2 -> CL72C2
+        0x72DE -> CL72DE
+        0x735E -> CL735E
+        0x7366 -> CL7366
+        0x737C -> CL737C
+        0x73B2 -> CL73B2
+        0x73CA -> CL73CA
+        0x73F2 -> CL73F2
+        0x7442 -> CL7442
+        0x7458 -> CL7458
+        0x7476 -> CL7476
+
+    26 Unique ROM Labels Defined:
+        0x0000=RESET_vect
+        0x0004=INT0_vect
+        0x0008=INT1_vect
+        0x000C=PCINT0_vect
+        0x0010=PCINT1_vect
+        0x0014=PCINT2_vect
+        0x0018=WDT_vect
+        0x001C=TIMER2_COMPA_vect
+        0x0020=TIMER2_COMPB_vect
+        0x0024=TIMER2_OVF_vect
+        0x0028=TIMER1_CAPT_vect
+        0x002C=TIMER1_COMPA_vect
+        0x0030=TIMER1_COMPB_vect
+        0x0034=TIMER1_OVF_vect
+        0x0038=TIMER0_COMPA_vect
+        0x003C=TIMER0_COMPB_vect
+        0x0040=TIMER0_OVF_vect
+        0x0044=SPI0_STC_vect
+        0x0048=USART0_RX_vect
+        0x004C=USART0_UDRE_vect
+        0x0050=USART0_TX_vect
+        0x0054=ADC_vect
+        0x0058=EE_READY_vect
+        0x005C=ANALOG_COMP_vect
+        0x0060=TWI0_vect
+        0x0064=SPM_Ready_vect
+
+    119 Unique RAM Labels Defined:
+        0x0000=R0
+        0x0001=R1
+        0x0002=R2
+        0x0003=R3
+        0x0004=R4
+        0x0005=R5
+        0x0006=R6
+        0x0007=R7
+        0x0008=R8
+        0x0009=R9
+        0x000A=R10
+        0x000B=R11
+        0x000C=R12
+        0x000D=R13
+        0x000E=R14
+        0x000F=R15
+        0x0010=R16
+        0x0011=R17
+        0x0012=R18
+        0x0013=R19
+        0x0014=R20
+        0x0015=R21
+        0x0016=R22
+        0x0017=R23
+        0x0018=R24
+        0x0019=R25
+        0x001A=R26
+        0x001B=R27
+        0x001C=R28
+        0x001D=R29
+        0x001E=R30
+        0x001F=R31
+        0x0023=PINB
+        0x0024=DDRB
+        0x0025=PORTB
+        0x0026=PINC
+        0x0027=DDRC
+        0x0028=PORTC
+        0x0029=PIND
+        0x002A=DDRD
+        0x002B=PORTD
+        0x0035=TIFR0
+        0x0036=TIFR1
+        0x0037=TIFR2
+        0x003B=PCIFR
+        0x003C=EIFR
+        0x003D=EIMSK
+        0x003E=GPIOR0
+        0x003F=EECR
+        0x0040=EEDR
+        0x0041=EEADL
+        0x0042=EEADH
+        0x0043=GTCCR
+        0x0044=TCCR0A
+        0x0045=TCCR0B
+        0x0046=TCNT0
+        0x0047=OCRA0
+        0x0048=OCRB0
+        0x004A=GPIOR1
+        0x004B=GPIOR2
+        0x004C=SPCR0
+        0x004D=SPSR0
+        0x004E=SPDR0
+        0x0050=ACSR
+        0x0053=SMCR
+        0x0054=MCUSR
+        0x0055=MCUCR
+        0x0057=SPMCSR
+        0x005D=SPL
+        0x005E=SPH
+        0x005F=SREG
+        0x0060=WDTCSR
+        0x0061=CLKPR
+        0x0064=PRR0
+        0x0066=OSCCAL
+        0x0068=PCICR
+        0x0069=EICRA
+        0x006B=PCMSK0
+        0x006C=PCMSK1
+        0x006D=PCMSK2
+        0x006E=TIMSK0
+        0x006F=TIMSK1
+        0x0070=TIMSK2
+        0x0078=ADCL
+        0x0079=ADCH
+        0x007A=ADCSRA
+        0x007B=ADCSRB
+        0x007C=ADMUX
+        0x007E=DIDR0
+        0x007F=DIDR1
+        0x0080=TCCR1A
+        0x0081=TCCR1B
+        0x0082=TCCR1C
+        0x0084=TCNT1L
+        0x0085=TCNT1H
+        0x0086=ICR1L
+        0x0087=ICR1H
+        0x0088=OCR1AL
+        0x0089=OCR1AH
+        0x008A=OCR1BL
+        0x008B=OCR1BH
+        0x00B0=TCCR2A
+        0x00B1=TCCR2B
+        0x00B2=TCNT2
+        0x00B3=OCR2A
+        0x00B4=OCR2B
+        0x00B6=ASSR
+        0x00B8=TWBR0
+        0x00B9=TWSR0
+        0x00BA=TWAR0
+        0x00BB=TWDR0
+        0x00BC=TWCR0
+        0x00BD=TWAMR0
+        0x00C0=UCSR0A
+        0x00C1=UCSR0B
+        0x00C2=UCSR0C
+        0x00C4=UBRR0L
+        0x00C5=UBRR0H
+        0x00C6=UDR0
+
+    39 Unique IO Labels Defined:
+        0x0003=PINB_
+        0x0004=DDRB_
+        0x0005=PORTB_
+        0x0006=PINC_
+        0x0007=DDRC_
+        0x0008=PORTC_
+        0x0009=PIND_
+        0x000A=DDRD_
+        0x000B=PORTD_
+        0x0015=TIFR0_
+        0x0016=TIFR1_
+        0x0017=TIFR2_
+        0x001B=PCIFR_
+        0x001C=EIFR_
+        0x001D=EIMSK_
+        0x001E=GPIOR0_
+        0x001F=EECR_
+        0x0020=EEDR_
+        0x0021=EEADL_
+        0x0022=EEADH_
+        0x0023=GTCCR_
+        0x0024=TCCR0A_
+        0x0025=TCCR0B_
+        0x0026=TCNT0_
+        0x0027=OCRA0_
+        0x0028=OCRB0_
+        0x002A=GPIOR1_
+        0x002B=GPIOR2_
+        0x002C=SPCR0_
+        0x002D=SPSR0_
+        0x002E=SPDR0_
+        0x0030=ACSR_
+        0x0033=SMCR_
+        0x0034=MCUSR_
+        0x0035=MCUCR_
+        0x0037=SPMCSR_
+        0x003D=SPL_
+        0x003E=SPH_
+        0x003F=SREG_
+
+Cross-Comparing Functions...
+Computing Function Comparison : Please Wait................................................................................................................................................................................................................
+
+Computing Data Block Comparison : Please Wait........
+Best Function Matches (Left->Right):
+    RESET_vect    : RESET_vect : (100%)
+    INT0_vect     : INT0_vect : (100%)
+    INT1_vect     : INT1_vect : (100%)
+    PCINT0_vect   : PCINT0_vect : (100%)
+    PCINT1_vect   : PCINT1_vect : (100%)
+    PCINT2_vect   : PCINT2_vect : (100%)
+    WDT_vect      : WDT_vect : (100%)
+    TIMER2_COMPA_vect : TIMER2_COMPA_vect : (100%)
+    TIMER2_COMPB_vect : TIMER2_COMPB_vect : (100%)
+    TIMER2_OVF_vect : TIMER2_OVF_vect : (100%)
+    TIMER1_CAPT_vect : TIMER1_CAPT_vect : (100%)
+    TIMER1_COMPA_vect : TIMER1_COMPA_vect : (100%)
+    TIMER1_COMPB_vect : TIMER1_COMPB_vect : (100%)
+    TIMER1_OVF_vect : TIMER1_OVF_vect : (100%)
+    TIMER0_COMPA_vect : TIMER0_COMPA_vect : (100%)
+    TIMER0_COMPB_vect : TIMER0_COMPB_vect : (100%)
+    TIMER0_OVF_vect : TIMER0_OVF_vect : (100%)
+    SPI0_STC_vect : SPI0_STC_vect : (100%)
+    USART0_RX_vect : USART0_RX_vect : (100%)
+    USART0_UDRE_vect : USART0_UDRE_vect : (100%)
+    USART0_TX_vect : USART0_TX_vect : (100%)
+    ADC_vect      : ADC_vect : (100%)
+    EE_READY_vect : EE_READY_vect : (100%)
+    ANALOG_COMP_vect : ANALOG_COMP_vect : (100%)
+    TWI0_vect     : TWI0_vect : (100%)
+    SPM_Ready_vect : SPM_Ready_vect : (100%)
+    CL0322        : CL027C : (76.4706%)
+    CL034A        : CL39C6 : (3.27869%)
+    CL03FE        : CL0CD0 : (100%)
+    CL040E        : CL07BC, CL0C9E, CL1BCA, CL5F8E, CL68EE, CL6902, CL6912, CL6956, CL696E, CL6982, CL699A : (2.5641%)
+    CL046C        : CL0CE0 : (22.7273%)
+    CL04A4        : CL05A0 : (7.14286%)
+    CL04C4        : CL1264 : (16.6667%)
+    CL04E4        : CL1406 : (31.405%)
+    CL0628        : CL1280 : (30%)
+    CL0644        : CL1544 : (48.4375%)
+    CL069A        : CL338E : (7.97101%)
+    CL08B2        : CL39C6 : (100%)
+    CL08D4        : CL0948, CL0D18, CL0EF0, CL0F3A, CL0FC6, CL1210, CL129C, CL39E8 : (5.40541%)
+    CL0924        : CL129C : (100%)
+    CL0996        : CL130E, CL5FB6 : (6.25%)
+    CL09BA        : CL1BCA : (12.987%)
+    CL0A6E        : CL5F8A, CL5FB2, CL5FD6 : (100%)
+    CL0A72        : CL5F8E : (100%)
+    CL0A7E        : CL5F9A, CL5FBE : (33.3333%)
+    CL0A82        : CL5FA2, CL5FC6 : (100%)
+    CL0A86        : CL5FA6, CL5FCA : (100%)
+    CL0A8A        : CL5FAA, CL5FCE : (100%)
+    CL0A8E        : CL5FAE, CL5FD2 : (100%)
+    CL0A92        : CL5F8A, CL5FB2, CL5FD6 : (100%)
+    CL0A96        : CL5FB6 : (100%)
+    CL0A9A        : CL5F9A, CL5FBA, CL5FBE, CL68DE : (33.3333%)
+    CL0AA2        : CL5F9A, CL5FBE : (33.3333%)
+    CL0AA6        : CL5FA2, CL5FC6 : (100%)
+    CL0AAA        : CL5FA6, CL5FCA : (100%)
+    CL0AAE        : CL5FAA, CL5FCE : (100%)
+    CL0AB2        : CL5FAE, CL5FD2 : (100%)
+    CL0AB6        : CL5F8A, CL5FB2, CL5FD6 : (100%)
+    CL0ABA        : CL5FDA : (18.3673%)
+    CL0AE4        : CL5F60 : (80.9524%)
+    CL0B06        : CL3D32 : (3.97727%)
+    CL0BDE        : CL35A8 : (3.05732%)
+    CL1366        : CL68CC : (100%)
+    CL1372        : CL68D8, CL68E8, CL692C, CL69AA : (100%)
+    CL1378        : CL68D8, CL68E8, CL692C, CL69AA : (100%)
+    CL137E        : CL68DE : (100%)
+    CL1388        : CL6902, CL699A : (42.8571%)
+    CL1398        : CL6902 : (100%)
+    CL13A8        : CL6902, CL6912, CL699A : (30%)
+    CL13C2        : CL68D8, CL68E8, CL692C, CL69AA : (100%)
+    CL13EC        : CL6902, CL699A : (33.3333%)
+    CL1404        : CL696E : (100%)
+    CL1418        : CL6902, CL699A : (33.3333%)
+    CL1430        : CL699A : (100%)
+    CL1440        : CL68D8, CL68E8, CL692C, CL69AA : (100%)
+    CL146A        : CL69D4 : (100%)
+    CL14B0        : CL6902, CL699A : (15%)
+    CL158A        : CL3DF6 : (7.69231%)
+    CL1936        : CL42F2, CL4306, CL431A, CL6932, CL6944, CL69B0, CL69C2, CL69E0, CL69F2, CL6A08 : (66.6667%)
+    CL194A        : CL428C, CL42A2, CL42B8, CL42F2, CL4306, CL431A, CL434E, CL4368, CL6932, CL6944, CL69B0, CL69C2, CL69E0, CL69F2, CL6A08 : (44.4444%)
+    CL1964        : CL428C, CL42A2, CL42B8, CL42F2, CL4306, CL431A, CL434E, CL4368, CL6932, CL6944, CL69B0, CL69C2, CL69E0, CL69F2, CL6A08 : (44.4444%)
+    CL197E        : CL428C, CL42A2, CL42B8, CL42F2, CL4306, CL431A, CL434E, CL4368, CL6932, CL6944, CL69B0, CL69C2, CL69E0, CL69F2, CL6A08 : (44.4444%)
+    CL1998        : CL42CE : (33.3333%)
+    CL19A0        : CL42D6 : (100%)
+    CL19BC        : CL42F2 : (100%)
+    CL19D0        : CL4306 : (100%)
+    CL19E4        : CL431A : (100%)
+    CL19F8        : CL432E : (84.6154%)
+    CL1A18        : CL428C, CL42A2, CL42B8, CL42F2, CL4306, CL431A, CL434E, CL4368, CL6932, CL6944, CL69B0, CL69C2, CL69E0, CL69F2, CL6A08 : (44.4444%)
+    CL1A32        : CL428C, CL42A2, CL42B8, CL42F2, CL4306, CL431A, CL434E, CL4368, CL6932, CL6944, CL69B0, CL69C2, CL69E0, CL69F2, CL6A08 : (44.4444%)
+    CL1A4C        : CL4232 : (0.596953%)
+    CL307A        : CL3F3C : (0.299401%)
+    CL30FE        : CL05E4 : (35.119%)
+    CL31AA        : CL1330 : (44.8276%)
+    CL32A2        : CL0D18 : (16.6667%)
+    CL32BC        : CL39E8 : (21.6667%)
+    CL3300        : CL03F8, CL040A, CL043C : (42.8571%)
+    CL3312        : CL03F8, CL040A, CL043C : (42.8571%)
+    CL3324        : CL041C : (100%)
+    CL3330        : CL03F8, CL040A, CL043C : (37.5%)
+    CL3344        : CL03F8, CL040A, CL043C : (42.8571%)
+    CL3356        : CL044E : (77.193%)
+    CL33CC        : CL044E : (14.2857%)
+    CL345C        : CL3A2A : (100%)
+    CL3466        : CL053C : (10.6061%)
+    CL3516        : CL0554 : (69.2308%)
+    CL3544        : CL0D32 : (20.4969%)
+    CL3680        : CL0E86 : (45.8333%)
+    CL369E        : CL0EA2 : (45.8333%)
+    CL36BC        : CL0F3A : (12.5%)
+    CL36F6        : CL0EF0 : (43.9394%)
+    CL3742        : CL0D18, CL0F3A : (14.2857%)
+    CL3770        : CL0F5E : (55.5556%)
+    CL3788        : CL0F76 : (33.3333%)
+    CL3798        : CL0948, CL0D18, CL0EF0, CL0F3A, CL0FC6, CL1210, CL39E8 : (5.71429%)
+    CL37F6        : CL0F86 : (19.1176%)
+    CL3844        : CL3A5C : (9.67742%)
+    CL387A        : CL0FEE : (64.5631%)
+    CL3A9E        : CL1206 : (100%)
+    CL3AA8        : CL1210 : (37.1795%)
+    CL3B5A        : CL0578 : (5%)
+    CL3B84        : CL05A0 : (100%)
+    CL3B9A        : CL05B6 : (100%)
+    CL3BC8        : CL396A : (11.9048%)
+    CL3C2A        : CL0692 : (88.2353%)
+    CL3C6E        : CL06D6 : (29.5238%)
+    CL3D54        : CL159A : (6.47059%)
+    CL4300        : CL07BC : (64.2857%)
+    CL4320        : CL130E : (53.8462%)
+    CL4342        : CL35A8 : (5.36913%)
+    CL4736        : CL07BC, CL0C9E, CL1BCA, CL5F8E, CL68EE, CL6902, CL6912, CL6956, CL696E, CL6982, CL699A : (2.32558%)
+    CL4796        : CL1AFC : (2.54777%)
+    CL4C92        : CL0C9E : (25%)
+    CL4CC2        : CL2B26 : (3.75427%)
+    CL551C        : CL089A : (27.2727%)
+    CL5536        : CL0948, CL0D18, CL0F3A, CL0FC6 : (7.69231%)
+    CL556E        : CL3A5C : (77.4194%)
+    CL55B0        : CL3A9E : (62.3188%)
+    CL583A        : CL1C12 : (2.09706%)
+    CL6810        : CL0948 : (100%)
+    CL6858        : CL3DF6 : (5.86319%)
+    CL6B32        : CL1B64 : (75%)
+    CL6B98        : CL02A4 : (9.94152%)
+    CL6CFA        : CL08B4 : (100%)
+    CL6D0A        : CL07DC : (20.5882%)
+    CL6D4E        : CL04C4, CL081C : (17.7419%)
+    CL6DCE        : CL04C4, CL081C : (15.942%)
+    CL6E5C        : CL6AF0 : (100%)
+    CL6E5E        : CL6AF2 : (11.7647%)
+    CL6E80        : CL6B20 : (81.6327%)
+    CL6F44        : CL6BF0 : (72.093%)
+    CL6F9A        : CL6C50 : (47.5%)
+    CL6FEA        : CL6CAE : (36.8421%)
+    CL7010        : CL6CDC : (50%)
+    CL703C        : CL6D1E : (83.0986%)
+    CL70CA        : CL6DB0 : (100%)
+    CL70CC        : CL6DB2 : (100%)
+    CL70EE        : CL6DD4 : (20%)
+    CL70F8        : CL6DE2 : (63.6364%)
+    CL7150        : CL6E40 : (100%)
+    CL7154        : CL6E44 : (100%)
+    CL71CA        : CL6EBA : (36.8421%)
+    CL71F0        : CL6EE8 : (100%)
+    CL729C        : CL6F94 : (72.973%)
+    CL72E6        : CL6FE2 : (100%)
+    CL72F4        : CL6FF0 : (87.5%)
+    CL7304        : CL7002 : (92.3077%)
+    CL7352        : CL7054 : (73.5294%)
+    CL7396        : CL709E : (100%)
+    CL73A6        : CL70AE : (100%)
+    CL73DA        : CL70E2 : (91.3043%)
+    CL7408        : CL7112 : (100%)
+    CL7416        : CL7120 : (50%)
+    CL741E        : CL712A : (85.7143%)
+    CL742C        : CL713A : (87.5%)
+    CL74A4        : CL71C6 : (81.6092%)
+    CL7552        : CL727A : (71.875%)
+    CL7592        : CL72C2 : (30%)
+    CL75A6        : CL72DE : (93.5484%)
+    CL7622        : CL735E : (66.6667%)
+    CL7636        : CL737C : (79.1667%)
+    CL7666        : CL7442 : (100%)
+    CL767C        : CL73B2 : (100%)
+    CL7694        : CL73CA : (100%)
+    CL76BC        : CL73F2 : (100%)
+    CL770C        : CL7458 : (100%)
+    CL772A        : CL7476 : (100%)
+
+Best Function Matches (Right->Left):
+    CL0428        : CL3324 : (25%)
+    CL08C4        : CL3356 : (14.8438%)
+    CL0990        : CL6858 : (5.26316%)
+    CL0C64        : CL04C4 : (4%)
+    CL0EBE        : CL3BC8 : (7.14286%)
+    CL0F3A        : CL32A2 : (15.3846%)
+    CL0FC6        : CL32A2, CL3742 : (13.3333%)
+    CL3A34        : CL3BC8 : (7.14286%)
+    CL3CF6        : CL37F6 : (11.7647%)
+    CL4232        : CL1936 : (13.1579%)
+    CL428C        : CL1936, CL19BC, CL19D0, CL19E4 : (57.1429%)
+    CL42A2        : CL1936, CL19BC, CL19D0, CL19E4 : (57.1429%)
+    CL42B8        : CL1936, CL19BC, CL19D0, CL19E4 : (57.1429%)
+    CL434E        : CL1936, CL19BC, CL19D0, CL19E4 : (44.4444%)
+    CL4368        : CL1936, CL19BC, CL19D0, CL19E4 : (44.4444%)
+    CL4382        : CL1A32 : (0.209118%)
+    CL5946        : CL3798 : (2.17755%)
+    CL5F9A        : CL137E : (33.3333%)
+    CL5FBE        : CL137E : (33.3333%)
+    CL604E        : CL3AA8 : (1.1194%)
+    CL68EE        : CL1404 : (33.3333%)
+    CL6932        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL6944        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL6956        : CL1388, CL1398, CL13EC, CL1404, CL1418, CL1430 : (22.2222%)
+    CL6982        : CL1388, CL1398, CL13EC, CL1404, CL1418, CL1430 : (22.2222%)
+    CL69B0        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL69C2        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL69E0        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL69F2        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL6A08        : CL19BC, CL19D0, CL19E4 : (66.6667%)
+    CL6A1A        : CL14B0 : (4.08163%)
+    CL6CE6        : CL345C : (33.3333%)
+    CL6CF0        : CL03FE, CL08B2, CL345C, CL7666 : (7.69231%)
+    CL6D18        : CL345C : (33.3333%)
+    CL6DD4        : CL345C : (20%)
+    CL71A0        : CL03FE, CL08B2, CL345C, CL7666 : (8.33333%)
+    CL7366        : CL03FE, CL345C : (14.2857%)
+
+Functions in "grbl1.1f-cnc3.fnc" with No Matches:
+    CL04DE
+    CL098A
+    CL13C8
+    CL13DA
+    CL1446
+    CL1458
+    CL1476
+    CL1488
+    CL149A
+    CL14DE
+    CL34F4
+    CL353A
+    CL3760
+    CL3768
+    CL5808
+    CL6AEE
+    CL7018
+    CL701E
+    CL7038
+    CL748C
+    CL7628
+
+Functions in "SainSmart3018Pro_m328p_flash_original.fnc" with No Matches:
+    CL0F56
+    CL1302
+    CL6304
+
+Best Data Block Matches (Left->Right):
+    CL010E        : CL0068 : (100%)
+    CL015A        : CL00D1 : (100%)
+    CL01EF        : CL01DE : (100%)
+    CL028C        : CL01C9 : (100%)
+    CL028F        : CL00B4 : (100%)
+    CL02AC        : CL01CC : (100%)
+    CL02BE        : CL0166 : (100%)
+    CL0321        : CL027B : (100%)
+
+Best Data Block Matches (Right->Left):
+
+Data Blocks in "grbl1.1f-cnc3.fnc" with No Matches:
+    <None>
+
+Data Blocks in "SainSmart3018Pro_m328p_flash_original.fnc" with No Matches:
+    CL753A
+
+Cross-Comparing Symbol Tables...
+
+Left-Side Code Symbol Matches:
+------------------------------
+ACSR : ACSR (100.000000%)
+ACSR_ : ACSR_ (100.000000%)
+ANALOG_COMP_vect : ANALOG_COMP_vect (100.000000%)
+DDRB_ : DDRB_ (100.000000%)
+EEDR : EEDR (100.000000%)
+EEDR_ : EEDR_ (100.000000%)
+EE_READY_vect : EE_READY_vect (100.000000%)
+EIFR : EIFR (100.000000%)
+EIFR_ : EIFR_ (100.000000%)
+L0322 : L027C (100.000000%)
+L0336 : L0290 (100.000000%)
+L0338 : L0292 (100.000000%)
+L0346 : L02A0 (100.000000%)
+L034A : L604E (100.000000%)
+L03FE : ??? (40.000000%), L0CD0 (20.000000%), L6D18 (20.000000%), L71C6 (20.000000%)
+L040C : ??? (75.000000%), L0CDE (25.000000%)
+L040E : L07BC (100.000000%)
+L0418 : L6004 (100.000000%)
+L0444 : L68FE (20.000000%), L6928 (20.000000%), L696A (20.000000%), L6996 (20.000000%), ??? (20.000000%)
+L045A : ??? (66.666667%), L1C10 (33.333333%)
+L046C : ??? (50.000000%), L0CE0 (22.580645%), L08C4 (3.225806%), L0EF0 (3.225806%), L0F3A (3.225806%), L0554 (1.612903%), L081C (1.612903%), L0EBE (1.612903%), L2C72 (1.612903%), L2CBA (1.612903%), L2E14 (1.612903%), L2E92 (1.612903%), L3A82 (1.612903%), L6E40 (1.612903%), L71A0 (1.612903%), L73B2 (1.612903%)
+L047C : L0D0E (100.000000%)
+L0484 : L0CEE (100.000000%)
+L04A4 : L0CD0 (100.000000%)
+L04C4 : L1264 (50.000000%), L043C (25.000000%), L7120 (25.000000%)
+L04D4 : L1278 (50.000000%), ??? (50.000000%)
+L04D8 : ??? (100.000000%)
+L04DC : L1276 (50.000000%), ??? (50.000000%)
+L04E4 : L1406 (100.000000%)
+L056A : L1488 (100.000000%)
+L057E : L14B4 (100.000000%)
+L05B2 : L14E8 (100.000000%)
+L05C6 : L14FC (100.000000%)
+L060C : L149A (66.666667%), ??? (33.333333%)
+L0628 : L1280 (100.000000%)
+L0638 : L1294 (100.000000%)
+L063E : ??? (100.000000%)
+L0644 : L1544 (50.000000%), ??? (20.000000%), L0CE0 (10.000000%), L0F56 (10.000000%), L1264 (10.000000%)
+L066C : L1570 (100.000000%)
+L0674 : L1596 (100.000000%)
+L0688 : L1588 (100.000000%)
+L0694 : ??? (100.000000%)
+L0698 : L156E (100.000000%)
+L069A : L338E (38.461538%), ??? (30.769231%), L0EA2 (7.692308%), L39C6 (7.692308%), L6FE2 (7.692308%), L6FF0 (7.692308%)
+L06B6 : L33AA (100.000000%)
+L06DA : L3432 (100.000000%)
+L06F4 : L33DC (100.000000%)
+L0706 : L33EE (100.000000%)
+L071E : L3406 (100.000000%)
+L0746 : L3440 (100.000000%)
+L0774 : L346E (100.000000%)
+L0782 : L348C (100.000000%)
+L078C : L3496 (100.000000%)
+L07B4 : L34F6 (100.000000%)
+L07CC : L34BC (66.666667%), ??? (33.333333%)
+L07F0 : ??? (100.000000%)
+L0806 : L3510 (100.000000%)
+L082C : L3536 (100.000000%)
+L0838 : L342C (50.000000%), L356A (50.000000%)
+L0846 : L3578 (100.000000%)
+L084C : L342C (100.000000%)
+L0874 : L357E (100.000000%)
+L0880 : L358A (100.000000%)
+L089C : L342C (50.000000%), L33CE (12.500000%), L34BC (12.500000%), L356A (12.500000%), ??? (12.500000%)
+L08A2 : L3476 (75.000000%), ??? (25.000000%)
+L08B2 : ??? (29.411765%), L0CE0 (11.764706%), L39C6 (11.764706%), L0F3A (5.882353%), L6D18 (5.882353%), L6DE2 (5.882353%), L7002 (5.882353%), L709E (5.882353%), L70E2 (5.882353%), L71A0 (5.882353%), L71C6 (5.882353%)
+L08B6 : L39CA (33.333333%), L7114 (33.333333%), L6D14 (16.666667%), L6F30 (16.666667%)
+L08D2 : L39E6 (33.333333%), L6D14 (33.333333%), L71BC (33.333333%)
+L08D4 : ??? (100.000000%)
+L08DA : ??? (100.000000%)
+L08DC : ??? (66.666667%), L0F0E (33.333333%)
+L0914 : ??? (80.000000%), L73B2 (20.000000%)
+L098A : ??? (66.666667%), L73CA (33.333333%)
+L099E : L1316 (100.000000%)
+L09B8 : ??? (100.000000%)
+L09BA : L1BCA (66.666667%), L0FEE (33.333333%)
+L09E6 : ??? (100.000000%)
+L09F6 : L1C0C (100.000000%)
+L09FC : L1C08 (100.000000%)
+L0A00 : L1C10 (100.000000%)
+L0A02 : L5F08 (100.000000%)
+L0A4A : L5F56 (50.000000%), L5F9C (25.000000%), L5FC0 (25.000000%)
+L0A9C : L5F9C (42.857143%), L5FC0 (35.714286%), L5F60 (14.285714%), L5F56 (7.142857%)
+L0ABC : L5F9C (38.461538%), L5FC0 (38.461538%), L5F60 (15.384615%), L5F56 (7.692308%)
+L0AD0 : L5FEC (100.000000%)
+L0AE4 : L5F60 (50.000000%), L5F9C (12.500000%), L5FC0 (12.500000%), L6850 (12.500000%), ??? (12.500000%)
+L0B44 : ??? (100.000000%)
+L0B54 : L3DAE (100.000000%)
+L0B5A : L3DA2 (100.000000%)
+L0B70 : L3D76 (50.000000%), ??? (50.000000%)
+L0B78 : ??? (100.000000%)
+L0B96 : ??? (100.000000%)
+L0BCE : ??? (40.000000%), L338E (20.000000%), L3DB4 (20.000000%), L3DCA (20.000000%)
+L0BDE : ??? (100.000000%)
+L0C82 : ??? (100.000000%)
+L0CA0 : L3630 (100.000000%)
+L0CCA : ??? (100.000000%)
+L0CD6 : ??? (100.000000%)
+L0CE8 : ??? (100.000000%)
+L0CEE : ??? (100.000000%)
+L0CF0 : ??? (100.000000%)
+L0CFA : L3630 (100.000000%)
+L0D16 : ??? (100.000000%)
+L0D18 : ??? (100.000000%)
+L0D26 : ??? (100.000000%)
+L0D28 : ??? (100.000000%)
+L0D32 : ??? (100.000000%)
+L0D3C : ??? (100.000000%)
+L0D46 : ??? (100.000000%)
+L0D4C : ??? (100.000000%)
+L0D5A : ??? (100.000000%)
+L0D62 : ??? (100.000000%)
+L0D6C : L3620 (100.000000%)
+L0D6E : ??? (100.000000%)
+L0D7A : ??? (100.000000%)
+L0D80 : ??? (100.000000%)
+L0E26 : L371A (100.000000%)
+L0E2E : L371E (100.000000%)
+L0E32 : ??? (100.000000%)
+L0E4E : ??? (100.000000%)
+L0E52 : ??? (100.000000%)
+L0E54 : ??? (100.000000%)
+L0E58 : ??? (100.000000%)
+L0E6C : L36CA (100.000000%)
+L0E6E : ??? (100.000000%)
+L0EBE : ??? (100.000000%)
+L0EFE : ??? (100.000000%)
+L0F22 : L363C (50.000000%), ??? (50.000000%)
+L0F74 : ??? (100.000000%)
+L1030 : L3792 (100.000000%)
+L10E4 : ??? (100.000000%)
+L10E6 : ??? (100.000000%)
+L11B0 : ??? (100.000000%)
+L11B6 : L386A (100.000000%)
+L11D6 : L38B6 (100.000000%)
+L11FA : ??? (100.000000%)
+L1268 : ??? (100.000000%)
+L1294 : ??? (100.000000%)
+L12C4 : ??? (100.000000%)
+L12E8 : ??? (100.000000%)
+L12EC : ??? (100.000000%)
+L1324 : L713A (100.000000%)
+L133A : L3938 (100.000000%)
+L1340 : L384A (100.000000%)
+L135C : L38F0 (100.000000%)
+L136C : L68D2 (100.000000%)
+L1382 : L6850 (75.000000%), L68E2 (25.000000%)
+L1394 : L690E (25.000000%), L696A (25.000000%), L6996 (25.000000%), L69A6 (25.000000%)
+L13A4 : L690E (33.333333%), L696A (33.333333%), L6996 (33.333333%)
+L13B4 : L690E (33.333333%), L6928 (33.333333%), L69A6 (33.333333%)
+L13F8 : L690E (33.333333%), L696A (33.333333%), L69A6 (33.333333%)
+L13FA : L6996 (100.000000%)
+L1414 : L68FE (25.000000%), L696A (25.000000%), L697E (25.000000%), L6996 (25.000000%)
+L1424 : L690E (33.333333%), L6996 (33.333333%), L69A6 (33.333333%)
+L1426 : L696A (100.000000%)
+L143C : L696A (33.333333%), L6996 (33.333333%), L69A6 (33.333333%)
+L14BC : L690E (33.333333%), L69A6 (33.333333%), L6A26 (33.333333%)
+L14BE : L68F8 (41.379310%), L6850 (31.034483%), ??? (20.689655%), L6960 (3.448276%), L698C (3.448276%)
+L14C2 : L6850 (58.620690%), L68F8 (20.689655%), L68E2 (10.344828%), L5F60 (6.896552%), ??? (3.448276%)
+L14C8 : ??? (100.000000%)
+L14CE : ??? (100.000000%)
+L14DE : ??? (63.636364%), L37A0 (9.090909%), L37E4 (9.090909%), L393E (9.090909%), L3958 (9.090909%)
+L14E4 : L6A32 (100.000000%)
+L14EA : ??? (75.000000%), L6A36 (25.000000%)
+L14EE : ??? (33.333333%), L6222 (26.666667%), L68F8 (26.666667%), L37CC (6.666667%), L6310 (6.666667%)
+L14F2 : ??? (100.000000%)
+L1508 : ??? (100.000000%)
+L1558 : ??? (100.000000%)
+L158A : L04C4 (14.285714%), L0CE0 (14.285714%), L39C6 (14.285714%), L3DF6 (14.285714%), L6CDC (14.285714%), L71A0 (14.285714%), ??? (14.285714%)
+L15C8 : L3E34 (100.000000%)
+L15D8 : L3E44 (100.000000%)
+L15FE : L590A (100.000000%)
+L1632 : ??? (100.000000%)
+L163E : L3E9C (100.000000%)
+L1658 : L3EB6 (100.000000%)
+L16A8 : L3F06 (100.000000%)
+L16AA : L3F1C (100.000000%)
+L16BC : L41A4 (100.000000%)
+L16C2 : ??? (100.000000%)
+L16C6 : ??? (100.000000%)
+L16CC : ??? (100.000000%)
+L16D6 : L3F22 (100.000000%)
+L16F6 : L3F34 (100.000000%)
+L1700 : L3F3C (100.000000%)
+L1756 : L405E (50.000000%), ??? (50.000000%)
+L1766 : L3F3C (100.000000%)
+L178E : L401C (50.000000%), ??? (50.000000%)
+L17D0 : ??? (100.000000%)
+L1844 : ??? (100.000000%)
+L1A10 : L4346 (100.000000%)
+L1A64 : L4244 (52.238806%), L6850 (40.298507%), L6A02 (6.716418%), L40EC (0.746269%)
+L1A6E : L424A (100.000000%)
+L1A72 : L424E (100.000000%)
+L1A84 : L4260 (100.000000%)
+L1A88 : L4264 (100.000000%)
+L1A8C : L4268 (100.000000%)
+L1AAA : L4286 (100.000000%)
+L1AB0 : L3E58 (100.000000%)
+L210C : ??? (100.000000%)
+L2FBE : L401C (100.000000%)
+L305A : L58FE (100.000000%)
+L305E : L5904 (100.000000%)
+L3066 : L5910 (100.000000%)
+L306A : L5916 (100.000000%)
+L307A : L3F62 (50.000000%), L7436 (50.000000%)
+L3086 : L591C (100.000000%)
+L308A : L40EC (100.000000%)
+L30B0 : L3FE6 (100.000000%)
+L30CA : ??? (41.666667%), L3F3C (16.666667%), L3FBA (8.333333%), L3FCC (8.333333%), L3FE6 (8.333333%), L3FF6 (8.333333%), L4066 (8.333333%)
+L30FE : L05E4 (33.333333%), L7120 (33.333333%), L71A0 (33.333333%)
+L3136 : L0618 (100.000000%)
+L317E : L0668 (100.000000%)
+L31AA : L1330 (50.000000%), ??? (50.000000%)
+L31D8 : L135E (100.000000%)
+L3212 : L1398 (100.000000%)
+L32A2 : L0CE0 (38.461538%), ??? (30.769231%), L0D18 (15.384615%), L098A (7.692308%), L1BCA (7.692308%)
+L32AA : L0D2C (33.333333%), L0EF0 (33.333333%), L0F50 (33.333333%)
+L32B6 : ??? (100.000000%)
+L32BC : ??? (83.333333%), L39E8 (16.666667%)
+L32F8 : L3A26 (100.000000%)
+L3300 : L03F8 (100.000000%)
+L3312 : L03F8 (33.333333%), L040A (33.333333%), L0C64 (33.333333%)
+L3324 : L041C (83.333333%), L02A4 (16.666667%)
+L3330 : L0428 (66.666667%), ??? (33.333333%)
+L3344 : L043C (25.000000%), L6F30 (25.000000%), L041C (12.500000%), L396A (12.500000%), L3DA2 (12.500000%), L7114 (12.500000%)
+L3356 : L044E (100.000000%)
+L3378 : L0470 (50.000000%), L092E (50.000000%)
+L33B4 : L04C0 (50.000000%), ??? (50.000000%)
+L33B6 : ??? (100.000000%)
+L33CC : L04C4 (75.000000%), L0F5E (25.000000%)
+L33E4 : ??? (100.000000%)
+L33FC : L04C0 (100.000000%)
+L345C : ??? (50.000000%), L05B6 (25.000000%), L3A2A (25.000000%)
+L3466 : ??? (100.000000%)
+L3480 : L0552 (100.000000%)
+L3482 : ??? (100.000000%)
+L3484 : L59A4 (100.000000%)
+L3516 : ??? (66.666667%), L0554 (33.333333%)
+L3528 : L0566 (100.000000%)
+L3538 : L0576 (100.000000%)
+L3544 : L0D32 (60.000000%), L2E5E (20.000000%), ??? (20.000000%)
+L358E : L0D7C (100.000000%)
+L3590 : L0E2C (100.000000%)
+L35C4 : L0D9C (100.000000%)
+L35E4 : ??? (100.000000%)
+L3612 : ??? (100.000000%)
+L3614 : ??? (100.000000%)
+L362A : ??? (100.000000%)
+L363E : ??? (100.000000%)
+L3648 : ??? (100.000000%)
+L3656 : L0D7E (50.000000%), ??? (50.000000%)
+L3680 : ??? (100.000000%)
+L3698 : L0E9E (100.000000%)
+L369E : ??? (66.666667%), L0CE0 (33.333333%)
+L36B6 : L0EBA (100.000000%)
+L36BC : L05B6 (16.666667%), L0C9E (16.666667%), L0EBE (16.666667%), L159A (16.666667%), L2DE6 (16.666667%), ??? (16.666667%)
+L36F6 : ??? (59.090909%), L0EF0 (18.181818%), L0578 (4.545455%), L0F3A (4.545455%), L3736 (4.545455%), L39C6 (4.545455%), L3A34 (4.545455%)
+L370A : L0F0E (100.000000%)
+L371E : ??? (100.000000%)
+L372E : L0F26 (100.000000%)
+L373C : L0F34 (100.000000%)
+L3742 : L0F3A (35.000000%), ??? (35.000000%), L71A0 (5.000000%), L04C4 (2.500000%), L0578 (2.500000%), L08B4 (2.500000%), L0E86 (2.500000%), L1C12 (2.500000%), L2DF4 (2.500000%), L2F3A (2.500000%), L3838 (2.500000%), L3934 (2.500000%), L72DE (2.500000%)
+L3748 : L0D2C (33.333333%), L0EF0 (33.333333%), L0F50 (33.333333%)
+L375A : ??? (100.000000%)
+L3760 : L39CA (100.000000%)
+L3768 : L0F56 (50.000000%), ??? (50.000000%)
+L3770 : ??? (57.142857%), L0F5E (28.571429%), L5F9C (14.285714%)
+L3788 : ??? (40.000000%), L0EF0 (20.000000%), L0F34 (20.000000%), L0F76 (20.000000%)
+L3794 : L0F82 (100.000000%)
+L3798 : L041C (100.000000%)
+L379E : ??? (66.666667%), L0CE0 (16.666667%), L0EF0 (16.666667%)
+L37C4 : ??? (50.000000%), L0D2C (16.666667%), L0F50 (16.666667%), L597E (16.666667%)
+L37E8 : ??? (75.000000%), L594C (12.500000%), L5970 (12.500000%)
+L37F0 : ??? (60.000000%), L0CE0 (20.000000%), L5F82 (20.000000%)
+L37F6 : L0F86 (87.500000%), ??? (12.500000%)
+L3844 : L0FC6 (100.000000%)
+L387A : ??? (100.000000%)
+L3A18 : L11AC (100.000000%)
+L3A24 : ??? (100.000000%)
+L3A42 : L11FA (100.000000%)
+L3A4E : ??? (100.000000%)
+L3A6A : ??? (100.000000%)
+L3A76 : ??? (100.000000%)
+L3A9E : L1206 (44.444444%), ??? (33.333333%), L0F3A (11.111111%), L338E (11.111111%)
+L3AA8 : ??? (100.000000%)
+L3AFC : L5A14 (100.000000%)
+L3B38 : L62EE (50.000000%), L6A2A (50.000000%)
+L3B5A : L0578 (66.666667%), L2C56 (33.333333%)
+L3B80 : L059C (100.000000%)
+L3B82 : L059E (100.000000%)
+L3B84 : L05A0 (50.000000%), ??? (50.000000%)
+L3B9A : ??? (50.000000%), L05B6 (25.000000%), L3A2A (25.000000%)
+L3BC4 : L05E0 (100.000000%)
+L3BC8 : L1544 (50.000000%), L396A (50.000000%)
+L3BE6 : ??? (66.666667%), L0EC8 (33.333333%)
+L3BFE : L39B2 (50.000000%), ??? (50.000000%)
+L3C10 : L0EE2 (33.333333%), L39A2 (33.333333%), ??? (33.333333%)
+L3C1A : ??? (66.666667%), L39AC (33.333333%)
+L3C22 : L39BE (50.000000%), ??? (50.000000%)
+L3C2A : L1C12 (50.000000%), ??? (50.000000%)
+L3C6E : ??? (100.000000%)
+L3CC2 : L0760 (100.000000%)
+L3CF4 : ??? (100.000000%)
+L3D1C : ??? (100.000000%)
+L3D3A : ??? (100.000000%)
+L3D54 : L043C (50.000000%), L159A (50.000000%)
+L3DAC : L15EE (100.000000%)
+L3DDA : ??? (100.000000%)
+L3DDE : L1620 (100.000000%)
+L3E58 : L17F6 (100.000000%)
+L3E60 : ??? (100.000000%)
+L3E96 : L1728 (100.000000%)
+L3ED0 : ??? (100.000000%)
+L3EDE : L178C (50.000000%), ??? (50.000000%)
+L3F52 : L1780 (100.000000%)
+L3F60 : L1956 (100.000000%)
+L3F64 : ??? (100.000000%)
+L3F66 : ??? (100.000000%)
+L3F76 : L1330 (100.000000%)
+L3F80 : ??? (100.000000%)
+L401E : ??? (100.000000%)
+L4032 : ??? (100.000000%)
+L404C : ??? (100.000000%)
+L406E : L1986 (100.000000%)
+L40F4 : L17EC (100.000000%)
+L40FE : L1A0E (100.000000%)
+L4134 : L1A44 (100.000000%)
+L41C8 : L1AD8 (100.000000%)
+L41E0 : L183A (50.000000%), L1842 (50.000000%)
+L4232 : L1842 (100.000000%)
+L42C6 : ??? (100.000000%)
+L4300 : L07BC (37.500000%), L6D10 (12.500000%), L6D18 (12.500000%), L70E2 (12.500000%), L71C6 (12.500000%), ??? (12.500000%)
+L431A : L07D6 (100.000000%)
+L4320 : ??? (100.000000%)
+L4328 : L1316 (100.000000%)
+L4342 : ??? (100.000000%)
+L438C : L35F4 (100.000000%)
+L43B8 : L3620 (100.000000%)
+L43C8 : L3630 (100.000000%)
+L43CE : L3630 (50.000000%), ??? (50.000000%)
+L43DA : L363C (100.000000%)
+L43DE : L3640 (100.000000%)
+L4414 : L367A (50.000000%), ??? (50.000000%)
+L443C : ??? (100.000000%)
+L4474 : ??? (100.000000%)
+L447C : L36D2 (100.000000%)
+L4480 : L36D6 (100.000000%)
+L449C : L36F4 (100.000000%)
+L44A0 : L36F8 (100.000000%)
+L44AE : ??? (100.000000%)
+L44B2 : ??? (100.000000%)
+L44BC : L371A (50.000000%), L371E (50.000000%)
+L44DE : L3736 (100.000000%)
+L452E : ??? (100.000000%)
+L4540 : L3792 (100.000000%)
+L454E : L37A0 (100.000000%)
+L4552 : L37A4 (100.000000%)
+L455E : L37B0 (100.000000%)
+L456C : L37BE (100.000000%)
+L4586 : L37DA (100.000000%)
+L4590 : L37E4 (100.000000%)
+L45A2 : L3962 (100.000000%)
+L45AC : L37F6 (100.000000%)
+L45BE : L3838 (100.000000%)
+L45C6 : L392A (100.000000%)
+L45CE : ??? (100.000000%)
+L45DA : ??? (100.000000%)
+L45E4 : ??? (100.000000%)
+L45EA : ??? (100.000000%)
+L45F2 : ??? (100.000000%)
+L462A : L0428 (100.000000%)
+L464A : ??? (100.000000%)
+L467A : ??? (100.000000%)
+L4682 : L38B2 (100.000000%)
+L4686 : L38B6 (100.000000%)
+L4694 : L38D0 (100.000000%)
+L4698 : L38D4 (100.000000%)
+L46CE : ??? (100.000000%)
+L46E2 : ??? (100.000000%)
+L4700 : ??? (100.000000%)
+L4704 : L3806 (50.000000%), ??? (50.000000%)
+L4736 : L0C64 (50.000000%), L03F8 (25.000000%), L040A (25.000000%)
+L476A : L5A72 (100.000000%)
+L4796 : L1AFC (75.000000%), ??? (25.000000%)
+L47CA : L1B32 (100.000000%)
+L47CE : L1B3E (100.000000%)
+L47D0 : L1B52 (100.000000%)
+L47E8 : L1B2E (50.000000%), ??? (50.000000%)
+L47F6 : L1B4A (100.000000%)
+L47FE : L1B60 (100.000000%)
+L4802 : L5A9A (100.000000%)
+L4C92 : L0C9E (100.000000%)
+L4C9E : L0CCC (100.000000%)
+L4CC2 : L2B26 (100.000000%)
+L4D18 : L2C06 (100.000000%)
+L4D20 : L2B9A (100.000000%)
+L4D26 : L310E (100.000000%)
+L4D2A : ??? (100.000000%)
+L4D3C : ??? (100.000000%)
+L4D56 : L2BFC (100.000000%)
+L4D60 : L2B7C (50.000000%), L2B90 (50.000000%)
+L4D84 : L2C14 (100.000000%)
+L4DBA : L2C4A (100.000000%)
+L4DC0 : L2E98 (100.000000%)
+L4DCC : L2EA4 (100.000000%)
+L4DDA : ??? (100.000000%)
+L4DE0 : L2C3A (100.000000%)
+L4DE6 : ??? (100.000000%)
+L4DFE : ??? (100.000000%)
+L4E02 : L2CD2 (100.000000%)
+L4E0A : ??? (100.000000%)
+L4E0E : L2C56 (50.000000%), L2CC0 (50.000000%)
+L4E14 : L2E52 (100.000000%)
+L4E1A : L2EAA (100.000000%)
+L4E20 : ??? (100.000000%)
+L4E34 : L2F78 (100.000000%)
+L4E36 : ??? (100.000000%)
+L4E3C : L0EBE (14.285714%), L0EF0 (14.285714%), L0F3A (14.285714%), L2EB0 (14.285714%), L2EDA (14.285714%), L2F7C (14.285714%), ??? (14.285714%)
+L4E40 : ??? (75.000000%), L2E8E (25.000000%)
+L4E4E : L0CE0 (100.000000%)
+L4E78 : ??? (100.000000%)
+L4E80 : ??? (100.000000%)
+L4E86 : L2DE6 (100.000000%)
+L4E9C : ??? (100.000000%)
+L4EBE : L2DE6 (100.000000%)
+L4ED0 : ??? (100.000000%)
+L4EFC : L2FBA (100.000000%)
+L4F04 : ??? (100.000000%)
+L4F30 : L2E06 (100.000000%)
+L4F32 : L2E06 (100.000000%)
+L4F4E : ??? (100.000000%)
+L4F50 : L304C (100.000000%)
+L4F56 : ??? (100.000000%)
+L4F78 : L3042 (100.000000%)
+L4F7E : ??? (100.000000%)
+L4FD2 : L2E92 (100.000000%)
+L4FE0 : ??? (100.000000%)
+L4FEA : L2E92 (100.000000%)
+L4FF4 : L2C56 (50.000000%), ??? (50.000000%)
+L5002 : ??? (100.000000%)
+L500C : ??? (100.000000%)
+L5016 : ??? (100.000000%)
+L5026 : L2E78 (100.000000%)
+L5032 : ??? (100.000000%)
+L5034 : ??? (100.000000%)
+L5046 : ??? (100.000000%)
+L5056 : ??? (100.000000%)
+L5066 : ??? (100.000000%)
+L5072 : ??? (100.000000%)
+L5074 : ??? (100.000000%)
+L50B4 : ??? (100.000000%)
+L50B6 : ??? (100.000000%)
+L50C0 : ??? (100.000000%)
+L50C6 : ??? (100.000000%)
+L50DA : ??? (100.000000%)
+L50DC : ??? (100.000000%)
+L50E0 : ??? (100.000000%)
+L50EA : ??? (66.666667%), L2C9E (33.333333%)
+L50FA : L2DA6 (100.000000%)
+L5102 : ??? (100.000000%)
+L510E : ??? (100.000000%)
+L513A : ??? (75.000000%), L3032 (25.000000%)
+L5148 : L0CE0 (100.000000%)
+L515A : L0CE0 (50.000000%), L0EF0 (50.000000%)
+L5168 : ??? (100.000000%)
+L519E : ??? (100.000000%)
+L51A2 : L2D96 (50.000000%), ??? (50.000000%)
+L51A8 : ??? (100.000000%)
+L51B2 : ??? (100.000000%)
+L51C8 : L3062 (100.000000%)
+L51CE : L3068 (100.000000%)
+L51D4 : ??? (100.000000%)
+L51F8 : L324E (100.000000%)
+L5202 : L3090 (100.000000%)
+L522A : L325A (100.000000%)
+L525A : L30BC (100.000000%)
+L5260 : L30C2 (100.000000%)
+L52A0 : L3102 (100.000000%)
+L52A8 : L328C (66.666667%), L3290 (33.333333%)
+L52E6 : ??? (100.000000%)
+L52F0 : L3118 (100.000000%)
+L5308 : ??? (100.000000%)
+L531E : L3142 (100.000000%)
+L5324 : L3148 (100.000000%)
+L5332 : ??? (100.000000%)
+L5344 : L3162 (100.000000%)
+L536A : L1C12 (100.000000%)
+L5370 : ??? (100.000000%)
+L53B6 : ??? (100.000000%)
+L53C6 : ??? (100.000000%)
+L540E : ??? (100.000000%)
+L5416 : ??? (100.000000%)
+L541E : ??? (100.000000%)
+L5446 : L31B4 (100.000000%)
+L5450 : ??? (100.000000%)
+L5466 : ??? (100.000000%)
+L5468 : ??? (100.000000%)
+L547E : L3368 (100.000000%)
+L5484 : ??? (100.000000%)
+L549A : ??? (100.000000%)
+L54B2 : ??? (100.000000%)
+L54B8 : ??? (100.000000%)
+L54BC : ??? (100.000000%)
+L54C8 : ??? (100.000000%)
+L54D4 : ??? (100.000000%)
+L54D6 : ??? (100.000000%)
+L54E0 : ??? (100.000000%)
+L54EC : L2B86 (50.000000%), ??? (50.000000%)
+L551C : ??? (50.000000%), L089A (25.000000%), L0F5E (25.000000%)
+L5536 : L3A34 (100.000000%)
+L556E : ??? (100.000000%)
+L5594 : L3A82 (100.000000%)
+L55A6 : L3A9A (100.000000%)
+L55B0 : L1B64 (100.000000%)
+L5786 : L3C74 (100.000000%)
+L5794 : L3C82 (100.000000%)
+L579C : L3C8A (100.000000%)
+L57AA : L3C98 (100.000000%)
+L57D6 : L3CC4 (100.000000%)
+L57EE : L3CDC (100.000000%)
+L5808 : L338E (100.000000%)
+L583A : L1C12 (66.666667%), L335E (33.333333%)
+L5876 : L1C4E (50.000000%), ??? (50.000000%)
+L5884 : L1C5C (100.000000%)
+L5892 : L1C6A (100.000000%)
+L58AC : L2128 (100.000000%)
+L58C8 : L1C9C (100.000000%)
+L58DA : L212E (100.000000%)
+L58E6 : ??? (100.000000%)
+L591E : ??? (100.000000%)
+L5946 : ??? (100.000000%)
+L596E : ??? (100.000000%)
+L5996 : ??? (100.000000%)
+L5A22 : ??? (100.000000%)
+L5A5C : ??? (100.000000%)
+L5A7E : ??? (100.000000%)
+L5AD6 : L6CDC (50.000000%), ??? (50.000000%)
+L5B92 : ??? (100.000000%)
+L5BB4 : ??? (100.000000%)
+L5BE4 : ??? (100.000000%)
+L5BF0 : ??? (100.000000%)
+L5C0E : ??? (100.000000%)
+L5C14 : ??? (100.000000%)
+L5C2C : ??? (100.000000%)
+L5C76 : ??? (100.000000%)
+L5D0E : ??? (100.000000%)
+L5D56 : L204A (100.000000%)
+L5DA2 : ??? (100.000000%)
+L5E2A : ??? (100.000000%)
+L5E68 : ??? (100.000000%)
+L5ECA : ??? (100.000000%)
+L5ECC : ??? (100.000000%)
+L5ED2 : ??? (100.000000%)
+L5F02 : ??? (71.428571%), L6AF2 (14.285714%), L6CAE (14.285714%)
+L5F08 : L1D6A (100.000000%)
+L5F90 : ??? (100.000000%)
+L604C : ??? (100.000000%)
+L6054 : L23B6 (100.000000%)
+L605E : ??? (100.000000%)
+L6064 : ??? (100.000000%)
+L60FE : ??? (100.000000%)
+L6154 : ??? (100.000000%)
+L621E : ??? (100.000000%)
+L6222 : L71A0 (100.000000%)
+L623C : ??? (100.000000%)
+L6256 : L2448 (100.000000%)
+L62BC : ??? (100.000000%)
+L635E : ??? (100.000000%)
+L63BC : ??? (100.000000%)
+L63C4 : ??? (33.333333%), L1E9C (16.666667%), L1F82 (16.666667%), L275A (16.666667%), L276A (16.666667%)
+L63F2 : ??? (100.000000%)
+L6428 : L71A0 (100.000000%)
+L6438 : ??? (100.000000%)
+L6458 : ??? (100.000000%)
+L647A : ??? (100.000000%)
+L649A : ??? (100.000000%)
+L64A2 : ??? (100.000000%)
+L64F4 : L2684 (100.000000%)
+L6502 : ??? (100.000000%)
+L6516 : ??? (100.000000%)
+L6520 : ??? (100.000000%)
+L65C0 : L1FD2 (50.000000%), ??? (50.000000%)
+L6634 : L2A36 (100.000000%)
+L665A : ??? (100.000000%)
+L6680 : ??? (100.000000%)
+L6698 : ??? (100.000000%)
+L66B2 : ??? (100.000000%)
+L66BA : L2A32 (100.000000%)
+L66C4 : ??? (100.000000%)
+L66C8 : L2AAA (100.000000%)
+L66DC : ??? (100.000000%)
+L66F6 : ??? (100.000000%)
+L66FE : L2A7C (100.000000%)
+L6712 : ??? (100.000000%)
+L6716 : L2A8A (100.000000%)
+L67A4 : ??? (100.000000%)
+L67AC : ??? (100.000000%)
+L67C2 : L2B0A (100.000000%)
+L67CC : L2B14 (100.000000%)
+L67D8 : L2B20 (100.000000%)
+L67DE : L20F6 (60.000000%), L2056 (20.000000%), L2A32 (20.000000%)
+L6810 : ??? (42.857143%), L0948 (28.571429%), L0EBE (14.285714%), L130E (14.285714%)
+L6852 : L098A (100.000000%)
+L6858 : L0990 (50.000000%), ??? (50.000000%)
+L6886 : ??? (100.000000%)
+L6892 : L09D8 (100.000000%)
+L68E2 : ??? (100.000000%)
+L6904 : L0A98 (50.000000%), ??? (50.000000%)
+L6922 : ??? (100.000000%)
+L6930 : ??? (100.000000%)
+L694C : L0B08 (50.000000%), ??? (50.000000%)
+L695A : L0B12 (50.000000%), ??? (50.000000%)
+L6986 : L0B9E (100.000000%)
+L6988 : ??? (100.000000%)
+L69DC : ??? (100.000000%)
+L69E6 : ??? (80.000000%), L0B90 (20.000000%)
+L6A00 : ??? (100.000000%)
+L6A0E : ??? (100.000000%)
+L6A90 : L0C2C (50.000000%), ??? (50.000000%)
+L6AB8 : L0C54 (50.000000%), ??? (50.000000%)
+L6AC0 : L3F22 (100.000000%)
+L6AC4 : L0B90 (100.000000%)
+L6AC8 : L0AA4 (100.000000%)
+L6B32 : L39CA (50.000000%), ??? (50.000000%)
+L6B42 : L1B74 (100.000000%)
+L6B50 : L1B82 (100.000000%)
+L6B98 : L02A4 (50.000000%), ??? (50.000000%)
+L6BCE : L0316 (100.000000%)
+L6BE8 : ??? (100.000000%)
+L6C1E : L0326 (100.000000%)
+L6C26 : L032E (100.000000%)
+L6C32 : ??? (66.666667%), L031C (33.333333%)
+L6C3A : L0312 (100.000000%)
+L6C40 : ??? (100.000000%)
+L6C5A : L039A (100.000000%)
+L6C76 : ??? (100.000000%)
+L6C90 : L03CE (100.000000%)
+L6CAC : L035A (66.666667%), ??? (33.333333%)
+L6CDE : L037E (100.000000%)
+L6CFA : ??? (50.000000%), L07DC (25.000000%), L08B4 (25.000000%)
+L6D0A : L07DC (72.727273%), ??? (18.181818%), L0892 (9.090909%)
+L6D0C : L07DE (100.000000%)
+L6D3A : L080A (100.000000%)
+L6D3E : ??? (100.000000%)
+L6D46 : ??? (100.000000%)
+L6D4A : L080E (100.000000%)
+L6D4E : L081C (28.571429%), ??? (28.571429%), L041C (14.285714%), L0428 (14.285714%), L0F56 (14.285714%)
+L6D78 : ??? (100.000000%)
+L6D9A : ??? (100.000000%)
+L6D9C : ??? (100.000000%)
+L6DAC : ??? (100.000000%)
+L6DCE : L08C4 (66.666667%), L0578 (33.333333%)
+L6DF8 : ??? (100.000000%)
+L6E1E : ??? (100.000000%)
+L6E20 : L6E44 (50.000000%), ??? (50.000000%)
+L6E2C : ??? (100.000000%)
+L6E42 : ??? (100.000000%)
+L6E5C : L6AF0 (35.294118%), ??? (29.411765%), L71A0 (8.823529%), L6AF2 (5.882353%), L7120 (5.882353%), L0CE0 (2.941176%), L1406 (2.941176%), L21AC (2.941176%), L6CAE (2.941176%), L6CDC (2.941176%)
+L6E5E : L6AF2 (44.827586%), ??? (34.482759%), L6AF0 (6.896552%), L0CE0 (3.448276%), L306E (3.448276%), L6CF0 (3.448276%), L6DE2 (3.448276%)
+L6E66 : L6AFE (100.000000%)
+L6E76 : L6B12 (100.000000%)
+L6E78 : L6B16 (100.000000%)
+L6E7C : L6B1A (100.000000%)
+L6E80 : L6B20 (100.000000%)
+L6E98 : L6B3C (100.000000%)
+L6E9C : L6B40 (100.000000%)
+L6EB0 : L6B54 (100.000000%)
+L6EB4 : L6B58 (100.000000%)
+L6ECE : L6B72 (100.000000%)
+L6EDC : L6B80 (100.000000%)
+L6EEA : L6B8E (100.000000%)
+L6EFC : L6BA0 (100.000000%)
+L6F16 : L6BBA (100.000000%)
+L6F18 : L6BBC (100.000000%)
+L6F1E : L6BC2 (100.000000%)
+L6F26 : L6BCA (100.000000%)
+L6F32 : L6BD8 (100.000000%)
+L6F40 : L6BE8 (100.000000%)
+L6F42 : L6BEC (100.000000%)
+L6F52 : L6C00 (100.000000%)
+L6F6A : L6C18 (100.000000%)
+L6F7E : L6C2C (100.000000%)
+L6F98 : L6C4E (100.000000%)
+L6F9A : L6C50 (100.000000%)
+L6FB4 : L6C6C (100.000000%)
+L6FE6 : L6CA8 (100.000000%)
+L6FEA : L6CAE (50.000000%), L6AF2 (25.000000%), ??? (25.000000%)
+L6FF8 : L6CC0 (100.000000%)
+L7002 : L6CCA (100.000000%)
+L700C : L6CD4 (100.000000%)
+L700E : L6CD8 (100.000000%)
+L7010 : L6CDC (41.666667%), ??? (30.555556%), L7120 (8.333333%), L71A0 (5.555556%), L02A4 (2.777778%), L2646 (2.777778%), L6AF0 (2.777778%), L6AF2 (2.777778%), L7366 (2.777778%)
+L7016 : L6CE4 (100.000000%)
+L701E : L6CF0 (50.000000%), ??? (31.250000%), L1EE6 (6.250000%), L6AF0 (6.250000%), L6CDC (6.250000%)
+L7030 : L6D0A (100.000000%)
+L7032 : L6D0E (100.000000%)
+L703C : L6D1E (100.000000%)
+L704C : L6D2E (100.000000%)
+L7062 : L6D44 (100.000000%)
+L7068 : L6D4A (100.000000%)
+L7076 : L6D58 (100.000000%)
+L7092 : L6D74 (100.000000%)
+L70A6 : L6D8A (100.000000%)
+L70A8 : L6D8E (100.000000%)
+L70B0 : L6D96 (100.000000%)
+L70BE : L6DA4 (100.000000%)
+L70CA : L6DB0 (100.000000%)
+L70CC : L6DB2 (100.000000%)
+L70E6 : L6DCC (100.000000%)
+L70EE : L6DD4 (100.000000%)
+L70F8 : L6DE2 (66.666667%), L388E (11.111111%), L6AF2 (11.111111%), ??? (11.111111%)
+L710A : L6DF6 (100.000000%)
+L711A : L6E06 (100.000000%)
+L711E : L6E0A (100.000000%)
+L7124 : L6E12 (100.000000%)
+L7126 : L6E16 (100.000000%)
+L7130 : L6E20 (100.000000%)
+L7134 : L6E24 (100.000000%)
+L713E : L6E2E (100.000000%)
+L714E : L6E3E (100.000000%)
+L7150 : ??? (66.666667%), L6E40 (33.333333%)
+L7154 : L6E44 (66.666667%), L6CDC (16.666667%), L7120 (16.666667%)
+L7166 : L6E56 (100.000000%)
+L7170 : L6E60 (100.000000%)
+L718A : L6E7A (100.000000%)
+L7194 : L6E84 (100.000000%)
+L719C : L6E8C (100.000000%)
+L71A8 : L6E98 (100.000000%)
+L71B2 : L6EA2 (100.000000%)
+L71B6 : L6EA6 (100.000000%)
+L71BE : L6EAE (100.000000%)
+L71C0 : L6EB0 (100.000000%)
+L71C8 : L6EB8 (100.000000%)
+L71CA : L6EBA (100.000000%)
+L71D8 : L6ECC (100.000000%)
+L71E2 : L6ED6 (100.000000%)
+L71EC : L6EE0 (100.000000%)
+L71EE : L6EE4 (100.000000%)
+L71F0 : L6EE8 (100.000000%)
+L7228 : L6F20 (100.000000%)
+L722E : L6F26 (100.000000%)
+L7236 : L6F2E (100.000000%)
+L7238 : L6F30 (100.000000%)
+L7244 : L6F3C (100.000000%)
+L7254 : L6F4C (100.000000%)
+L725C : L6F54 (100.000000%)
+L7262 : L6F5A (100.000000%)
+L7264 : L6F5C (100.000000%)
+L7266 : L6F5E (100.000000%)
+L7270 : L6F68 (100.000000%)
+L7276 : L6F6E (100.000000%)
+L727A : L6F72 (100.000000%)
+L727E : L6F76 (100.000000%)
+L728A : L6F82 (100.000000%)
+L7296 : L6F8E (100.000000%)
+L729C : L6F94 (100.000000%)
+L72B2 : L6FAA (100.000000%)
+L72B4 : L6FAC (100.000000%)
+L72BC : L6FB6 (100.000000%)
+L72E6 : L6FE2 (100.000000%)
+L72F4 : L6FF0 (100.000000%)
+L7302 : L6FFE (100.000000%)
+L7304 : L7002 (100.000000%)
+L731A : L701A (100.000000%)
+L7326 : L7026 (100.000000%)
+L7330 : L7030 (100.000000%)
+L733A : L703A (100.000000%)
+L7342 : L7042 (100.000000%)
+L734E : L704E (100.000000%)
+L7352 : L7054 (100.000000%)
+L735E : L7060 (100.000000%)
+L736A : L706C (100.000000%)
+L7372 : L7074 (100.000000%)
+L7374 : L7076 (100.000000%)
+L7386 : L708A (100.000000%)
+L7396 : L709E (100.000000%)
+L73A4 : L70AC (100.000000%)
+L73A6 : L70AE (100.000000%)
+L73B2 : L70BA (100.000000%)
+L73B6 : L70BE (100.000000%)
+L73C0 : L70C8 (100.000000%)
+L73C6 : L70CE (100.000000%)
+L73D0 : L70D8 (100.000000%)
+L73D6 : L70DE (100.000000%)
+L73DA : L70E2 (100.000000%)
+L73E6 : L70F0 (100.000000%)
+L73F8 : L7102 (100.000000%)
+L7402 : L710C (100.000000%)
+L7406 : L7110 (100.000000%)
+L7408 : L7112 (100.000000%)
+L740A : L7114 (100.000000%)
+L7416 : ??? (38.888889%), L7120 (22.222222%), L6CDC (16.666667%), L07BC (5.555556%), L1C12 (5.555556%), L6E44 (5.555556%), L71A0 (5.555556%)
+L741C : L7128 (100.000000%)
+L741E : L712A (100.000000%)
+L742C : ??? (100.000000%)
+L7442 : L7152 (100.000000%)
+L7450 : L7160 (100.000000%)
+L7460 : L7170 (100.000000%)
+L7464 : L7174 (100.000000%)
+L746E : L717E (100.000000%)
+L7474 : L7184 (100.000000%)
+L7484 : L7194 (100.000000%)
+L7486 : L7196 (100.000000%)
+L748A : L719C (100.000000%)
+L748C : L71A0 (52.238806%), ??? (26.865672%), L6AF0 (8.955224%), L6AF2 (2.985075%), L05E4 (1.492537%), L0990 (1.492537%), L1ECE (1.492537%), L6E40 (1.492537%), L6E44 (1.492537%), L7120 (1.492537%)
+L7490 : L71A8 (100.000000%)
+L74A0 : L71C0 (100.000000%)
+L74A4 : L71C6 (100.000000%)
+L750C : L7230 (100.000000%)
+L7522 : L7246 (100.000000%)
+L752A : L7250 (100.000000%)
+L752C : L7254 (100.000000%)
+L7534 : L725C (100.000000%)
+L7544 : L726C (100.000000%)
+L7552 : L727A (100.000000%)
+L755E : L7288 (100.000000%)
+L756C : L7296 (100.000000%)
+L7574 : L729E (100.000000%)
+L758C : L72B6 (100.000000%)
+L758E : L72BA (100.000000%)
+L7590 : L72BE (100.000000%)
+L759E : L72D2 (100.000000%)
+L75A2 : L72D6 (100.000000%)
+L75A4 : L72DA (100.000000%)
+L75A6 : ??? (50.000000%), L72DE (25.000000%), L6E40 (12.500000%), L71A0 (12.500000%)
+L75CA : L7306 (100.000000%)
+L75D2 : L730E (100.000000%)
+L75DA : L7316 (100.000000%)
+L75E6 : L7322 (100.000000%)
+L75F4 : L7330 (100.000000%)
+L7604 : L7340 (100.000000%)
+L7610 : L734C (100.000000%)
+L7622 : L735E (100.000000%)
+L7628 : L7366 (50.000000%), ??? (50.000000%)
+L7636 : L737C (100.000000%)
+L7644 : L738A (100.000000%)
+L7666 : L7442 (100.000000%)
+L767C : L73B2 (100.000000%)
+L7682 : L73B8 (100.000000%)
+L768A : L73C0 (100.000000%)
+L769C : L73D2 (100.000000%)
+L76AA : L73E0 (100.000000%)
+L76BC : ??? (100.000000%)
+L76C8 : L73FE (100.000000%)
+L76E2 : L7418 (100.000000%)
+L770C : L6D18 (33.333333%), L71C6 (33.333333%), L7458 (33.333333%)
+L7730 : L747C (100.000000%)
+L7738 : L7484 (100.000000%)
+L7740 : L748C (100.000000%)
+L7744 : L7490 (100.000000%)
+L7746 : L7492 (100.000000%)
+MCUSR : MCUSR (100.000000%)
+MCUSR_ : MCUSR_ (100.000000%)
+OCRB0 : OCRB0 (100.000000%)
+OCRB0_ : OCRB0_ (100.000000%)
+PORTC_ : PORTC_ (100.000000%)
+PRR0 : PRR0 (100.000000%)
+R0 : R0 (100.000000%)
+R12 : R12 (100.000000%)
+R16 : R16 (100.000000%)
+R20 : R20 (100.000000%)
+R24 : R24 (100.000000%)
+RESET_vect : RESET_vect (100.000000%)
+SPCR0 : SPCR0 (100.000000%)
+SPCR0_ : SPCR0_ (100.000000%)
+TCCR0A : TCCR0A (100.000000%)
+TCCR0A_ : TCCR0A_ (100.000000%)
+TIMER0_COMPA_vect : TIMER0_COMPA_vect (100.000000%)
+WDTCSR : WDTCSR (100.000000%)
+
+Left-Side Data Symbol Matches:
+------------------------------
+DDRB_ : DDRB_ (100.000000%)
+EEADH_ : EEADH_ (100.000000%)
+EEADL_ : EEADL_ (100.000000%)
+EECR_ : EECR_ (100.000000%)
+EEDR_ : EEDR_ (100.000000%)
+L0100 : L0100 (100.000000%)
+L0101 : L0101 (100.000000%)
+L0102 : L0102 (100.000000%)
+L0103 : L0103 (100.000000%)
+L0104 : L0104 (50.000000%), ??? (50.000000%)
+L016E : L0687 (44.444444%), ??? (22.222222%), L01F2 (11.111111%), L0203 (11.111111%), L0635 (11.111111%)
+L01F0 : L0617 (80.000000%), L0633 (20.000000%)
+L01F1 : ??? (100.000000%)
+L01F2 : ??? (100.000000%)
+L01F3 : ??? (100.000000%)
+L01F4 : ??? (100.000000%)
+L01F5 : ??? (100.000000%)
+L01F7 : ??? (100.000000%)
+L01F8 : ??? (100.000000%)
+L01F9 : ??? (60.000000%), L0633 (20.000000%), L06A0 (20.000000%)
+L01FA : L06A0 (40.000000%), ??? (40.000000%), L069F (20.000000%)
+L01FC : L06A2 (100.000000%)
+L01FD : L06A3 (100.000000%)
+L01FE : L06A4 (100.000000%)
+L01FF : L06A5 (100.000000%)
+L022D : ??? (100.000000%)
+L022E : ??? (100.000000%)
+L022F : ??? (100.000000%)
+L0230 : ??? (100.000000%)
+L0234 : ??? (100.000000%)
+L023D : L0677 (6.250000%), L067B (6.250000%), L067F (6.250000%), L0683 (6.250000%), L0689 (6.250000%), L068D (6.250000%), L0693 (6.250000%), L06E3 (6.250000%), L06E7 (6.250000%), L06EB (6.250000%), L06EF (6.250000%), L06F8 (6.250000%), L06FC (6.250000%), L0700 (6.250000%), L0705 (6.250000%), L0709 (6.250000%)
+L023E : L0678 (6.250000%), L067C (6.250000%), L0680 (6.250000%), L0684 (6.250000%), L068A (6.250000%), L068E (6.250000%), L0694 (6.250000%), L06E4 (6.250000%), L06E8 (6.250000%), L06EC (6.250000%), L06F0 (6.250000%), L06F9 (6.250000%), L06FD (6.250000%), L0701 (6.250000%), L0706 (6.250000%), L070A (6.250000%)
+L023F : L0679 (6.250000%), L067D (6.250000%), L0681 (6.250000%), L0685 (6.250000%), L068B (6.250000%), L068F (6.250000%), L0695 (6.250000%), L06E5 (6.250000%), L06E9 (6.250000%), L06ED (6.250000%), L06F1 (6.250000%), L06FA (6.250000%), L06FE (6.250000%), L0702 (6.250000%), L0707 (6.250000%), L070B (6.250000%)
+L0240 : L067A (6.250000%), L067E (6.250000%), L0682 (6.250000%), L0686 (6.250000%), L068C (6.250000%), L0690 (6.250000%), L0696 (6.250000%), L06E6 (6.250000%), L06EA (6.250000%), L06EE (6.250000%), L06F2 (6.250000%), L06FB (6.250000%), L06FF (6.250000%), L0703 (6.250000%), L0708 (6.250000%), L070C (6.250000%)
+L0241 : L0677 (6.666667%), L067B (6.666667%), L067F (6.666667%), L0683 (6.666667%), L0689 (6.666667%), L068D (6.666667%), L0693 (6.666667%), L06E7 (6.666667%), L06EB (6.666667%), L06EF (6.666667%), L06F8 (6.666667%), L06FC (6.666667%), L0700 (6.666667%), L0705 (6.666667%), L0709 (6.666667%)
+L0242 : L0678 (6.666667%), L067C (6.666667%), L0680 (6.666667%), L0684 (6.666667%), L068A (6.666667%), L068E (6.666667%), L0694 (6.666667%), L06E8 (6.666667%), L06EC (6.666667%), L06F0 (6.666667%), L06F9 (6.666667%), L06FD (6.666667%), L0701 (6.666667%), L0706 (6.666667%), L070A (6.666667%)
+L0243 : L0679 (6.666667%), L067D (6.666667%), L0681 (6.666667%), L0685 (6.666667%), L068B (6.666667%), L068F (6.666667%), L0695 (6.666667%), L06E9 (6.666667%), L06ED (6.666667%), L06F1 (6.666667%), L06FA (6.666667%), L06FE (6.666667%), L0702 (6.666667%), L0707 (6.666667%), L070B (6.666667%)
+L0244 : L067A (6.666667%), L067E (6.666667%), L0682 (6.666667%), L0686 (6.666667%), L068C (6.666667%), L0690 (6.666667%), L0696 (6.666667%), L06EA (6.666667%), L06EE (6.666667%), L06F2 (6.666667%), L06FB (6.666667%), L06FF (6.666667%), L0703 (6.666667%), L0708 (6.666667%), L070C (6.666667%)
+L0245 : L0677 (6.666667%), L067B (6.666667%), L067F (6.666667%), L0683 (6.666667%), L0689 (6.666667%), L068D (6.666667%), L0693 (6.666667%), L06E7 (6.666667%), L06EB (6.666667%), L06EF (6.666667%), L06F8 (6.666667%), L06FC (6.666667%), L0700 (6.666667%), L0705 (6.666667%), L0709 (6.666667%)
+L0246 : L0678 (6.666667%), L067C (6.666667%), L0680 (6.666667%), L0684 (6.666667%), L068A (6.666667%), L068E (6.666667%), L0694 (6.666667%), L06E8 (6.666667%), L06EC (6.666667%), L06F0 (6.666667%), L06F9 (6.666667%), L06FD (6.666667%), L0701 (6.666667%), L0706 (6.666667%), L070A (6.666667%)
+L0247 : L0679 (6.666667%), L067D (6.666667%), L0681 (6.666667%), L0685 (6.666667%), L068B (6.666667%), L068F (6.666667%), L0695 (6.666667%), L06E9 (6.666667%), L06ED (6.666667%), L06F1 (6.666667%), L06FA (6.666667%), L06FE (6.666667%), L0702 (6.666667%), L0707 (6.666667%), L070B (6.666667%)
+L0248 : L067A (6.666667%), L067E (6.666667%), L0682 (6.666667%), L0686 (6.666667%), L068C (6.666667%), L0690 (6.666667%), L0696 (6.666667%), L06EA (6.666667%), L06EE (6.666667%), L06F2 (6.666667%), L06FB (6.666667%), L06FF (6.666667%), L0703 (6.666667%), L0708 (6.666667%), L070C (6.666667%)
+L0249 : L0677 (6.666667%), L067B (6.666667%), L067F (6.666667%), L0683 (6.666667%), L0689 (6.666667%), L068D (6.666667%), L0693 (6.666667%), L06E7 (6.666667%), L06EB (6.666667%), L06EF (6.666667%), L06F8 (6.666667%), L06FC (6.666667%), L0700 (6.666667%), L0705 (6.666667%), L0709 (6.666667%)
+L024A : L0678 (6.666667%), L067C (6.666667%), L0680 (6.666667%), L0684 (6.666667%), L068A (6.666667%), L068E (6.666667%), L0694 (6.666667%), L06E8 (6.666667%), L06EC (6.666667%), L06F0 (6.666667%), L06F9 (6.666667%), L06FD (6.666667%), L0701 (6.666667%), L0706 (6.666667%), L070A (6.666667%)
+L024B : L0679 (6.666667%), L067D (6.666667%), L0681 (6.666667%), L0685 (6.666667%), L068B (6.666667%), L068F (6.666667%), L0695 (6.666667%), L06E9 (6.666667%), L06ED (6.666667%), L06F1 (6.666667%), L06FA (6.666667%), L06FE (6.666667%), L0702 (6.666667%), L0707 (6.666667%), L070B (6.666667%)
+L024C : L067A (6.666667%), L067E (6.666667%), L0682 (6.666667%), L0686 (6.666667%), L068C (6.666667%), L0690 (6.666667%), L0696 (6.666667%), L06EA (6.666667%), L06EE (6.666667%), L06F2 (6.666667%), L06FB (6.666667%), L06FF (6.666667%), L0703 (6.666667%), L0708 (6.666667%), L070C (6.666667%)
+L024D : L06F3 (100.000000%)
+L024E : L06F4 (100.000000%)
+L024F : L06F5 (100.000000%)
+L0250 : L06F6 (100.000000%)
+L0251 : L06F7 (100.000000%)
+L0252 : L0677 (7.692308%), L067B (7.692308%), L067F (7.692308%), L0683 (7.692308%), L0689 (7.692308%), L068D (7.692308%), L0693 (7.692308%), L06E7 (7.692308%), L06EB (7.692308%), L06EF (7.692308%), L06F8 (7.692308%), L0705 (7.692308%), L0709 (7.692308%)
+L0253 : L0678 (7.692308%), L067C (7.692308%), L0680 (7.692308%), L0684 (7.692308%), L068A (7.692308%), L068E (7.692308%), L0694 (7.692308%), L06E8 (7.692308%), L06EC (7.692308%), L06F0 (7.692308%), L06F9 (7.692308%), L0706 (7.692308%), L070A (7.692308%)
+L0254 : L0679 (7.692308%), L067D (7.692308%), L0681 (7.692308%), L0685 (7.692308%), L068B (7.692308%), L068F (7.692308%), L0695 (7.692308%), L06E9 (7.692308%), L06ED (7.692308%), L06F1 (7.692308%), L06FA (7.692308%), L0707 (7.692308%), L070B (7.692308%)
+L0255 : L067A (7.692308%), L067E (7.692308%), L0682 (7.692308%), L0686 (7.692308%), L068C (7.692308%), L0690 (7.692308%), L0696 (7.692308%), L06EA (7.692308%), L06EE (7.692308%), L06F2 (7.692308%), L06FB (7.692308%), L0708 (7.692308%), L070C (7.692308%)
+L0256 : L0677 (7.692308%), L067B (7.692308%), L067F (7.692308%), L0683 (7.692308%), L0689 (7.692308%), L068D (7.692308%), L0693 (7.692308%), L06E7 (7.692308%), L06EB (7.692308%), L06EF (7.692308%), L06FC (7.692308%), L0705 (7.692308%), L0709 (7.692308%)
+L0257 : L0678 (7.692308%), L067C (7.692308%), L0680 (7.692308%), L0684 (7.692308%), L068A (7.692308%), L068E (7.692308%), L0694 (7.692308%), L06E8 (7.692308%), L06EC (7.692308%), L06F0 (7.692308%), L06FD (7.692308%), L0706 (7.692308%), L070A (7.692308%)
+L0258 : L0679 (7.692308%), L067D (7.692308%), L0681 (7.692308%), L0685 (7.692308%), L068B (7.692308%), L068F (7.692308%), L0695 (7.692308%), L06E9 (7.692308%), L06ED (7.692308%), L06F1 (7.692308%), L06FE (7.692308%), L0707 (7.692308%), L070B (7.692308%)
+L0259 : L067A (7.692308%), L067E (7.692308%), L0682 (7.692308%), L0686 (7.692308%), L068C (7.692308%), L0690 (7.692308%), L0696 (7.692308%), L06EA (7.692308%), L06EE (7.692308%), L06F2 (7.692308%), L06FF (7.692308%), L0708 (7.692308%), L070C (7.692308%)
+L025A : L0677 (7.692308%), L067B (7.692308%), L067F (7.692308%), L0683 (7.692308%), L0689 (7.692308%), L068D (7.692308%), L0693 (7.692308%), L06E7 (7.692308%), L06EB (7.692308%), L06EF (7.692308%), L0700 (7.692308%), L0705 (7.692308%), L0709 (7.692308%)
+L025B : L0678 (7.692308%), L067C (7.692308%), L0680 (7.692308%), L0684 (7.692308%), L068A (7.692308%), L068E (7.692308%), L0694 (7.692308%), L06E8 (7.692308%), L06EC (7.692308%), L06F0 (7.692308%), L0701 (7.692308%), L0706 (7.692308%), L070A (7.692308%)
+L025C : L0679 (7.692308%), L067D (7.692308%), L0681 (7.692308%), L0685 (7.692308%), L068B (7.692308%), L068F (7.692308%), L0695 (7.692308%), L06E9 (7.692308%), L06ED (7.692308%), L06F1 (7.692308%), L0702 (7.692308%), L0707 (7.692308%), L070B (7.692308%)
+L025D : L067A (7.692308%), L067E (7.692308%), L0682 (7.692308%), L0686 (7.692308%), L068C (7.692308%), L0690 (7.692308%), L0696 (7.692308%), L06EA (7.692308%), L06EE (7.692308%), L06F2 (7.692308%), L0703 (7.692308%), L0708 (7.692308%), L070C (7.692308%)
+L025E : L0704 (100.000000%)
+L025F : L0677 (6.666667%), L067B (6.666667%), L067F (6.666667%), L0683 (6.666667%), L0689 (6.666667%), L068D (6.666667%), L0693 (6.666667%), L06E7 (6.666667%), L06EB (6.666667%), L06EF (6.666667%), L06F8 (6.666667%), L06FC (6.666667%), L0700 (6.666667%), L0705 (6.666667%), L0709 (6.666667%)
+L0260 : L0678 (6.666667%), L067C (6.666667%), L0680 (6.666667%), L0684 (6.666667%), L068A (6.666667%), L068E (6.666667%), L0694 (6.666667%), L06E8 (6.666667%), L06EC (6.666667%), L06F0 (6.666667%), L06F9 (6.666667%), L06FD (6.666667%), L0701 (6.666667%), L0706 (6.666667%), L070A (6.666667%)
+L0261 : L0679 (6.666667%), L067D (6.666667%), L0681 (6.666667%), L0685 (6.666667%), L068B (6.666667%), L068F (6.666667%), L0695 (6.666667%), L06E9 (6.666667%), L06ED (6.666667%), L06F1 (6.666667%), L06FA (6.666667%), L06FE (6.666667%), L0702 (6.666667%), L0707 (6.666667%), L070B (6.666667%)
+L0262 : L067A (6.666667%), L067E (6.666667%), L0682 (6.666667%), L0686 (6.666667%), L068C (6.666667%), L0690 (6.666667%), L0696 (6.666667%), L06EA (6.666667%), L06EE (6.666667%), L06F2 (6.666667%), L06FB (6.666667%), L06FF (6.666667%), L0703 (6.666667%), L0708 (6.666667%), L070C (6.666667%)
+L0263 : L0677 (6.250000%), L067B (6.250000%), L067F (6.250000%), L0683 (6.250000%), L0689 (6.250000%), L068D (6.250000%), L0693 (6.250000%), L06E7 (6.250000%), L06EB (6.250000%), L06EF (6.250000%), L06F8 (6.250000%), L06FC (6.250000%), L0700 (6.250000%), L0705 (6.250000%), L0709 (6.250000%), L070D (6.250000%)
+L0264 : L0678 (6.250000%), L067C (6.250000%), L0680 (6.250000%), L0684 (6.250000%), L068A (6.250000%), L068E (6.250000%), L0694 (6.250000%), L06E8 (6.250000%), L06EC (6.250000%), L06F0 (6.250000%), L06F9 (6.250000%), L06FD (6.250000%), L0701 (6.250000%), L0706 (6.250000%), L070A (6.250000%), L070E (6.250000%)
+L0265 : L0679 (6.250000%), L067D (6.250000%), L0681 (6.250000%), L0685 (6.250000%), L068B (6.250000%), L068F (6.250000%), L0695 (6.250000%), L06E9 (6.250000%), L06ED (6.250000%), L06F1 (6.250000%), L06FA (6.250000%), L06FE (6.250000%), L0702 (6.250000%), L0707 (6.250000%), L070B (6.250000%), L070F (6.250000%)
+L0266 : L067A (6.250000%), L067E (6.250000%), L0682 (6.250000%), L0686 (6.250000%), L068C (6.250000%), L0690 (6.250000%), L0696 (6.250000%), L06EA (6.250000%), L06EE (6.250000%), L06F2 (6.250000%), L06FB (6.250000%), L06FF (6.250000%), L0703 (6.250000%), L0708 (6.250000%), L070C (6.250000%), L0710 (6.250000%)
+L0267 : L06E3 (100.000000%)
+L0268 : L06E4 (100.000000%)
+L0269 : L06E5 (100.000000%)
+L026A : L06E6 (100.000000%)
+L026B : L02D3 (83.333333%), L0633 (16.666667%)
+L026C : L02D4 (50.000000%), ??? (50.000000%)
+L026D : ??? (53.333333%), L02D5 (40.000000%), L0633 (6.666667%)
+L058E : L05F6 (60.000000%), ??? (40.000000%)
+L05A7 : ??? (100.000000%)
+L05A8 : ??? (100.000000%)
+L05A9 : ??? (100.000000%)
+L05AA : L0635 (100.000000%)
+L05AB : L0687 (57.142857%), L01F0 (14.285714%), L02D5 (7.142857%), L0613 (7.142857%), L0631 (7.142857%), ??? (7.142857%)
+L05AC : ??? (75.000000%), L01F1 (25.000000%)
+L05AD : ??? (66.666667%), L01F2 (22.222222%), L0672 (11.111111%)
+L05AE : L0687 (44.444444%), L01F3 (22.222222%), ??? (22.222222%), L0203 (11.111111%)
+L05AF : L01F4 (100.000000%)
+L05BD : L0202 (100.000000%)
+L05BE : L0203 (100.000000%)
+L05D3 : L0218 (100.000000%)
+L05FE : ??? (66.666667%), L0244 (33.333333%)
+L0659 : ??? (100.000000%)
+L065A : L02A2 (57.142857%), ??? (42.857143%)
+L065B : ??? (66.666667%), L02A3 (33.333333%)
+L065C : ??? (66.666667%), L02A4 (33.333333%)
+L065D : ??? (66.666667%), L02A5 (33.333333%)
+L065E : ??? (66.666667%), L02A6 (33.333333%)
+L065F : ??? (100.000000%)
+L0660 : ??? (100.000000%)
+L0661 : ??? (100.000000%)
+L0662 : ??? (100.000000%)
+L0663 : ??? (100.000000%)
+L0664 : ??? (100.000000%)
+L0665 : ??? (100.000000%)
+L0666 : ??? (100.000000%)
+L0667 : ??? (100.000000%)
+L0668 : ??? (100.000000%)
+L0669 : ??? (100.000000%)
+L066A : ??? (100.000000%)
+L066B : ??? (100.000000%)
+L066C : ??? (100.000000%)
+L066D : ??? (100.000000%)
+L066E : ??? (100.000000%)
+L066F : ??? (100.000000%)
+L0670 : ??? (75.000000%), L02B8 (12.500000%), L0631 (12.500000%)
+L0671 : ??? (87.500000%), L02B9 (12.500000%)
+L0672 : ??? (87.500000%), L02BA (12.500000%)
+L0673 : ??? (87.500000%), L02BB (12.500000%)
+L0674 : ??? (60.000000%), L02A4 (20.000000%), L02BA (20.000000%)
+L0675 : ??? (60.000000%), L02A5 (20.000000%), L02BB (20.000000%)
+L0676 : ??? (80.000000%), L02A6 (20.000000%)
+L0677 : ??? (100.000000%)
+L0678 : ??? (71.428571%), L02BF (14.285714%), L02C2 (14.285714%)
+L0679 : ??? (85.714286%), L02C3 (14.285714%)
+L067A : ??? (85.714286%), L02C4 (14.285714%)
+L067B : ??? (100.000000%)
+L067C : ??? (80.000000%), L02A7 (20.000000%)
+L067D : ??? (80.000000%), L02A8 (20.000000%)
+L067E : ??? (66.666667%), L02A9 (16.666667%), L02D0 (16.666667%)
+L067F : ??? (83.333333%), L02AA (16.666667%)
+L0680 : ??? (75.000000%), L02AB (25.000000%)
+L0681 : ??? (75.000000%), L02AC (25.000000%)
+L0682 : ??? (75.000000%), L02AD (25.000000%)
+L0683 : ??? (75.000000%), L02AE (25.000000%)
+L0684 : ??? (100.000000%)
+L0685 : ??? (100.000000%)
+L0686 : ??? (100.000000%)
+L0687 : ??? (100.000000%)
+L0688 : ??? (100.000000%)
+L0689 : L0219 (50.000000%), ??? (50.000000%)
+L068A : ??? (100.000000%)
+L068B : ??? (100.000000%)
+L068C : L02D1 (75.000000%), L02D2 (12.500000%), ??? (12.500000%)
+L068D : L02D2 (66.666667%), ??? (33.333333%)
+L068E : ??? (60.000000%), L0711 (26.666667%), L02BA (6.666667%), SPH_ (6.666667%)
+L068F : ??? (100.000000%)
+L0690 : ??? (83.333333%), L0691 (16.666667%)
+L06DE : L0615 (44.444444%), L0613 (22.222222%), L0616 (22.222222%), ??? (11.111111%)
+L06DF : L0631 (39.473684%), ??? (36.842105%), L02D4 (2.631579%), L0632 (2.631579%), L0633 (2.631579%), L0638 (2.631579%), L063C (2.631579%), L068F (2.631579%), L06D4 (2.631579%), L0712 (2.631579%), PORTC_ (2.631579%)
+L06E0 : L0632 (47.058824%), ??? (41.176471%), L0613 (5.882353%), L0673 (5.882353%)
+L06E1 : L0633 (46.153846%), ??? (42.307692%), L0631 (3.846154%), L0676 (3.846154%), TCCR2A (3.846154%)
+L06E2 : L0634 (100.000000%)
+L06E3 : L0635 (48.000000%), ??? (48.000000%), L02D0 (4.000000%)
+L06E4 : L0636 (50.000000%), L0687 (50.000000%)
+L06E5 : L0637 (100.000000%)
+L06E6 : L0638 (50.000000%), ??? (50.000000%)
+L06E7 : L0639 (75.000000%), ??? (25.000000%)
+L06E8 : ??? (100.000000%)
+L06E9 : L063B (55.555556%), ??? (33.333333%), L06A0 (11.111111%)
+L06EA : ??? (80.000000%), L01F3 (10.000000%), L063C (10.000000%)
+L06EB : ??? (90.909091%), L063D (9.090909%)
+L06EC : L063E (71.428571%), ??? (28.571429%)
+L06ED : L063F (71.428571%), ??? (28.571429%)
+L06EE : L0640 (71.428571%), ??? (28.571429%)
+L06EF : L0641 (71.428571%), ??? (28.571429%)
+L06F0 : ??? (33.333333%), L0613 (22.222222%), L0615 (22.222222%), L0616 (22.222222%)
+L06F1 : L0613 (47.058824%), L0615 (23.529412%), L0616 (23.529412%), L016E (5.882353%)
+L070B : L0614 (62.500000%), L0613 (12.500000%), L0631 (12.500000%), ??? (12.500000%)
+L070C : L0642 (100.000000%)
+L070D : L0643 (100.000000%)
+L070E : L0644 (100.000000%)
+L070F : L0645 (100.000000%)
+L0710 : L0646 (100.000000%)
+L0711 : L0647 (100.000000%)
+L0712 : L0648 (100.000000%)
+L0713 : L0649 (100.000000%)
+L0714 : L064A (100.000000%)
+L0715 : L064B (100.000000%)
+L0716 : L064C (100.000000%)
+L0717 : L064D (100.000000%)
+L0718 : L064E (100.000000%)
+L0719 : L064F (100.000000%)
+L071A : L0650 (100.000000%)
+L071B : L0651 (100.000000%)
+L071C : L0652 (100.000000%)
+L071D : L0653 (100.000000%)
+L071E : L0654 (100.000000%)
+L071F : L0655 (100.000000%)
+L0720 : L0656 (100.000000%)
+L0721 : L0657 (100.000000%)
+L0722 : L0658 (100.000000%)
+L0723 : L0659 (100.000000%)
+L0724 : L065A (100.000000%)
+L0725 : L065B (100.000000%)
+L0726 : L065C (100.000000%)
+L0727 : L065D (100.000000%)
+L0728 : L065E (100.000000%)
+L0729 : L065F (100.000000%)
+L072A : L0660 (100.000000%)
+L072B : L0661 (100.000000%)
+L072C : L0662 (100.000000%)
+L072D : L0663 (100.000000%)
+L072E : L0664 (100.000000%)
+L072F : L0665 (100.000000%)
+L0730 : L0666 (100.000000%)
+L0731 : L0667 (100.000000%)
+L0732 : L0668 (100.000000%)
+L0733 : L0669 (100.000000%)
+L0734 : L066A (100.000000%)
+L0735 : L066B (100.000000%)
+L0736 : L066C (100.000000%)
+L0737 : L066D (100.000000%)
+L0738 : L066E (100.000000%)
+L0739 : L066F (100.000000%)
+L073A : L0670 (100.000000%)
+L073B : L0671 (100.000000%)
+L073C : L0672 (100.000000%)
+L073D : L0687 (47.058824%), L0673 (11.764706%), L02D5 (5.882353%), L0613 (5.882353%), L0631 (5.882353%), L0674 (5.882353%), L0675 (5.882353%), L0676 (5.882353%), L0688 (5.882353%)
+L073E : L0674 (40.000000%), ??? (40.000000%), L0673 (20.000000%)
+L073F : L0675 (57.142857%), L0674 (14.285714%), L0676 (14.285714%), L0688 (14.285714%)
+L0740 : L0676 (37.500000%), L0633 (12.500000%), L0674 (12.500000%), L0675 (12.500000%), L0688 (12.500000%), ??? (12.500000%)
+L0741 : L0677 (100.000000%)
+L0742 : L0678 (100.000000%)
+L0743 : L0679 (100.000000%)
+L0744 : L067A (100.000000%)
+L0745 : L067B (100.000000%)
+L0746 : L067C (100.000000%)
+L0747 : L067D (100.000000%)
+L0748 : L067E (100.000000%)
+L0749 : L067F (100.000000%)
+L074A : L0680 (100.000000%)
+L074B : L0681 (100.000000%)
+L074C : L0682 (100.000000%)
+L074D : L0683 (100.000000%)
+L074E : L0684 (100.000000%)
+L074F : L0685 (100.000000%)
+L0750 : L0686 (100.000000%)
+L0751 : L0687 (83.076923%), ??? (13.846154%), L0632 (3.076923%)
+L0752 : L0688 (42.857143%), L0674 (14.285714%), L0675 (14.285714%), L0676 (14.285714%), L068C (14.285714%)
+L0753 : L0689 (66.666667%), L0696 (33.333333%)
+L0754 : L068A (66.666667%), ??? (33.333333%)
+L0755 : L068B (66.666667%), ??? (33.333333%)
+L0756 : L068C (66.666667%), ??? (33.333333%)
+L0757 : L068D (75.000000%), ??? (25.000000%)
+L0758 : L068E (75.000000%), ??? (25.000000%)
+L0759 : L068F (75.000000%), ??? (25.000000%)
+L075A : L0690 (75.000000%), ??? (25.000000%)
+L075B : L0691 (75.000000%), ??? (25.000000%)
+L075C : L0692 (75.000000%), ??? (25.000000%)
+L075D : ??? (60.000000%), L0693 (40.000000%)
+L075E : ??? (60.000000%), L0694 (40.000000%)
+L075F : L0695 (40.000000%), ??? (40.000000%), L0688 (20.000000%)
+L0760 : ??? (60.000000%), L0696 (40.000000%)
+OCR2A : OCR2A (100.000000%)
+PCICR : PCICR (100.000000%)
+PCMSK0 : PCMSK0 (100.000000%)
+PINB_ : PINB_ (100.000000%)
+PINC_ : PINC_ (50.000000%), ??? (50.000000%)
+PORTB_ : PORTB_ (83.333333%), ??? (16.666667%)
+PORTC_ : PORTC_ (50.000000%), ??? (33.333333%), L01F2 (16.666667%)
+PORTD_ : PORTD_ (50.000000%), ??? (50.000000%)
+SPH_ : SPH_ (69.444444%), ??? (27.777778%), L02A2 (2.777778%)
+SPL_ : SPL_ (69.444444%), ??? (27.777778%), L02D2 (2.777778%)
+SREG_ : SREG_ (60.824742%), ??? (38.144330%), L0631 (1.030928%)
+TCCR0B_ : ??? (66.666667%), L0202 (33.333333%)
+TCCR1B : TCCR1B (100.000000%)
+TCCR2A : TCCR2A (75.000000%), ??? (25.000000%)
+TCCR2B : TCCR2B (100.000000%)
+TIMSK1 : TIMSK1 (100.000000%)
+UCSR0B : ??? (71.428571%), UCSR0B (28.571429%)
+UDR0 : ??? (100.000000%)
+
+Right-Side Code Symbol Matches:
+-------------------------------
+ACSR : ACSR (100.000000%)
+ACSR_ : ACSR_ (100.000000%)
+ADCL : ??? (100.000000%)
+ADCSRA : ??? (100.000000%)
+ADMUX : ??? (100.000000%)
+ANALOG_COMP_vect : ANALOG_COMP_vect (100.000000%)
+ASSR : ??? (100.000000%)
+DDRB_ : DDRB_ (100.000000%)
+DIDR0 : ??? (100.000000%)
+EEDR : EEDR (100.000000%)
+EEDR_ : EEDR_ (100.000000%)
+EE_READY_vect : EE_READY_vect (100.000000%)
+EIFR : EIFR (100.000000%)
+EIFR_ : EIFR_ (100.000000%)
+ICR1L : ??? (100.000000%)
+L027C : L0322 (100.000000%)
+L0290 : L0336 (100.000000%)
+L0292 : L0338 (100.000000%)
+L02A0 : L0346 (100.000000%)
+L02A4 : L3324 (33.333333%), L6B98 (33.333333%), L7010 (33.333333%)
+L02D8 : ??? (100.000000%)
+L0312 : L6C3A (66.666667%), ??? (33.333333%)
+L0316 : L6BCE (100.000000%)
+L031C : L6C32 (100.000000%)
+L0326 : L6C1E (100.000000%)
+L032E : L6C26 (100.000000%)
+L033C : ??? (100.000000%)
+L035A : L6CAC (100.000000%)
+L0372 : ??? (100.000000%)
+L037E : L6CDE (100.000000%)
+L039A : L6C5A (100.000000%)
+L03CE : L6C90 (100.000000%)
+L03F8 : L3300 (33.333333%), L3312 (33.333333%), L4736 (33.333333%)
+L040A : L3312 (50.000000%), L4736 (50.000000%)
+L041C : L3324 (50.000000%), ??? (20.000000%), L3344 (10.000000%), L3798 (10.000000%), L6D4E (10.000000%)
+L0428 : L3330 (57.142857%), L462A (14.285714%), L6D4E (14.285714%), ??? (14.285714%)
+L043C : ??? (42.857143%), L3344 (28.571429%), L04C4 (14.285714%), L3D54 (14.285714%)
+L044E : L3356 (100.000000%)
+L0470 : L3378 (50.000000%), ??? (50.000000%)
+L04C0 : L33B4 (50.000000%), L33FC (25.000000%), ??? (25.000000%)
+L04C4 : L33CC (50.000000%), L158A (16.666667%), L3742 (16.666667%), ??? (16.666667%)
+L04F0 : ??? (100.000000%)
+L053C : ??? (100.000000%)
+L0552 : L3480 (100.000000%)
+L0554 : ??? (50.000000%), L046C (25.000000%), L3516 (25.000000%)
+L0566 : L3528 (100.000000%)
+L0576 : L3538 (100.000000%)
+L0578 : L3B5A (33.333333%), L36F6 (16.666667%), L3742 (16.666667%), L6DCE (16.666667%), ??? (16.666667%)
+L0598 : ??? (100.000000%)
+L059C : L3B80 (100.000000%)
+L059E : L3B82 (100.000000%)
+L05A0 : L3B84 (100.000000%)
+L05B6 : ??? (66.666667%), L345C (11.111111%), L36BC (11.111111%), L3B9A (11.111111%)
+L05E0 : L3BC4 (100.000000%)
+L05E4 : L30FE (33.333333%), L748C (33.333333%), ??? (33.333333%)
+L0618 : L3136 (100.000000%)
+L0668 : L317E (100.000000%)
+L06D6 : ??? (100.000000%)
+L0728 : ??? (100.000000%)
+L0746 : ??? (100.000000%)
+L0760 : L3CC2 (100.000000%)
+L0792 : ??? (100.000000%)
+L07BC : L4300 (50.000000%), L040E (16.666667%), L7416 (16.666667%), ??? (16.666667%)
+L07D6 : ??? (66.666667%), L431A (33.333333%)
+L07DC : L6D0A (80.000000%), L6CFA (10.000000%), ??? (10.000000%)
+L07DE : L6D0C (100.000000%)
+L080A : L6D3A (50.000000%), ??? (50.000000%)
+L080E : L6D4A (100.000000%)
+L0812 : ??? (100.000000%)
+L081C : L6D4E (40.000000%), ??? (40.000000%), L046C (20.000000%)
+L0892 : L6D0A (50.000000%), ??? (50.000000%)
+L0896 : ??? (100.000000%)
+L089A : L551C (100.000000%)
+L08B4 : ??? (50.000000%), L3742 (25.000000%), L6CFA (25.000000%)
+L08C4 : L046C (33.333333%), L6DCE (33.333333%), ??? (33.333333%)
+L08EA : ??? (100.000000%)
+L090A : ??? (100.000000%)
+L092E : L3378 (100.000000%)
+L0948 : L6810 (50.000000%), ??? (50.000000%)
+L098A : ??? (50.000000%), L32A2 (25.000000%), L6852 (25.000000%)
+L0990 : L6858 (33.333333%), L748C (33.333333%), ??? (33.333333%)
+L09C8 : ??? (100.000000%)
+L09D8 : L6892 (100.000000%)
+L0A7A : ??? (100.000000%)
+L0A98 : L6904 (100.000000%)
+L0A9C : ??? (100.000000%)
+L0AA4 : L6AC8 (100.000000%)
+L0AEC : ??? (100.000000%)
+L0B08 : L694C (100.000000%)
+L0B12 : L695A (100.000000%)
+L0B90 : L69E6 (50.000000%), L6AC4 (50.000000%)
+L0B9E : L6986 (100.000000%)
+L0C2C : L6A90 (100.000000%)
+L0C54 : L6AB8 (100.000000%)
+L0C5E : ??? (100.000000%)
+L0C64 : L4736 (66.666667%), L3312 (33.333333%)
+L0C9E : L36BC (33.333333%), L4C92 (33.333333%), ??? (33.333333%)
+L0CA8 : ??? (100.000000%)
+L0CCC : ??? (66.666667%), L4C9E (33.333333%)
+L0CD0 : ??? (50.000000%), L03FE (25.000000%), L04A4 (25.000000%)
+L0CDE : L040C (100.000000%)
+L0CE0 : ??? (43.636364%), L046C (25.454545%), L32A2 (9.090909%), L08B2 (3.636364%), L0644 (1.818182%), L158A (1.818182%), L369E (1.818182%), L379E (1.818182%), L37F0 (1.818182%), L4E4E (1.818182%), L5148 (1.818182%), L515A (1.818182%), L6E5C (1.818182%), L6E5E (1.818182%)
+L0CEE : L0484 (100.000000%)
+L0D0E : L047C (100.000000%)
+L0D18 : L32A2 (100.000000%)
+L0D20 : ??? (100.000000%)
+L0D2C : ??? (40.000000%), L32AA (20.000000%), L3748 (20.000000%), L37C4 (20.000000%)
+L0D32 : L3544 (75.000000%), ??? (25.000000%)
+L0D7C : L358E (100.000000%)
+L0D7E : L3656 (100.000000%)
+L0D84 : ??? (100.000000%)
+L0D9C : L35C4 (100.000000%)
+L0DBC : ??? (100.000000%)
+L0DD8 : ??? (100.000000%)
+L0E02 : ??? (100.000000%)
+L0E2C : L3590 (100.000000%)
+L0E6E : ??? (100.000000%)
+L0E78 : ??? (100.000000%)
+L0E86 : L3742 (100.000000%)
+L0E9E : L3698 (100.000000%)
+L0EA2 : L069A (100.000000%)
+L0EBA : L36B6 (100.000000%)
+L0EBE : L046C (20.000000%), L36BC (20.000000%), L4E3C (20.000000%), L6810 (20.000000%), ??? (20.000000%)
+L0EC8 : L3BE6 (100.000000%)
+L0EE2 : L3C10 (100.000000%)
+L0EF0 : ??? (40.000000%), L36F6 (20.000000%), L046C (10.000000%), L32AA (5.000000%), L3748 (5.000000%), L3788 (5.000000%), L379E (5.000000%), L4E3C (5.000000%), L515A (5.000000%)
+L0F02 : ??? (100.000000%)
+L0F0E : L08DC (33.333333%), L370A (33.333333%), ??? (33.333333%)
+L0F16 : ??? (100.000000%)
+L0F26 : ??? (66.666667%), L372E (33.333333%)
+L0F34 : L373C (33.333333%), L3788 (33.333333%), ??? (33.333333%)
+L0F3A : L3742 (53.846154%), ??? (23.076923%), L046C (7.692308%), L08B2 (3.846154%), L36F6 (3.846154%), L3A9E (3.846154%), L4E3C (3.846154%)
+L0F40 : ??? (100.000000%)
+L0F50 : ??? (50.000000%), L32AA (16.666667%), L3748 (16.666667%), L37C4 (16.666667%)
+L0F56 : L3768 (40.000000%), ??? (40.000000%), L0644 (10.000000%), L6D4E (10.000000%)
+L0F5E : L3770 (50.000000%), L33CC (25.000000%), L551C (25.000000%)
+L0F76 : L3788 (100.000000%)
+L0F82 : L3794 (100.000000%)
+L0F86 : L37F6 (87.500000%), ??? (12.500000%)
+L0FC6 : L3844 (100.000000%)
+L0FEE : L09BA (100.000000%)
+L118E : ??? (100.000000%)
+L1194 : ??? (100.000000%)
+L11AC : ??? (66.666667%), L3A18 (33.333333%)
+L11D6 : ??? (100.000000%)
+L11E0 : ??? (100.000000%)
+L11FA : L3A42 (100.000000%)
+L1206 : L3A9E (80.000000%), ??? (20.000000%)
+L1264 : L04C4 (50.000000%), L0644 (25.000000%), ??? (25.000000%)
+L1272 : ??? (100.000000%)
+L1276 : L04DC (100.000000%)
+L1278 : L04D4 (100.000000%)
+L1280 : L0628 (100.000000%)
+L128E : ??? (100.000000%)
+L1294 : L0638 (100.000000%)
+L129C : ??? (100.000000%)
+L130E : L6810 (100.000000%)
+L1316 : L099E (50.000000%), L4328 (50.000000%)
+L1330 : L31AA (50.000000%), L3F76 (50.000000%)
+L135E : L31D8 (100.000000%)
+L1398 : L3212 (100.000000%)
+L13BE : ??? (100.000000%)
+L1406 : L04E4 (50.000000%), L6E5C (50.000000%)
+L1488 : L056A (100.000000%)
+L149A : L060C (66.666667%), ??? (33.333333%)
+L14B4 : L057E (100.000000%)
+L14E8 : L05B2 (100.000000%)
+L14FC : L05C6 (100.000000%)
+L1544 : L0644 (71.428571%), L3BC8 (14.285714%), ??? (14.285714%)
+L156A : ??? (100.000000%)
+L156E : L0698 (100.000000%)
+L1570 : L066C (100.000000%)
+L1588 : L0688 (100.000000%)
+L1596 : L0674 (100.000000%)
+L159A : L36BC (33.333333%), L3D54 (33.333333%), ??? (33.333333%)
+L15EE : L3DAC (100.000000%)
+L161C : ??? (100.000000%)
+L1620 : L3DDE (100.000000%)
+L1688 : ??? (100.000000%)
+L16FA : ??? (100.000000%)
+L1728 : L3E96 (100.000000%)
+L1780 : L3F52 (100.000000%)
+L178C : L3EDE (100.000000%)
+L17EC : L40F4 (100.000000%)
+L17F6 : L3E58 (100.000000%)
+L17FE : ??? (100.000000%)
+L1816 : ??? (100.000000%)
+L1822 : ??? (100.000000%)
+L183A : L41E0 (100.000000%)
+L1842 : L41E0 (50.000000%), L4232 (50.000000%)
+L188E : ??? (100.000000%)
+L18EE : ??? (100.000000%)
+L1900 : ??? (100.000000%)
+L1918 : ??? (100.000000%)
+L1920 : ??? (100.000000%)
+L1956 : L3F60 (100.000000%)
+L1962 : ??? (100.000000%)
+L1986 : L406E (100.000000%)
+L1A0E : L40FE (100.000000%)
+L1A44 : L4134 (100.000000%)
+L1AD8 : L41C8 (100.000000%)
+L1AF2 : ??? (100.000000%)
+L1AFC : L4796 (60.000000%), ??? (40.000000%)
+L1B2E : L47E8 (100.000000%)
+L1B32 : L47CA (100.000000%)
+L1B38 : ??? (100.000000%)
+L1B3E : L47CE (100.000000%)
+L1B4A : L47F6 (100.000000%)
+L1B52 : L47D0 (100.000000%)
+L1B56 : ??? (100.000000%)
+L1B5C : ??? (100.000000%)
+L1B60 : L47FE (100.000000%)
+L1B64 : L55B0 (50.000000%), ??? (50.000000%)
+L1B74 : L6B42 (100.000000%)
+L1B82 : L6B50 (100.000000%)
+L1BCA : L09BA (66.666667%), L32A2 (33.333333%)
+L1C04 : ??? (100.000000%)
+L1C08 : ??? (66.666667%), L09FC (33.333333%)
+L1C0C : ??? (66.666667%), L09F6 (33.333333%)
+L1C10 : ??? (50.000000%), L0A00 (33.333333%), L045A (16.666667%)
+L1C12 : L583A (33.333333%), L3742 (16.666667%), L3C2A (16.666667%), L536A (16.666667%), L7416 (16.666667%)
+L1C4E : ??? (66.666667%), L5876 (33.333333%)
+L1C5C : L5884 (100.000000%)
+L1C6A : L5892 (100.000000%)
+L1C82 : ??? (100.000000%)
+L1C9C : L58C8 (100.000000%)
+L1CA8 : ??? (100.000000%)
+L1D64 : ??? (100.000000%)
+L1D6A : L5F08 (100.000000%)
+L1DEE : ??? (100.000000%)
+L1E9C : L63C4 (100.000000%)
+L1ECE : L748C (100.000000%)
+L1ED6 : ??? (100.000000%)
+L1EE0 : ??? (100.000000%)
+L1EE6 : L701E (100.000000%)
+L1F82 : ??? (75.000000%), L63C4 (25.000000%)
+L1FAE : ??? (100.000000%)
+L1FD2 : L65C0 (100.000000%)
+L200E : ??? (100.000000%)
+L204A : L5D56 (100.000000%)
+L2056 : L67DE (100.000000%)
+L2060 : ??? (100.000000%)
+L20E8 : ??? (100.000000%)
+L20F0 : ??? (100.000000%)
+L20F6 : L67DE (100.000000%)
+L2128 : L58AC (100.000000%)
+L212E : L58DA (100.000000%)
+L213A : ??? (100.000000%)
+L2166 : ??? (100.000000%)
+L2170 : ??? (100.000000%)
+L21AC : L6E5C (100.000000%)
+L2236 : ??? (100.000000%)
+L2270 : ??? (100.000000%)
+L22CC : ??? (100.000000%)
+L22F2 : ??? (100.000000%)
+L2314 : ??? (100.000000%)
+L2342 : ??? (100.000000%)
+L23B6 : L6054 (100.000000%)
+L2400 : ??? (100.000000%)
+L240C : ??? (100.000000%)
+L242E : ??? (100.000000%)
+L2448 : L6256 (100.000000%)
+L248E : ??? (100.000000%)
+L2494 : ??? (100.000000%)
+L24D8 : ??? (100.000000%)
+L2560 : ??? (100.000000%)
+L259A : ??? (100.000000%)
+L25FC : ??? (100.000000%)
+L2600 : ??? (100.000000%)
+L2632 : ??? (100.000000%)
+L2638 : ??? (100.000000%)
+L2646 : L7010 (100.000000%)
+L2684 : L64F4 (100.000000%)
+L2696 : ??? (100.000000%)
+L275A : L63C4 (100.000000%)
+L276A : L63C4 (100.000000%)
+L2774 : ??? (100.000000%)
+L27E0 : ??? (100.000000%)
+L2858 : ??? (100.000000%)
+L28B6 : ??? (100.000000%)
+L28EE : ??? (100.000000%)
+L28F6 : ??? (100.000000%)
+L290C : ??? (100.000000%)
+L2980 : ??? (100.000000%)
+L2998 : ??? (100.000000%)
+L29A8 : ??? (100.000000%)
+L29AC : ??? (100.000000%)
+L2A32 : L66BA (50.000000%), L67DE (50.000000%)
+L2A36 : L6634 (100.000000%)
+L2A5A : ??? (100.000000%)
+L2A74 : ??? (100.000000%)
+L2A7C : L66FE (100.000000%)
+L2A86 : ??? (100.000000%)
+L2A8A : L6716 (100.000000%)
+L2AA0 : ??? (100.000000%)
+L2AAA : L66C8 (100.000000%)
+L2AD0 : ??? (100.000000%)
+L2AEA : ??? (100.000000%)
+L2AF0 : ??? (100.000000%)
+L2B0A : L67C2 (100.000000%)
+L2B14 : L67CC (100.000000%)
+L2B20 : L67D8 (100.000000%)
+L2B26 : L4CC2 (100.000000%)
+L2B7C : L4D60 (100.000000%)
+L2B86 : L54EC (100.000000%)
+L2B90 : L4D60 (100.000000%)
+L2B9A : L4D20 (100.000000%)
+L2BA4 : ??? (100.000000%)
+L2BDE : ??? (100.000000%)
+L2BFC : L4D56 (100.000000%)
+L2C06 : L4D18 (100.000000%)
+L2C14 : L4D84 (100.000000%)
+L2C3A : L4DE0 (100.000000%)
+L2C3E : ??? (100.000000%)
+L2C44 : ??? (100.000000%)
+L2C4A : L4DBA (100.000000%)
+L2C50 : ??? (100.000000%)
+L2C56 : ??? (40.000000%), L3B5A (20.000000%), L4E0E (20.000000%), L4FF4 (20.000000%)
+L2C6E : ??? (100.000000%)
+L2C72 : L046C (100.000000%)
+L2C9C : ??? (100.000000%)
+L2C9E : L50EA (100.000000%)
+L2CB8 : ??? (100.000000%)
+L2CBA : L046C (100.000000%)
+L2CC0 : L4E0E (100.000000%)
+L2CD2 : L4E02 (100.000000%)
+L2CE2 : ??? (100.000000%)
+L2D32 : ??? (100.000000%)
+L2D40 : ??? (100.000000%)
+L2D4A : ??? (100.000000%)
+L2D54 : ??? (100.000000%)
+L2D62 : ??? (100.000000%)
+L2D6C : ??? (100.000000%)
+L2D76 : ??? (100.000000%)
+L2D80 : ??? (100.000000%)
+L2D90 : ??? (100.000000%)
+L2D96 : ??? (66.666667%), L51A2 (33.333333%)
+L2DA6 : L50FA (100.000000%)
+L2DAE : ??? (100.000000%)
+L2DBA : ??? (100.000000%)
+L2DE6 : L36BC (25.000000%), L4E86 (25.000000%), L4EBE (25.000000%), ??? (25.000000%)
+L2DF4 : L3742 (100.000000%)
+L2E06 : L4F30 (50.000000%), L4F32 (50.000000%)
+L2E14 : L046C (50.000000%), ??? (50.000000%)
+L2E3E : ??? (100.000000%)
+L2E4A : ??? (100.000000%)
+L2E52 : L4E14 (100.000000%)
+L2E5E : L3544 (100.000000%)
+L2E76 : ??? (100.000000%)
+L2E78 : ??? (66.666667%), L5026 (33.333333%)
+L2E7E : ??? (100.000000%)
+L2E88 : ??? (100.000000%)
+L2E8E : L4E40 (100.000000%)
+L2E92 : ??? (50.000000%), L046C (16.666667%), L4FD2 (16.666667%), L4FEA (16.666667%)
+L2E98 : L4DC0 (100.000000%)
+L2E9E : ??? (100.000000%)
+L2EA4 : L4DCC (100.000000%)
+L2EAA : L4E1A (100.000000%)
+L2EB0 : L4E3C (100.000000%)
+L2EB6 : ??? (100.000000%)
+L2ECA : ??? (100.000000%)
+L2ED6 : ??? (100.000000%)
+L2EDA : L4E3C (50.000000%), ??? (50.000000%)
+L2F02 : ??? (100.000000%)
+L2F3A : L3742 (100.000000%)
+L2F62 : ??? (100.000000%)
+L2F78 : L4E34 (100.000000%)
+L2F7C : L4E3C (100.000000%)
+L2F80 : ??? (100.000000%)
+L2F88 : ??? (100.000000%)
+L2F92 : ??? (100.000000%)
+L2FA4 : ??? (100.000000%)
+L2FB6 : ??? (100.000000%)
+L2FBA : L4EFC (100.000000%)
+L2FC4 : ??? (100.000000%)
+L3006 : ??? (100.000000%)
+L3024 : ??? (100.000000%)
+L302A : ??? (100.000000%)
+L3032 : L513A (100.000000%)
+L3036 : ??? (100.000000%)
+L303C : ??? (100.000000%)
+L3042 : ??? (66.666667%), L4F78 (33.333333%)
+L304C : L4F50 (50.000000%), ??? (50.000000%)
+L3062 : L51C8 (100.000000%)
+L3068 : L51CE (100.000000%)
+L306E : L6E5E (100.000000%)
+L3090 : L5202 (50.000000%), ??? (50.000000%)
+L30BC : L525A (60.000000%), ??? (40.000000%)
+L30C2 : L5260 (100.000000%)
+L30D4 : ??? (100.000000%)
+L3102 : L52A0 (100.000000%)
+L3108 : ??? (100.000000%)
+L310E : L4D26 (100.000000%)
+L3118 : L52F0 (100.000000%)
+L3142 : L531E (100.000000%)
+L3148 : L5324 (100.000000%)
+L3162 : L5344 (100.000000%)
+L3188 : ??? (100.000000%)
+L31B4 : L5446 (100.000000%)
+L31BE : ??? (100.000000%)
+L31E8 : ??? (100.000000%)
+L31EE : ??? (100.000000%)
+L3204 : ??? (100.000000%)
+L321A : ??? (100.000000%)
+L321E : ??? (100.000000%)
+L322A : ??? (100.000000%)
+L3234 : ??? (100.000000%)
+L323E : ??? (100.000000%)
+L3248 : ??? (100.000000%)
+L324E : L51F8 (100.000000%)
+L325A : L522A (100.000000%)
+L3282 : ??? (100.000000%)
+L328C : L52A8 (100.000000%)
+L3290 : L52A8 (100.000000%)
+L32A4 : ??? (100.000000%)
+L330E : ??? (100.000000%)
+L335E : L583A (100.000000%)
+L3368 : L547E (100.000000%)
+L337A : ??? (100.000000%)
+L3382 : ??? (100.000000%)
+L3386 : ??? (100.000000%)
+L338C : ??? (100.000000%)
+L338E : L069A (55.555556%), L0BCE (11.111111%), L3A9E (11.111111%), L5808 (11.111111%), ??? (11.111111%)
+L33AA : L06B6 (100.000000%)
+L33CE : L089C (100.000000%)
+L33DC : L06F4 (100.000000%)
+L33EE : L0706 (100.000000%)
+L3406 : L071E (100.000000%)
+L342C : L089C (44.444444%), ??? (33.333333%), L0838 (11.111111%), L084C (11.111111%)
+L3432 : L06DA (100.000000%)
+L3440 : L0746 (100.000000%)
+L346E : L0774 (100.000000%)
+L3476 : L08A2 (100.000000%)
+L348C : L0782 (100.000000%)
+L3496 : L078C (100.000000%)
+L34BC : L07CC (66.666667%), L089C (33.333333%)
+L34E0 : ??? (100.000000%)
+L34F6 : L07B4 (100.000000%)
+L3510 : L0806 (100.000000%)
+L3536 : L082C (100.000000%)
+L353C : ??? (100.000000%)
+L356A : L0838 (50.000000%), L089C (50.000000%)
+L3578 : L0846 (100.000000%)
+L357E : L0874 (100.000000%)
+L358A : L0880 (100.000000%)
+L35F4 : L438C (50.000000%), ??? (50.000000%)
+L3620 : L0D6C (50.000000%), L43B8 (50.000000%)
+L3630 : L0CA0 (25.000000%), L0CFA (25.000000%), L43C8 (25.000000%), L43CE (25.000000%)
+L363C : L0F22 (50.000000%), L43DA (50.000000%)
+L3640 : L43DE (50.000000%), ??? (50.000000%)
+L367A : ??? (66.666667%), L4414 (33.333333%)
+L36A0 : ??? (100.000000%)
+L36CA : L0E6C (50.000000%), ??? (50.000000%)
+L36D2 : L447C (50.000000%), ??? (50.000000%)
+L36D6 : L4480 (50.000000%), ??? (50.000000%)
+L36F4 : L449C (50.000000%), ??? (50.000000%)
+L36F8 : L44A0 (50.000000%), ??? (50.000000%)
+L3710 : ??? (100.000000%)
+L371A : L0E26 (50.000000%), L44BC (50.000000%)
+L371E : L0E2E (50.000000%), L44BC (50.000000%)
+L3726 : ??? (100.000000%)
+L3736 : L36F6 (50.000000%), L44DE (50.000000%)
+L3780 : ??? (100.000000%)
+L3792 : L1030 (50.000000%), L4540 (50.000000%)
+L37A0 : L14DE (50.000000%), L454E (50.000000%)
+L37A4 : L4552 (50.000000%), ??? (50.000000%)
+L37B0 : L455E (50.000000%), ??? (50.000000%)
+L37BE : L456C (50.000000%), ??? (50.000000%)
+L37CC : L14EE (100.000000%)
+L37DA : L4586 (50.000000%), ??? (50.000000%)
+L37E4 : L14DE (50.000000%), L4590 (50.000000%)
+L37F2 : ??? (100.000000%)
+L37F6 : ??? (75.000000%), L45AC (25.000000%)
+L3806 : ??? (75.000000%), L4704 (25.000000%)
+L3838 : L3742 (50.000000%), L45BE (50.000000%)
+L383E : ??? (100.000000%)
+L384A : L1340 (50.000000%), ??? (50.000000%)
+L3850 : ??? (100.000000%)
+L386A : L11B6 (50.000000%), ??? (50.000000%)
+L388E : L70F8 (50.000000%), ??? (50.000000%)
+L38AA : ??? (100.000000%)
+L38B2 : L4682 (50.000000%), ??? (50.000000%)
+L38B6 : L11D6 (50.000000%), L4686 (50.000000%)
+L38D0 : L4694 (50.000000%), ??? (50.000000%)
+L38D4 : L4698 (50.000000%), ??? (50.000000%)
+L38F0 : L135C (50.000000%), ??? (50.000000%)
+L390E : ??? (100.000000%)
+L392A : L45C6 (50.000000%), ??? (50.000000%)
+L3932 : ??? (100.000000%)
+L3934 : L3742 (50.000000%), ??? (50.000000%)
+L3938 : L133A (50.000000%), ??? (50.000000%)
+L393E : L14DE (50.000000%), ??? (50.000000%)
+L3942 : ??? (100.000000%)
+L3958 : L14DE (50.000000%), ??? (50.000000%)
+L3962 : L45A2 (50.000000%), ??? (50.000000%)
+L396A : L3344 (50.000000%), L3BC8 (50.000000%)
+L399C : ??? (100.000000%)
+L39A2 : L3C10 (100.000000%)
+L39AC : L3C1A (100.000000%)
+L39B2 : L3BFE (100.000000%)
+L39BE : L3C22 (100.000000%)
+L39C6 : L08B2 (33.333333%), L069A (16.666667%), L158A (16.666667%), L36F6 (16.666667%), ??? (16.666667%)
+L39CA : L08B6 (50.000000%), L3760 (25.000000%), L6B32 (25.000000%)
+L39E6 : L08D2 (50.000000%), ??? (50.000000%)
+L39E8 : L32BC (100.000000%)
+L3A20 : ??? (100.000000%)
+L3A26 : ??? (66.666667%), L32F8 (33.333333%)
+L3A2A : ??? (75.000000%), L345C (12.500000%), L3B9A (12.500000%)
+L3A34 : L5536 (66.666667%), L36F6 (33.333333%)
+L3A82 : L046C (50.000000%), L5594 (50.000000%)
+L3A9A : L55A6 (100.000000%)
+L3C74 : L5786 (100.000000%)
+L3C82 : L5794 (100.000000%)
+L3C8A : L579C (100.000000%)
+L3C98 : L57AA (100.000000%)
+L3CC4 : L57D6 (100.000000%)
+L3CDC : L57EE (100.000000%)
+L3CF6 : ??? (100.000000%)
+L3D26 : ??? (100.000000%)
+L3D68 : ??? (100.000000%)
+L3D76 : L0B70 (66.666667%), ??? (33.333333%)
+L3D7E : ??? (100.000000%)
+L3DA2 : ??? (50.000000%), L0B5A (25.000000%), L3344 (25.000000%)
+L3DAE : L0B54 (100.000000%)
+L3DB4 : L0BCE (100.000000%)
+L3DCA : L0BCE (100.000000%)
+L3DD0 : ??? (100.000000%)
+L3DF6 : L158A (100.000000%)
+L3E34 : L15C8 (50.000000%), ??? (50.000000%)
+L3E44 : L15D8 (50.000000%), ??? (50.000000%)
+L3E58 : L1AB0 (50.000000%), ??? (50.000000%)
+L3E7C : ??? (100.000000%)
+L3E9C : L163E (50.000000%), ??? (50.000000%)
+L3EB6 : L1658 (50.000000%), ??? (50.000000%)
+L3F06 : L16A8 (50.000000%), ??? (50.000000%)
+L3F1C : L16AA (50.000000%), ??? (50.000000%)
+L3F22 : L16D6 (50.000000%), L6AC0 (50.000000%)
+L3F2E : ??? (100.000000%)
+L3F34 : L16F6 (50.000000%), ??? (50.000000%)
+L3F3C : ??? (42.857143%), L30CA (28.571429%), L1700 (14.285714%), L1766 (14.285714%)
+L3F40 : ??? (100.000000%)
+L3F62 : L307A (50.000000%), ??? (50.000000%)
+L3F70 : ??? (100.000000%)
+L3FBA : L30CA (100.000000%)
+L3FC0 : ??? (100.000000%)
+L3FCC : L30CA (100.000000%)
+L3FE6 : ??? (50.000000%), L30B0 (25.000000%), L30CA (25.000000%)
+L3FF6 : L30CA (100.000000%)
+L400C : ??? (100.000000%)
+L401C : L178E (33.333333%), L2FBE (33.333333%), ??? (33.333333%)
+L405E : L1756 (50.000000%), ??? (50.000000%)
+L4066 : L30CA (50.000000%), ??? (50.000000%)
+L40A0 : ??? (100.000000%)
+L40DC : ??? (100.000000%)
+L40EC : ??? (50.000000%), L1A64 (25.000000%), L308A (25.000000%)
+L41A4 : L16BC (50.000000%), ??? (50.000000%)
+L4244 : L1A64 (100.000000%)
+L424A : L1A6E (100.000000%)
+L424E : L1A72 (100.000000%)
+L4260 : L1A84 (100.000000%)
+L4264 : L1A88 (100.000000%)
+L4268 : L1A8C (100.000000%)
+L4286 : L1AAA (100.000000%)
+L4346 : L1A10 (100.000000%)
+L58FE : L305A (50.000000%), ??? (50.000000%)
+L5904 : L305E (50.000000%), ??? (50.000000%)
+L590A : L15FE (100.000000%)
+L5910 : L3066 (100.000000%)
+L5916 : L306A (100.000000%)
+L591C : L3086 (100.000000%)
+L5946 : ??? (100.000000%)
+L594C : L37E8 (100.000000%)
+L5970 : L37E8 (100.000000%)
+L597E : L37C4 (100.000000%)
+L59A4 : L3484 (100.000000%)
+L5A14 : L3AFC (100.000000%)
+L5A72 : L476A (100.000000%)
+L5A9A : L4802 (100.000000%)
+L5F08 : L0A02 (100.000000%)
+L5F38 : ??? (100.000000%)
+L5F56 : L0A4A (33.333333%), ??? (33.333333%), L0A9C (16.666667%), L0ABC (16.666667%)
+L5F60 : L0AE4 (30.769231%), ??? (23.076923%), L0A9C (15.384615%), L0ABC (15.384615%), L14C2 (15.384615%)
+L5F82 : L37F0 (100.000000%)
+L5F9C : L0A9C (42.857143%), L0ABC (35.714286%), L0A4A (7.142857%), L0AE4 (7.142857%), L3770 (7.142857%)
+L5FC0 : L0A9C (41.666667%), L0ABC (41.666667%), L0A4A (8.333333%), L0AE4 (8.333333%)
+L5FEC : L0AD0 (100.000000%)
+L5FF6 : ??? (100.000000%)
+L6004 : L0418 (100.000000%)
+L604E : L034A (100.000000%)
+L608A : ??? (100.000000%)
+L609A : ??? (100.000000%)
+L613E : ??? (100.000000%)
+L61A4 : ??? (100.000000%)
+L621A : ??? (100.000000%)
+L6222 : L14EE (80.000000%), ??? (20.000000%)
+L6256 : ??? (100.000000%)
+L6268 : ??? (100.000000%)
+L629C : ??? (100.000000%)
+L62EE : L3B38 (100.000000%)
+L62FC : ??? (100.000000%)
+L6308 : ??? (100.000000%)
+L630E : ??? (100.000000%)
+L6310 : L14EE (100.000000%)
+L673E : ??? (100.000000%)
+L6850 : L1A64 (58.695652%), L14C2 (18.478261%), L14BE (9.782609%), ??? (8.695652%), L1382 (3.260870%), L0AE4 (1.086957%)
+L68D2 : L136C (100.000000%)
+L68E2 : L14C2 (75.000000%), L1382 (25.000000%)
+L68F8 : ??? (47.619048%), L14BE (28.571429%), L14C2 (14.285714%), L14EE (9.523810%)
+L68FE : L0444 (33.333333%), L1414 (33.333333%), ??? (33.333333%)
+L690E : ??? (25.000000%), L1394 (12.500000%), L13A4 (12.500000%), L13B4 (12.500000%), L13F8 (12.500000%), L1424 (12.500000%), L14BC (12.500000%)
+L691C : ??? (100.000000%)
+L6928 : L0444 (33.333333%), L13B4 (33.333333%), ??? (33.333333%)
+L6960 : ??? (66.666667%), L14BE (33.333333%)
+L696A : L0444 (12.500000%), L1394 (12.500000%), L13A4 (12.500000%), L13F8 (12.500000%), L1414 (12.500000%), L1426 (12.500000%), L143C (12.500000%), ??? (12.500000%)
+L697E : ??? (66.666667%), L1414 (33.333333%)
+L698C : ??? (66.666667%), L14BE (33.333333%)
+L6996 : L0444 (12.500000%), L1394 (12.500000%), L13A4 (12.500000%), L13FA (12.500000%), L1414 (12.500000%), L1424 (12.500000%), L143C (12.500000%), ??? (12.500000%)
+L69A6 : ??? (25.000000%), L1394 (12.500000%), L13B4 (12.500000%), L13F8 (12.500000%), L1424 (12.500000%), L143C (12.500000%), L14BC (12.500000%)
+L6A02 : L1A64 (100.000000%)
+L6A26 : L14BC (100.000000%)
+L6A2A : L3B38 (50.000000%), ??? (50.000000%)
+L6A32 : L14E4 (100.000000%)
+L6A36 : ??? (66.666667%), L14EA (33.333333%)
+L6A3A : ??? (100.000000%)
+L6A5A : ??? (100.000000%)
+L6A64 : ??? (100.000000%)
+L6A6A : ??? (100.000000%)
+L6A9A : ??? (100.000000%)
+L6AF0 : ??? (40.540541%), L6E5C (32.432432%), L748C (16.216216%), L6E5E (5.405405%), L7010 (2.702703%), L701E (2.702703%)
+L6AF2 : L6E5E (44.827586%), ??? (27.586207%), L6E5C (6.896552%), L748C (6.896552%), L5F02 (3.448276%), L6FEA (3.448276%), L7010 (3.448276%), L70F8 (3.448276%)
+L6AFE : L6E66 (100.000000%)
+L6B12 : L6E76 (100.000000%)
+L6B16 : L6E78 (100.000000%)
+L6B1A : L6E7C (100.000000%)
+L6B20 : L6E80 (100.000000%)
+L6B3C : L6E98 (100.000000%)
+L6B40 : L6E9C (100.000000%)
+L6B54 : L6EB0 (100.000000%)
+L6B58 : L6EB4 (100.000000%)
+L6B72 : L6ECE (100.000000%)
+L6B80 : L6EDC (100.000000%)
+L6B8E : L6EEA (100.000000%)
+L6BA0 : L6EFC (100.000000%)
+L6BBA : L6F16 (100.000000%)
+L6BBC : L6F18 (100.000000%)
+L6BC2 : L6F1E (100.000000%)
+L6BCA : L6F26 (100.000000%)
+L6BD8 : L6F32 (100.000000%)
+L6BE8 : L6F40 (100.000000%)
+L6BEC : L6F42 (100.000000%)
+L6C00 : L6F52 (100.000000%)
+L6C18 : L6F6A (100.000000%)
+L6C2C : L6F7E (100.000000%)
+L6C4E : L6F98 (100.000000%)
+L6C50 : L6F9A (100.000000%)
+L6C6C : L6FB4 (100.000000%)
+L6CA8 : L6FE6 (100.000000%)
+L6CAE : L6FEA (50.000000%), L5F02 (25.000000%), L6E5C (25.000000%)
+L6CC0 : L6FF8 (100.000000%)
+L6CCA : L7002 (100.000000%)
+L6CD4 : L700C (100.000000%)
+L6CD8 : L700E (100.000000%)
+L6CDC : L7010 (46.875000%), ??? (28.125000%), L7416 (9.375000%), L158A (3.125000%), L5AD6 (3.125000%), L6E5C (3.125000%), L701E (3.125000%), L7154 (3.125000%)
+L6CE4 : L7016 (100.000000%)
+L6CF0 : ??? (52.631579%), L701E (42.105263%), L6E5E (5.263158%)
+L6CF8 : ??? (100.000000%)
+L6D0A : L7030 (100.000000%)
+L6D0E : L7032 (100.000000%)
+L6D10 : ??? (66.666667%), L4300 (33.333333%)
+L6D14 : ??? (71.428571%), L08B6 (14.285714%), L08D2 (14.285714%)
+L6D18 : L03FE (25.000000%), L08B2 (25.000000%), L4300 (25.000000%), L770C (25.000000%)
+L6D1E : L703C (100.000000%)
+L6D2E : L704C (100.000000%)
+L6D44 : L7062 (100.000000%)
+L6D4A : L7068 (100.000000%)
+L6D58 : L7076 (100.000000%)
+L6D74 : L7092 (100.000000%)
+L6D8A : L70A6 (100.000000%)
+L6D8E : L70A8 (100.000000%)
+L6D96 : L70B0 (100.000000%)
+L6DA4 : L70BE (100.000000%)
+L6DB0 : L70CA (100.000000%)
+L6DB2 : L70CC (100.000000%)
+L6DCC : L70E6 (100.000000%)
+L6DD4 : L70EE (100.000000%)
+L6DE2 : L70F8 (60.000000%), ??? (20.000000%), L08B2 (10.000000%), L6E5E (10.000000%)
+L6DF6 : L710A (100.000000%)
+L6E06 : L711A (100.000000%)
+L6E0A : L711E (100.000000%)
+L6E12 : L7124 (100.000000%)
+L6E16 : L7126 (100.000000%)
+L6E20 : L7130 (100.000000%)
+L6E24 : L7134 (100.000000%)
+L6E2E : L713E (100.000000%)
+L6E3E : L714E (100.000000%)
+L6E40 : L046C (25.000000%), L7150 (25.000000%), L748C (25.000000%), L75A6 (25.000000%)
+L6E44 : L7154 (50.000000%), L6E20 (12.500000%), L7416 (12.500000%), L748C (12.500000%), ??? (12.500000%)
+L6E56 : L7166 (100.000000%)
+L6E60 : L7170 (100.000000%)
+L6E7A : L718A (100.000000%)
+L6E84 : L7194 (100.000000%)
+L6E8C : L719C (100.000000%)
+L6E98 : L71A8 (100.000000%)
+L6EA2 : L71B2 (100.000000%)
+L6EA6 : L71B6 (100.000000%)
+L6EAE : L71BE (100.000000%)
+L6EB0 : L71C0 (100.000000%)
+L6EB8 : L71C8 (100.000000%)
+L6EBA : L71CA (100.000000%)
+L6ECC : L71D8 (100.000000%)
+L6ED6 : L71E2 (100.000000%)
+L6EE0 : L71EC (100.000000%)
+L6EE4 : L71EE (100.000000%)
+L6EE8 : L71F0 (100.000000%)
+L6F20 : L7228 (100.000000%)
+L6F26 : L722E (100.000000%)
+L6F2E : L7236 (100.000000%)
+L6F30 : L7238 (33.333333%), ??? (33.333333%), L3344 (22.222222%), L08B6 (11.111111%)
+L6F3C : L7244 (60.000000%), ??? (40.000000%)
+L6F4C : L7254 (100.000000%)
+L6F54 : L725C (100.000000%)
+L6F5A : L7262 (100.000000%)
+L6F5C : L7264 (100.000000%)
+L6F5E : L7266 (100.000000%)
+L6F68 : L7270 (100.000000%)
+L6F6E : L7276 (100.000000%)
+L6F72 : L727A (100.000000%)
+L6F76 : L727E (100.000000%)
+L6F82 : L728A (100.000000%)
+L6F8E : L7296 (50.000000%), ??? (50.000000%)
+L6F94 : L729C (100.000000%)
+L6FAA : L72B2 (100.000000%)
+L6FAC : L72B4 (100.000000%)
+L6FB6 : L72BC (100.000000%)
+L6FE2 : L72E6 (40.000000%), ??? (40.000000%), L069A (20.000000%)
+L6FF0 : L72F4 (40.000000%), ??? (40.000000%), L069A (20.000000%)
+L6FFE : L7302 (100.000000%)
+L7002 : L08B2 (50.000000%), L7304 (50.000000%)
+L701A : L731A (100.000000%)
+L7026 : L7326 (100.000000%)
+L7030 : L7330 (100.000000%)
+L703A : L733A (100.000000%)
+L7042 : L7342 (100.000000%)
+L704E : L734E (100.000000%)
+L7054 : L7352 (100.000000%)
+L7060 : L735E (100.000000%)
+L706C : L736A (100.000000%)
+L7074 : L7372 (100.000000%)
+L7076 : L7374 (50.000000%), ??? (50.000000%)
+L708A : L7386 (100.000000%)
+L709E : L7396 (75.000000%), L08B2 (25.000000%)
+L70AC : L73A4 (100.000000%)
+L70AE : L73A6 (100.000000%)
+L70BA : L73B2 (100.000000%)
+L70BE : L73B6 (100.000000%)
+L70C8 : L73C0 (100.000000%)
+L70CE : L73C6 (100.000000%)
+L70D8 : L73D0 (100.000000%)
+L70DE : L73D6 (100.000000%)
+L70E2 : L73DA (50.000000%), L08B2 (25.000000%), L4300 (25.000000%)
+L70F0 : L73E6 (100.000000%)
+L7102 : L73F8 (100.000000%)
+L710C : L7402 (100.000000%)
+L7110 : L7406 (100.000000%)
+L7112 : L7408 (100.000000%)
+L7114 : L740A (43.750000%), ??? (37.500000%), L08B6 (12.500000%), L3344 (6.250000%)
+L7120 : ??? (35.000000%), L7416 (20.000000%), L7010 (15.000000%), L6E5C (10.000000%), L04C4 (5.000000%), L30FE (5.000000%), L7154 (5.000000%), L748C (5.000000%)
+L7128 : L741C (100.000000%)
+L712A : L741E (100.000000%)
+L713A : L1324 (50.000000%), ??? (50.000000%)
+L7152 : L7442 (100.000000%)
+L7160 : L7450 (100.000000%)
+L7170 : L7460 (100.000000%)
+L7174 : L7464 (100.000000%)
+L717E : L746E (100.000000%)
+L7184 : L7474 (100.000000%)
+L7194 : L7484 (100.000000%)
+L7196 : L7486 (100.000000%)
+L719C : L748A (100.000000%)
+L71A0 : L748C (50.000000%), ??? (28.571429%), L6E5C (4.285714%), L3742 (2.857143%), L7010 (2.857143%), L046C (1.428571%), L08B2 (1.428571%), L158A (1.428571%), L30FE (1.428571%), L6222 (1.428571%), L6428 (1.428571%), L7416 (1.428571%), L75A6 (1.428571%)
+L71A8 : L7490 (100.000000%)
+L71BC : ??? (87.500000%), L08D2 (12.500000%)
+L71C0 : L74A0 (100.000000%)
+L71C6 : L74A4 (33.333333%), L03FE (16.666667%), L08B2 (16.666667%), L4300 (16.666667%), L770C (16.666667%)
+L7230 : L750C (100.000000%)
+L7246 : L7522 (100.000000%)
+L7250 : L752A (100.000000%)
+L7254 : L752C (100.000000%)
+L725C : L7534 (100.000000%)
+L726C : L7544 (100.000000%)
+L727A : L7552 (50.000000%), ??? (50.000000%)
+L7288 : L755E (100.000000%)
+L7296 : L756C (100.000000%)
+L729E : L7574 (100.000000%)
+L72B6 : L758C (100.000000%)
+L72BA : L758E (100.000000%)
+L72BE : L7590 (100.000000%)
+L72D2 : L759E (100.000000%)
+L72D6 : L75A2 (100.000000%)
+L72DA : L75A4 (100.000000%)
+L72DE : ??? (62.500000%), L75A6 (25.000000%), L3742 (12.500000%)
+L7306 : L75CA (100.000000%)
+L730E : L75D2 (100.000000%)
+L7316 : L75DA (100.000000%)
+L7322 : L75E6 (100.000000%)
+L7330 : L75F4 (100.000000%)
+L7340 : L7604 (100.000000%)
+L734C : L7610 (100.000000%)
+L735E : L7622 (100.000000%)
+L7366 : L7010 (50.000000%), L7628 (50.000000%)
+L7374 : ??? (100.000000%)
+L7378 : ??? (100.000000%)
+L737C : L7636 (100.000000%)
+L738A : L7644 (100.000000%)
+L73B2 : L767C (33.333333%), ??? (33.333333%), L046C (16.666667%), L0914 (16.666667%)
+L73B8 : L7682 (100.000000%)
+L73C0 : L768A (100.000000%)
+L73CA : L098A (100.000000%)
+L73D2 : L769C (100.000000%)
+L73E0 : L76AA (100.000000%)
+L73F2 : ??? (100.000000%)
+L73FE : L76C8 (100.000000%)
+L7418 : L76E2 (100.000000%)
+L7436 : L307A (50.000000%), ??? (50.000000%)
+L7442 : L7666 (100.000000%)
+L7458 : L770C (100.000000%)
+L747C : L7730 (100.000000%)
+L7484 : L7738 (100.000000%)
+L748C : L7740 (100.000000%)
+L7490 : L7744 (100.000000%)
+L7492 : L7746 (100.000000%)
+MCUSR : MCUSR (100.000000%)
+MCUSR_ : MCUSR_ (100.000000%)
+OCR1AL : ??? (100.000000%)
+OCR1BL : ??? (100.000000%)
+OCR2B : ??? (100.000000%)
+OCRB0 : OCRB0 (100.000000%)
+OCRB0_ : OCRB0_ (100.000000%)
+PCICR : ??? (100.000000%)
+PCMSK1 : ??? (100.000000%)
+PORTC_ : PORTC_ (100.000000%)
+PRR0 : PRR0 (100.000000%)
+R0 : R0 (100.000000%)
+R12 : R12 (100.000000%)
+R16 : R16 (100.000000%)
+R20 : R20 (100.000000%)
+R24 : R24 (100.000000%)
+RESET_vect : RESET_vect (100.000000%)
+SPCR0 : SPCR0 (100.000000%)
+SPCR0_ : SPCR0_ (100.000000%)
+TCCR0A : TCCR0A (100.000000%)
+TCCR0A_ : TCCR0A_ (100.000000%)
+TCCR1A : ??? (100.000000%)
+TCCR1C : ??? (100.000000%)
+TCCR2A : ??? (100.000000%)
+TCNT1L : ??? (100.000000%)
+TCNT2 : ??? (100.000000%)
+TIMER0_COMPA_vect : TIMER0_COMPA_vect (100.000000%)
+TIMSK0 : ??? (100.000000%)
+TIMSK2 : ??? (100.000000%)
+TWAR0 : ??? (100.000000%)
+TWBR0 : ??? (100.000000%)
+TWCR0 : ??? (100.000000%)
+UBRR0L : ??? (100.000000%)
+UCSR0A : ??? (100.000000%)
+UCSR0C : ??? (100.000000%)
+UDR0 : ??? (100.000000%)
+WDTCSR : WDTCSR (100.000000%)
+
+Right-Side Data Symbol Matches:
+-------------------------------
+DDRB_ : DDRB_ (66.666667%), ??? (33.333333%)
+DDRC_ : ??? (100.000000%)
+EEADH_ : EEADH_ (100.000000%)
+EEADL_ : EEADL_ (100.000000%)
+EECR_ : EECR_ (80.000000%), ??? (20.000000%)
+EEDR_ : EEDR_ (100.000000%)
+L0100 : L0100 (66.666667%), ??? (33.333333%)
+L0101 : L0101 (66.666667%), ??? (33.333333%)
+L0102 : L0102 (66.666667%), ??? (33.333333%)
+L0103 : L0103 (66.666667%), ??? (33.333333%)
+L0104 : L0104 (100.000000%)
+L016E : L06F1 (100.000000%)
+L01F0 : L05AB (66.666667%), ??? (33.333333%)
+L01F1 : L05AC (50.000000%), ??? (50.000000%)
+L01F2 : L05AD (40.000000%), L016E (20.000000%), PORTC_ (20.000000%), ??? (20.000000%)
+L01F3 : L05AE (66.666667%), L06EA (33.333333%)
+L01F4 : L05AF (100.000000%)
+L0202 : L05BD (33.333333%), TCCR0B_ (33.333333%), ??? (33.333333%)
+L0203 : L016E (33.333333%), L05AE (33.333333%), L05BE (33.333333%)
+L0218 : L05D3 (100.000000%)
+L0219 : ??? (60.000000%), L0689 (40.000000%)
+L0244 : ??? (66.666667%), L05FE (33.333333%)
+L0245 : ??? (100.000000%)
+L0246 : ??? (100.000000%)
+L02A1 : ??? (100.000000%)
+L02A2 : ??? (61.538462%), L065A (30.769231%), SPH_ (7.692308%)
+L02A3 : ??? (66.666667%), L065B (33.333333%)
+L02A4 : L065C (33.333333%), L0674 (33.333333%), ??? (33.333333%)
+L02A5 : L065D (33.333333%), L0675 (33.333333%), ??? (33.333333%)
+L02A6 : L065E (33.333333%), L0676 (33.333333%), ??? (33.333333%)
+L02A7 : ??? (66.666667%), L067C (33.333333%)
+L02A8 : ??? (66.666667%), L067D (33.333333%)
+L02A9 : ??? (66.666667%), L067E (33.333333%)
+L02AA : ??? (66.666667%), L067F (33.333333%)
+L02AB : L0680 (50.000000%), ??? (50.000000%)
+L02AC : L0681 (50.000000%), ??? (50.000000%)
+L02AD : L0682 (50.000000%), ??? (50.000000%)
+L02AE : L0683 (50.000000%), ??? (50.000000%)
+L02AF : ??? (100.000000%)
+L02B0 : ??? (100.000000%)
+L02B1 : ??? (100.000000%)
+L02B2 : ??? (100.000000%)
+L02B3 : ??? (100.000000%)
+L02B4 : ??? (100.000000%)
+L02B5 : ??? (100.000000%)
+L02B6 : ??? (100.000000%)
+L02B7 : ??? (100.000000%)
+L02B8 : ??? (88.888889%), L0670 (11.111111%)
+L02B9 : ??? (88.888889%), L0671 (11.111111%)
+L02BA : ??? (66.666667%), L0672 (11.111111%), L0674 (11.111111%), L068E (11.111111%)
+L02BB : ??? (77.777778%), L0673 (11.111111%), L0675 (11.111111%)
+L02BC : ??? (100.000000%)
+L02BD : ??? (100.000000%)
+L02BE : ??? (100.000000%)
+L02BF : ??? (80.000000%), L0678 (20.000000%)
+L02C0 : ??? (100.000000%)
+L02C1 : ??? (100.000000%)
+L02C2 : ??? (87.500000%), L0678 (12.500000%)
+L02C3 : ??? (87.500000%), L0679 (12.500000%)
+L02C4 : ??? (83.333333%), L067A (16.666667%)
+L02C5 : ??? (100.000000%)
+L02C6 : ??? (100.000000%)
+L02C7 : ??? (100.000000%)
+L02C8 : ??? (100.000000%)
+L02C9 : ??? (100.000000%)
+L02CA : ??? (100.000000%)
+L02CB : ??? (100.000000%)
+L02CC : ??? (100.000000%)
+L02CD : ??? (100.000000%)
+L02CE : ??? (100.000000%)
+L02CF : ??? (100.000000%)
+L02D0 : L067E (33.333333%), L06E3 (33.333333%), ??? (33.333333%)
+L02D1 : ??? (57.142857%), L068C (42.857143%)
+L02D2 : ??? (46.666667%), L068D (40.000000%), L068C (6.666667%), SPL_ (6.666667%)
+L02D3 : L026B (71.428571%), ??? (28.571429%)
+L02D4 : ??? (60.000000%), L026C (20.000000%), L06DF (20.000000%)
+L02D5 : L026D (42.857143%), ??? (42.857143%), L05AB (7.142857%), L073D (7.142857%)
+L05F6 : L058E (50.000000%), ??? (50.000000%)
+L060F : ??? (100.000000%)
+L0610 : ??? (100.000000%)
+L0611 : ??? (100.000000%)
+L0612 : ??? (100.000000%)
+L0613 : L06F1 (44.444444%), L06DE (11.111111%), L06F0 (11.111111%), ??? (11.111111%), L05AB (5.555556%), L06E0 (5.555556%), L070B (5.555556%), L073D (5.555556%)
+L0614 : L070B (55.555556%), ??? (44.444444%)
+L0615 : L06DE (40.000000%), L06F1 (40.000000%), L06F0 (20.000000%)
+L0616 : L06F1 (40.000000%), L06DE (20.000000%), L06F0 (20.000000%), ??? (20.000000%)
+L0617 : L01F0 (80.000000%), ??? (20.000000%)
+L0631 : ??? (46.153846%), L06DF (38.461538%), L05AB (2.564103%), L0670 (2.564103%), L06E1 (2.564103%), L070B (2.564103%), L073D (2.564103%), SREG_ (2.564103%)
+L0632 : L06E0 (61.538462%), L0751 (15.384615%), ??? (15.384615%), L06DF (7.692308%)
+L0633 : ??? (47.058824%), L06E1 (35.294118%), L01F0 (2.941176%), L01F9 (2.941176%), L026B (2.941176%), L026D (2.941176%), L06DF (2.941176%), L0740 (2.941176%)
+L0634 : L06E2 (100.000000%)
+L0635 : ??? (53.333333%), L06E3 (40.000000%), L016E (3.333333%), L05AA (3.333333%)
+L0636 : ??? (66.666667%), L06E4 (33.333333%)
+L0637 : L06E5 (50.000000%), ??? (50.000000%)
+L0638 : L06E6 (50.000000%), L06DF (25.000000%), ??? (25.000000%)
+L0639 : L06E7 (75.000000%), ??? (25.000000%)
+L063A : ??? (100.000000%)
+L063B : L06E9 (71.428571%), ??? (28.571429%)
+L063C : ??? (71.428571%), L06DF (14.285714%), L06EA (14.285714%)
+L063D : ??? (80.000000%), L06EB (20.000000%)
+L063E : L06EC (71.428571%), ??? (28.571429%)
+L063F : L06ED (71.428571%), ??? (28.571429%)
+L0640 : L06EE (71.428571%), ??? (28.571429%)
+L0641 : L06EF (71.428571%), ??? (28.571429%)
+L0642 : L070C (100.000000%)
+L0643 : L070D (100.000000%)
+L0644 : L070E (100.000000%)
+L0645 : L070F (100.000000%)
+L0646 : L0710 (100.000000%)
+L0647 : L0711 (100.000000%)
+L0648 : L0712 (100.000000%)
+L0649 : L0713 (100.000000%)
+L064A : L0714 (100.000000%)
+L064B : L0715 (100.000000%)
+L064C : L0716 (100.000000%)
+L064D : L0717 (100.000000%)
+L064E : L0718 (100.000000%)
+L064F : L0719 (100.000000%)
+L0650 : L071A (100.000000%)
+L0651 : L071B (100.000000%)
+L0652 : L071C (100.000000%)
+L0653 : L071D (100.000000%)
+L0654 : L071E (100.000000%)
+L0655 : L071F (100.000000%)
+L0656 : L0720 (100.000000%)
+L0657 : L0721 (100.000000%)
+L0658 : L0722 (100.000000%)
+L0659 : L0723 (100.000000%)
+L065A : L0724 (100.000000%)
+L065B : L0725 (100.000000%)
+L065C : L0726 (100.000000%)
+L065D : L0727 (100.000000%)
+L065E : L0728 (100.000000%)
+L065F : L0729 (100.000000%)
+L0660 : L072A (100.000000%)
+L0661 : L072B (100.000000%)
+L0662 : L072C (100.000000%)
+L0663 : L072D (100.000000%)
+L0664 : L072E (100.000000%)
+L0665 : L072F (100.000000%)
+L0666 : L0730 (100.000000%)
+L0667 : L0731 (100.000000%)
+L0668 : L0732 (100.000000%)
+L0669 : L0733 (100.000000%)
+L066A : L0734 (100.000000%)
+L066B : L0735 (100.000000%)
+L066C : L0736 (100.000000%)
+L066D : L0737 (100.000000%)
+L066E : L0738 (100.000000%)
+L066F : L0739 (100.000000%)
+L0670 : L073A (100.000000%)
+L0671 : L073B (100.000000%)
+L0672 : L073C (66.666667%), L05AD (16.666667%), ??? (16.666667%)
+L0673 : L073D (40.000000%), L06E0 (20.000000%), L073E (20.000000%), ??? (20.000000%)
+L0674 : L073E (33.333333%), L073D (16.666667%), L073F (16.666667%), L0740 (16.666667%), L0752 (16.666667%)
+L0675 : L073F (57.142857%), L073D (14.285714%), L0740 (14.285714%), L0752 (14.285714%)
+L0676 : L0740 (37.500000%), L06E1 (12.500000%), L073D (12.500000%), L073F (12.500000%), L0752 (12.500000%), ??? (12.500000%)
+L0677 : L0741 (25.000000%), L023D (8.333333%), L0241 (8.333333%), L0245 (8.333333%), L0249 (8.333333%), L0252 (8.333333%), L0256 (8.333333%), L025A (8.333333%), L025F (8.333333%), L0263 (8.333333%)
+L0678 : L0742 (25.000000%), L023E (8.333333%), L0242 (8.333333%), L0246 (8.333333%), L024A (8.333333%), L0253 (8.333333%), L0257 (8.333333%), L025B (8.333333%), L0260 (8.333333%), L0264 (8.333333%)
+L0679 : L0743 (25.000000%), L023F (8.333333%), L0243 (8.333333%), L0247 (8.333333%), L024B (8.333333%), L0254 (8.333333%), L0258 (8.333333%), L025C (8.333333%), L0261 (8.333333%), L0265 (8.333333%)
+L067A : L0744 (25.000000%), L0240 (8.333333%), L0244 (8.333333%), L0248 (8.333333%), L024C (8.333333%), L0255 (8.333333%), L0259 (8.333333%), L025D (8.333333%), L0262 (8.333333%), L0266 (8.333333%)
+L067B : L0745 (18.181818%), L023D (9.090909%), L0241 (9.090909%), L0245 (9.090909%), L0249 (9.090909%), L0252 (9.090909%), L0256 (9.090909%), L025A (9.090909%), L025F (9.090909%), L0263 (9.090909%)
+L067C : L0746 (18.181818%), L023E (9.090909%), L0242 (9.090909%), L0246 (9.090909%), L024A (9.090909%), L0253 (9.090909%), L0257 (9.090909%), L025B (9.090909%), L0260 (9.090909%), L0264 (9.090909%)
+L067D : L0747 (18.181818%), L023F (9.090909%), L0243 (9.090909%), L0247 (9.090909%), L024B (9.090909%), L0254 (9.090909%), L0258 (9.090909%), L025C (9.090909%), L0261 (9.090909%), L0265 (9.090909%)
+L067E : L0748 (18.181818%), L0240 (9.090909%), L0244 (9.090909%), L0248 (9.090909%), L024C (9.090909%), L0255 (9.090909%), L0259 (9.090909%), L025D (9.090909%), L0262 (9.090909%), L0266 (9.090909%)
+L067F : L0749 (28.571429%), L023D (7.142857%), L0241 (7.142857%), L0245 (7.142857%), L0249 (7.142857%), L0252 (7.142857%), L0256 (7.142857%), L025A (7.142857%), L025F (7.142857%), L0263 (7.142857%), ??? (7.142857%)
+L0680 : L074A (28.571429%), L023E (7.142857%), L0242 (7.142857%), L0246 (7.142857%), L024A (7.142857%), L0253 (7.142857%), L0257 (7.142857%), L025B (7.142857%), L0260 (7.142857%), L0264 (7.142857%), ??? (7.142857%)
+L0681 : L074B (28.571429%), L023F (7.142857%), L0243 (7.142857%), L0247 (7.142857%), L024B (7.142857%), L0254 (7.142857%), L0258 (7.142857%), L025C (7.142857%), L0261 (7.142857%), L0265 (7.142857%), ??? (7.142857%)
+L0682 : L074C (28.571429%), L0240 (7.142857%), L0244 (7.142857%), L0248 (7.142857%), L024C (7.142857%), L0255 (7.142857%), L0259 (7.142857%), L025D (7.142857%), L0262 (7.142857%), L0266 (7.142857%), ??? (7.142857%)
+L0683 : L074D (28.571429%), L023D (7.142857%), L0241 (7.142857%), L0245 (7.142857%), L0249 (7.142857%), L0252 (7.142857%), L0256 (7.142857%), L025A (7.142857%), L025F (7.142857%), L0263 (7.142857%), ??? (7.142857%)
+L0684 : L074E (28.571429%), L023E (7.142857%), L0242 (7.142857%), L0246 (7.142857%), L024A (7.142857%), L0253 (7.142857%), L0257 (7.142857%), L025B (7.142857%), L0260 (7.142857%), L0264 (7.142857%), ??? (7.142857%)
+L0685 : L074F (28.571429%), L023F (7.142857%), L0243 (7.142857%), L0247 (7.142857%), L024B (7.142857%), L0254 (7.142857%), L0258 (7.142857%), L025C (7.142857%), L0261 (7.142857%), L0265 (7.142857%), ??? (7.142857%)
+L0686 : L0750 (28.571429%), L0240 (7.142857%), L0244 (7.142857%), L0248 (7.142857%), L024C (7.142857%), L0255 (7.142857%), L0259 (7.142857%), L025D (7.142857%), L0262 (7.142857%), L0266 (7.142857%), ??? (7.142857%)
+L0687 : L0751 (60.000000%), ??? (12.222222%), L05AB (8.888889%), L073D (8.888889%), L016E (4.444444%), L05AE (4.444444%), L06E4 (1.111111%)
+L0688 : L0752 (30.000000%), ??? (30.000000%), L073D (10.000000%), L073F (10.000000%), L0740 (10.000000%), L075F (10.000000%)
+L0689 : L0753 (15.384615%), ??? (15.384615%), L023D (7.692308%), L0241 (7.692308%), L0245 (7.692308%), L0249 (7.692308%), L0252 (7.692308%), L0256 (7.692308%), L025A (7.692308%), L025F (7.692308%), L0263 (7.692308%)
+L068A : L0754 (15.384615%), ??? (15.384615%), L023E (7.692308%), L0242 (7.692308%), L0246 (7.692308%), L024A (7.692308%), L0253 (7.692308%), L0257 (7.692308%), L025B (7.692308%), L0260 (7.692308%), L0264 (7.692308%)
+L068B : L0755 (15.384615%), ??? (15.384615%), L023F (7.692308%), L0243 (7.692308%), L0247 (7.692308%), L024B (7.692308%), L0254 (7.692308%), L0258 (7.692308%), L025C (7.692308%), L0261 (7.692308%), L0265 (7.692308%)
+L068C : L0756 (15.384615%), L0240 (7.692308%), L0244 (7.692308%), L0248 (7.692308%), L024C (7.692308%), L0255 (7.692308%), L0259 (7.692308%), L025D (7.692308%), L0262 (7.692308%), L0266 (7.692308%), L0752 (7.692308%), ??? (7.692308%)
+L068D : L0757 (20.000000%), ??? (20.000000%), L023D (6.666667%), L0241 (6.666667%), L0245 (6.666667%), L0249 (6.666667%), L0252 (6.666667%), L0256 (6.666667%), L025A (6.666667%), L025F (6.666667%), L0263 (6.666667%)
+L068E : L0758 (20.000000%), ??? (20.000000%), L023E (6.666667%), L0242 (6.666667%), L0246 (6.666667%), L024A (6.666667%), L0253 (6.666667%), L0257 (6.666667%), L025B (6.666667%), L0260 (6.666667%), L0264 (6.666667%)
+L068F : L0759 (20.000000%), ??? (13.333333%), L023F (6.666667%), L0243 (6.666667%), L0247 (6.666667%), L024B (6.666667%), L0254 (6.666667%), L0258 (6.666667%), L025C (6.666667%), L0261 (6.666667%), L0265 (6.666667%), L06DF (6.666667%)
+L0690 : L075A (20.000000%), ??? (20.000000%), L0240 (6.666667%), L0244 (6.666667%), L0248 (6.666667%), L024C (6.666667%), L0255 (6.666667%), L0259 (6.666667%), L025D (6.666667%), L0262 (6.666667%), L0266 (6.666667%)
+L0691 : L075B (60.000000%), L0690 (20.000000%), ??? (20.000000%)
+L0692 : L075C (60.000000%), ??? (40.000000%)
+L0693 : L075D (15.384615%), ??? (15.384615%), L023D (7.692308%), L0241 (7.692308%), L0245 (7.692308%), L0249 (7.692308%), L0252 (7.692308%), L0256 (7.692308%), L025A (7.692308%), L025F (7.692308%), L0263 (7.692308%)
+L0694 : L075E (15.384615%), ??? (15.384615%), L023E (7.692308%), L0242 (7.692308%), L0246 (7.692308%), L024A (7.692308%), L0253 (7.692308%), L0257 (7.692308%), L025B (7.692308%), L0260 (7.692308%), L0264 (7.692308%)
+L0695 : L075F (15.384615%), ??? (15.384615%), L023F (7.692308%), L0243 (7.692308%), L0247 (7.692308%), L024B (7.692308%), L0254 (7.692308%), L0258 (7.692308%), L025C (7.692308%), L0261 (7.692308%), L0265 (7.692308%)
+L0696 : L0760 (15.384615%), L0240 (7.692308%), L0244 (7.692308%), L0248 (7.692308%), L024C (7.692308%), L0255 (7.692308%), L0259 (7.692308%), L025D (7.692308%), L0262 (7.692308%), L0266 (7.692308%), L0753 (7.692308%), ??? (7.692308%)
+L069F : ??? (66.666667%), L01FA (33.333333%)
+L06A0 : L01FA (50.000000%), L01F9 (25.000000%), L06E9 (25.000000%)
+L06A2 : L01FC (100.000000%)
+L06A3 : L01FD (100.000000%)
+L06A4 : L01FE (100.000000%)
+L06A5 : L01FF (100.000000%)
+L06D3 : ??? (100.000000%)
+L06D4 : L06DF (100.000000%)
+L06D5 : ??? (100.000000%)
+L06D6 : ??? (100.000000%)
+L06D8 : ??? (100.000000%)
+L06D9 : ??? (100.000000%)
+L06DE : ??? (100.000000%)
+L06E3 : L023D (50.000000%), L0267 (50.000000%)
+L06E4 : L023E (50.000000%), L0268 (50.000000%)
+L06E5 : L023F (50.000000%), L0269 (50.000000%)
+L06E6 : L0240 (50.000000%), L026A (50.000000%)
+L06E7 : L023D (11.111111%), L0241 (11.111111%), L0245 (11.111111%), L0249 (11.111111%), L0252 (11.111111%), L0256 (11.111111%), L025A (11.111111%), L025F (11.111111%), L0263 (11.111111%)
+L06E8 : L023E (11.111111%), L0242 (11.111111%), L0246 (11.111111%), L024A (11.111111%), L0253 (11.111111%), L0257 (11.111111%), L025B (11.111111%), L0260 (11.111111%), L0264 (11.111111%)
+L06E9 : L023F (11.111111%), L0243 (11.111111%), L0247 (11.111111%), L024B (11.111111%), L0254 (11.111111%), L0258 (11.111111%), L025C (11.111111%), L0261 (11.111111%), L0265 (11.111111%)
+L06EA : L0240 (11.111111%), L0244 (11.111111%), L0248 (11.111111%), L024C (11.111111%), L0255 (11.111111%), L0259 (11.111111%), L025D (11.111111%), L0262 (11.111111%), L0266 (11.111111%)
+L06EB : L023D (11.111111%), L0241 (11.111111%), L0245 (11.111111%), L0249 (11.111111%), L0252 (11.111111%), L0256 (11.111111%), L025A (11.111111%), L025F (11.111111%), L0263 (11.111111%)
+L06EC : L023E (11.111111%), L0242 (11.111111%), L0246 (11.111111%), L024A (11.111111%), L0253 (11.111111%), L0257 (11.111111%), L025B (11.111111%), L0260 (11.111111%), L0264 (11.111111%)
+L06ED : L023F (11.111111%), L0243 (11.111111%), L0247 (11.111111%), L024B (11.111111%), L0254 (11.111111%), L0258 (11.111111%), L025C (11.111111%), L0261 (11.111111%), L0265 (11.111111%)
+L06EE : L0240 (11.111111%), L0244 (11.111111%), L0248 (11.111111%), L024C (11.111111%), L0255 (11.111111%), L0259 (11.111111%), L025D (11.111111%), L0262 (11.111111%), L0266 (11.111111%)
+L06EF : L023D (11.111111%), L0241 (11.111111%), L0245 (11.111111%), L0249 (11.111111%), L0252 (11.111111%), L0256 (11.111111%), L025A (11.111111%), L025F (11.111111%), L0263 (11.111111%)
+L06F0 : L023E (11.111111%), L0242 (11.111111%), L0246 (11.111111%), L024A (11.111111%), L0253 (11.111111%), L0257 (11.111111%), L025B (11.111111%), L0260 (11.111111%), L0264 (11.111111%)
+L06F1 : L023F (11.111111%), L0243 (11.111111%), L0247 (11.111111%), L024B (11.111111%), L0254 (11.111111%), L0258 (11.111111%), L025C (11.111111%), L0261 (11.111111%), L0265 (11.111111%)
+L06F2 : L0240 (11.111111%), L0244 (11.111111%), L0248 (11.111111%), L024C (11.111111%), L0255 (11.111111%), L0259 (11.111111%), L025D (11.111111%), L0262 (11.111111%), L0266 (11.111111%)
+L06F3 : L024D (100.000000%)
+L06F4 : L024E (100.000000%)
+L06F5 : L024F (100.000000%)
+L06F6 : L0250 (100.000000%)
+L06F7 : L0251 (100.000000%)
+L06F8 : L023D (14.285714%), L0241 (14.285714%), L0245 (14.285714%), L0249 (14.285714%), L0252 (14.285714%), L025F (14.285714%), L0263 (14.285714%)
+L06F9 : L023E (14.285714%), L0242 (14.285714%), L0246 (14.285714%), L024A (14.285714%), L0253 (14.285714%), L0260 (14.285714%), L0264 (14.285714%)
+L06FA : L023F (14.285714%), L0243 (14.285714%), L0247 (14.285714%), L024B (14.285714%), L0254 (14.285714%), L0261 (14.285714%), L0265 (14.285714%)
+L06FB : L0240 (14.285714%), L0244 (14.285714%), L0248 (14.285714%), L024C (14.285714%), L0255 (14.285714%), L0262 (14.285714%), L0266 (14.285714%)
+L06FC : L023D (14.285714%), L0241 (14.285714%), L0245 (14.285714%), L0249 (14.285714%), L0256 (14.285714%), L025F (14.285714%), L0263 (14.285714%)
+L06FD : L023E (14.285714%), L0242 (14.285714%), L0246 (14.285714%), L024A (14.285714%), L0257 (14.285714%), L0260 (14.285714%), L0264 (14.285714%)
+L06FE : L023F (14.285714%), L0243 (14.285714%), L0247 (14.285714%), L024B (14.285714%), L0258 (14.285714%), L0261 (14.285714%), L0265 (14.285714%)
+L06FF : L0240 (14.285714%), L0244 (14.285714%), L0248 (14.285714%), L024C (14.285714%), L0259 (14.285714%), L0262 (14.285714%), L0266 (14.285714%)
+L0700 : L023D (14.285714%), L0241 (14.285714%), L0245 (14.285714%), L0249 (14.285714%), L025A (14.285714%), L025F (14.285714%), L0263 (14.285714%)
+L0701 : L023E (14.285714%), L0242 (14.285714%), L0246 (14.285714%), L024A (14.285714%), L025B (14.285714%), L0260 (14.285714%), L0264 (14.285714%)
+L0702 : L023F (14.285714%), L0243 (14.285714%), L0247 (14.285714%), L024B (14.285714%), L025C (14.285714%), L0261 (14.285714%), L0265 (14.285714%)
+L0703 : L0240 (14.285714%), L0244 (14.285714%), L0248 (14.285714%), L024C (14.285714%), L025D (14.285714%), L0262 (14.285714%), L0266 (14.285714%)
+L0704 : L025E (100.000000%)
+L0705 : L023D (11.111111%), L0241 (11.111111%), L0245 (11.111111%), L0249 (11.111111%), L0252 (11.111111%), L0256 (11.111111%), L025A (11.111111%), L025F (11.111111%), L0263 (11.111111%)
+L0706 : L023E (11.111111%), L0242 (11.111111%), L0246 (11.111111%), L024A (11.111111%), L0253 (11.111111%), L0257 (11.111111%), L025B (11.111111%), L0260 (11.111111%), L0264 (11.111111%)
+L0707 : L023F (11.111111%), L0243 (11.111111%), L0247 (11.111111%), L024B (11.111111%), L0254 (11.111111%), L0258 (11.111111%), L025C (11.111111%), L0261 (11.111111%), L0265 (11.111111%)
+L0708 : L0240 (11.111111%), L0244 (11.111111%), L0248 (11.111111%), L024C (11.111111%), L0255 (11.111111%), L0259 (11.111111%), L025D (11.111111%), L0262 (11.111111%), L0266 (11.111111%)
+L0709 : L023D (11.111111%), L0241 (11.111111%), L0245 (11.111111%), L0249 (11.111111%), L0252 (11.111111%), L0256 (11.111111%), L025A (11.111111%), L025F (11.111111%), L0263 (11.111111%)
+L070A : L023E (11.111111%), L0242 (11.111111%), L0246 (11.111111%), L024A (11.111111%), L0253 (11.111111%), L0257 (11.111111%), L025B (11.111111%), L0260 (11.111111%), L0264 (11.111111%)
+L070B : L023F (11.111111%), L0243 (11.111111%), L0247 (11.111111%), L024B (11.111111%), L0254 (11.111111%), L0258 (11.111111%), L025C (11.111111%), L0261 (11.111111%), L0265 (11.111111%)
+L070C : L0240 (11.111111%), L0244 (11.111111%), L0248 (11.111111%), L024C (11.111111%), L0255 (11.111111%), L0259 (11.111111%), L025D (11.111111%), L0262 (11.111111%), L0266 (11.111111%)
+L070D : L0263 (100.000000%)
+L070E : L0264 (100.000000%)
+L070F : L0265 (100.000000%)
+L0710 : L0266 (100.000000%)
+L0711 : L068E (57.142857%), ??? (42.857143%)
+L0712 : L06DF (100.000000%)
+L0713 : ??? (100.000000%)
+OCR2A : OCR2A (100.000000%)
+PCICR : PCICR (100.000000%)
+PCMSK0 : PCMSK0 (100.000000%)
+PINB_ : PINB_ (100.000000%)
+PINC_ : PINC_ (50.000000%), ??? (50.000000%)
+PORTB_ : ??? (58.333333%), PORTB_ (41.666667%)
+PORTC_ : PORTC_ (42.857143%), ??? (42.857143%), L06DF (14.285714%)
+PORTD_ : PORTD_ (100.000000%)
+SPH_ : SPH_ (69.444444%), ??? (27.777778%), L068E (2.777778%)
+SPL_ : SPL_ (69.444444%), ??? (30.555556%)
+SREG_ : SREG_ (73.750000%), ??? (26.250000%)
+TCCR1B : TCCR1B (100.000000%)
+TCCR2A : TCCR2A (54.545455%), ??? (36.363636%), L06E1 (9.090909%)
+TCCR2B : TCCR2B (50.000000%), ??? (50.000000%)
+TIMSK1 : TIMSK1 (50.000000%), ??? (50.000000%)
+UCSR0B : UCSR0B (100.000000%)
+
+Function Analysis Complete...
+

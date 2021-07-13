@@ -1,7 +1,7 @@
 ;
 ; AVR GDC Disassembler Control File for:
 ;
-;  grbl
+;  grbl_v1.1f.20170801
 
 mcu m328p
 
@@ -101,11 +101,20 @@ indirect code 010a
 indirect code 010c
 
 ; Data Blocks:
-; 010E-020B:
-datablock 010e 00FE
+; 010E-0159:
+datablock 010E 004C
+; 015A-0176:
+datablock 015A 001D
+; 0177-020B:
+datablock 0177 0095
 ; 020C-02A8:
-datablock 020c 009D
-; 02A9-0320:
-datablock 02a9 0078
+datablock 020C 009D
+; 02A9-030B:
+datablock 02A9 0063
+; 030C-030E:
+datablock 030C 0003
+; 030F-0320:
+datablock 030F 0012
 ; 0321 (alignment):
 datablock 0321 0001
+

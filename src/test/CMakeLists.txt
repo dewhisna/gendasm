@@ -201,6 +201,62 @@ endif()
 
 # -----------------------------------------------------------------------------
 
+# Configure data for sainsmart3018-v-sainsmartcnc3:
+configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.hex ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.hex COPYONLY)
+configure_file(data/avr/grbl/sainsmart-grbl1.1f-cnc3/grbl1.1f-cnc3.hex ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.hex COPYONLY)
+configure_file(data/avr/grbl/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.ctl ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.ctl COPYONLY)
+configure_file(data/avr/grbl/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.ctl ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.ctl COPYONLY)
+
+# Disassemble SainSmart3018Pro_m328p_flash_original firmware for sainsmart3018-v-sainsmartcnc3:
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.ctl > SainSmart3018Pro_m328p_flash_original.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018" APPEND PROPERTY FIXTURES_REQUIRED SainSmart3018Pro_m328p_flash_original.ctl)
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018" APPEND PROPERTY FIXTURES_REQUIRED SainSmart3018Pro_m328p_flash_original.hex)
+
+# Disassemble grbl1.1f-cnc3 firmware for sainsmart3018-v-sainsmartcnc3:
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.ctl > grbl1.1f-cnc3.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3" APPEND PROPERTY FIXTURES_REQUIRED grbl1.1f-cnc3.ctl)
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3" APPEND PROPERTY FIXTURES_REQUIRED grbl1.1f-cnc3.hex)
+
+# Check SainSmart Disassembler Output (must pass the Disassemble test to run these):
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,log" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.log" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,log" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018")
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,dis" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018")
+endif()
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,fnc" COMMAND ${CMAKE_COMMAND} -E compare_files "SainSmart3018Pro_m328p_flash_original.fnc" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.fnc" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,fnc" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018")
+
+# Check grbl1.1f-cnc3 Disassembler Output (must pass the Disassemble test to run these):
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,log" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl1.1f-cnc3.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.log" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,log" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3")
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl1.1f-cnc3.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,dis" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3")
+endif()
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,fnc" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl1.1f-cnc3.fnc" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/grbl1.1f-cnc3.fnc" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,fnc" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3")
+
+# Run Fuzzy-Function Analysis (must pass the function output test to run these):
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal" COMMAND bash -c "$<TARGET_FILE:funcanal> --deterministic -f -ooa -cn sainsmart3018-v-sainsmartcnc3.cmp -s sainsmart3018-v-sainsmartcnc3.sym -e sainsmart3018-v-sainsmartcnc3.oes -dl 1 -dc sainsmart3018-v-sainsmartcnc3.dro -mo sainsmart3018-v-sainsmartcnc3.mtx grbl1.1f-cnc3.fnc SainSmart3018Pro_m328p_flash_original.fnc  > sainsmart3018-v-sainsmartcnc3.log 2>&1" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,dasm_sainsmartcnc3,fnc;sainsmart3018-v-sainsmartcnc3,dasm_sainsmart3018,fnc")
+
+# Check Fuzzy-Function Analysis Output (must pass the Fuzzy-Function Analysis test to run these):
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,log" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.log" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,log" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,cmp" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.cmp" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.cmp" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,cmp" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,dro" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.dro" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.dro" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,dro" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,mtx" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.mtx" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.mtx" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,mtx" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,oes" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.oes" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.oes" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,oes" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,sym" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.sym" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.sym" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
+set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,sym" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+
+# -----------------------------------------------------------------------------
+
 if(NOT FUNC_FLAG_COMMENT)
 	message(WARNING "Without FUNC_FLAG_COMMENT support enabled, tests comparing actual disassembler text output can't be performed and will be skipped...")
 endif()
