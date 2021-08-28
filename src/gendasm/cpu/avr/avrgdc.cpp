@@ -2828,15 +2828,20 @@ std::string CAVRDisassembler::CreateOperand()
 			break;
 
 		case S_IOR:			// 5-bit Absolute I/O Address and bit
-			std::sprintf(strTemp, "%s,%u", IOLabelDeref(opIO0_31(m_OpMemory)).c_str(), opBit(m_OpMemory));
+			strOpStr += IOLabelDeref(opIO0_31(m_OpMemory));
+			std::sprintf(strTemp, ",%u", opBit(m_OpMemory));
 			break;
 
 		case S_IN:			// 6-bit Absolute I/O Address and Register
-			std::sprintf(strTemp, "R%u,%s", opDstReg0_31(m_OpMemory), IOLabelDeref(opIO0_63(m_OpMemory)).c_str());
+			std::sprintf(strTemp, "R%u,", opDstReg0_31(m_OpMemory));
+			strOpStr += strTemp;
+			strTemp[0] = 0;
+			strOpStr += IOLabelDeref(opIO0_63(m_OpMemory));
 			break;
 
 		case S_OUT:			// 6-bit Absolute I/O Address and Register
-			std::sprintf(strTemp, "%s,R%u", IOLabelDeref(opIO0_63(m_OpMemory)).c_str(), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			strOpStr += IOLabelDeref(opIO0_63(m_OpMemory));
+			std::sprintf(strTemp, ",R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_SNGL_X:		// Single Register and X Register -- no label
@@ -2930,23 +2935,31 @@ std::string CAVRDisassembler::CreateOperand()
 		case S_LDS:			// 16-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
 			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
-			std::sprintf(strTemp, "R%u,%s", opDstReg0_31(m_OpMemory), DataLabelDeref(opDAbs16bit(m_OpMemory)).c_str());
+			std::sprintf(strTemp, "R%u,", opDstReg0_31(m_OpMemory));
+			strOpStr += strTemp;
+			strTemp[0] = 0;
+			strOpStr += DataLabelDeref(opDAbs16bit(m_OpMemory));
 			break;
 
 		case S_LDSrc:		// 7-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
-			std::sprintf(strTemp, "R%u,%s", opDstReg16_31(m_OpMemory), DataLabelDeref(opLDSrc7bit(m_OpMemory)).c_str());
+			std::sprintf(strTemp, "R%u,", opDstReg16_31(m_OpMemory));
+			strOpStr += strTemp;
+			strTemp[0] = 0;
+			strOpStr += DataLabelDeref(opLDSrc7bit(m_OpMemory));
 			break;
 
 		case S_STS:			// 16-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
 			// TODO : Determine how to detect architectures where RAMPD is used (OCTL_ArchExtAddr) for non-deterministic data labels
-			std::sprintf(strTemp, "%s,R%u", DataLabelDeref(opDAbs16bit(m_OpMemory)).c_str(), opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			strOpStr += DataLabelDeref(opDAbs16bit(m_OpMemory));
+			std::sprintf(strTemp, ",R%u", opDstReg0_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_STSrc:		// 7-bit Absolute Data Address
 			assert((m_CurrentOpcode.control() & CTL_MASK) == CTL_DataLabel);
-			std::sprintf(strTemp, "%s,R%u", DataLabelDeref(opLDSrc7bit(m_OpMemory)).c_str(), opDstReg16_31(m_OpMemory));	// SrcReg uses DstReg slot here
+			strOpStr += DataLabelDeref(opLDSrc7bit(m_OpMemory));
+			std::sprintf(strTemp, ",R%u", opDstReg16_31(m_OpMemory));	// SrcReg uses DstReg slot here
 			break;
 
 		case S_DES:			// Immediate "K" value -- no label
