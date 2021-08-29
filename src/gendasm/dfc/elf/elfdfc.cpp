@@ -376,57 +376,63 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 	}
 #endif
 
-	// Get Program Headers, Map Ranges, and Allocate Memory if mapping:
-	// ----------------------------------------------------------------
+	// Get Program Headers, Map Ranges, and Allocate Memory:
+	// -----------------------------------------------------
 	if (nReadMode == ERM_Mapping) {
 		if (msgFile) {
 			(*msgFile) << "Program Headers:\n";
 			(*msgFile) << "    Type           Offset   VirtAddr   PhysAddr   FileSize MemSize  Flg Align  Section\n";
 		}
+	}
 
-		CMemRanges ranges[CDisassembler::NUM_MEMORY_TYPES];
+	CMemRanges ranges[CDisassembler::NUM_MEMORY_TYPES];
 
-		for (size_t ndxP = 0; ndxP < nPHdrNum; ++ndxP) {
-			GElf_Phdr phdr;
-			if (gelf_getphdr(pElf, ndxP, &phdr) != &phdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
-													std::string("getphdr() failed on index ") + std::to_string(ndxP) +
-																": " + std::string(elf_errmsg(-1)));
+	for (size_t ndxP = 0; ndxP < nPHdrNum; ++ndxP) {
+		GElf_Phdr phdr;
+		if (gelf_getphdr(pElf, ndxP, &phdr) != &phdr) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
+												std::string("getphdr() failed on index ") + std::to_string(ndxP) +
+															": " + std::string(elf_errmsg(-1)));
 
-			// Get mapping for all marked "LOAD":
-			if (phdr.p_type == PT_LOAD) {
-				// Handle Read/Execute sections as CODE:
-				if ((phdr.p_flags & PF_R) &&
-					(phdr.p_flags & PF_X)) {
+		// Get mapping for all marked "LOAD":
+		if (phdr.p_type == PT_LOAD) {
+			// Handle Read/Execute sections as CODE:
+			if ((phdr.p_flags & PF_R) &&
+				(phdr.p_flags & PF_X)) {
+				if (nReadMode == ERM_Mapping) {
 					if (pRange) {
 						// If only a single range is given, it's taken to be
 						//	the MT_ROM range:
 						pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
 					}
+				}
 
-					ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
-				} else // Handle Read/Write sections as RAM (DATA):
-					if ((phdr.p_flags & PF_R) &&
-						(phdr.p_flags & PF_W) &&
-						((phdr.p_flags & PF_X) == 0)) {
-					// Note: nNewBase is for ROM-area only
-					if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
-						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
-					} else {
-						ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr, phdr.p_memsz));
-					}
-				} else // Handle Read-only sections as ROM (DATA):
-					if ((phdr.p_flags & PF_R) &&
-						((phdr.p_flags & PF_W) == 0) &&
-						((phdr.p_flags & PF_X) == 0)) {
-					if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
-						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
+				ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+			} else // Handle Read/Write sections as RAM (DATA):
+				if ((phdr.p_flags & PF_R) &&
+					(phdr.p_flags & PF_W) &&
+					((phdr.p_flags & PF_X) == 0)) {
+				// Note: nNewBase is for ROM-area only
+				if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
+					ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
+				} else {
+					ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr, phdr.p_memsz));
+				}
+			} else // Handle Read-only sections as ROM (DATA):
+				if ((phdr.p_flags & PF_R) &&
+					((phdr.p_flags & PF_W) == 0) &&
+					((phdr.p_flags & PF_X) == 0)) {
+				if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
+					ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
+					if (nReadMode == ERM_Mapping) {
 						if (pRange) {
 							// If only a single range is given, it's taken to be
 							//	the MT_ROM range:
 							pRange->push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
 						}
-					} else {
-						ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+					}
+				} else {
+					ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
+					if (nReadMode == ERM_Mapping) {
 						if (pRange) {
 							// If only a single range is given, it's taken to be
 							//	the MT_ROM range:
@@ -435,7 +441,9 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 					}
 				}
 			}
+		}
 
+		if (nReadMode == ERM_Mapping) {
 			// Print Header Detail:
 			if (msgFile) {
 				(*msgFile) << "    ";
@@ -475,9 +483,28 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 
 			if (msgFile) (*msgFile) << "\n";
 		}
+	}
 
+	if (nReadMode == ERM_Mapping) {
 		if (msgFile) (*msgFile) << "\n";
+	}
 
+	// End of Flash contains init bytes for the .data section:
+	TAddress nDataStartAddr = ranges[CDisassembler::MT_ROM].highestAddress()+1;		// Note: Already had nNewBase added in
+	TAddress nDataAddr = nDataStartAddr;
+	for (auto const & itrRange : ranges[CDisassembler::MT_RAM]) {
+		ranges[CDisassembler::MT_ROM].push_back(CMemRange(nDataAddr, itrRange.size()));
+		if (nReadMode == ERM_Mapping) {
+			if (pRange) {
+				// If only a single range is given, it's taken to be
+				//	the MT_ROM range:
+				pRange->push_back(CMemRange(nDataAddr, itrRange.size()));
+			}
+		}
+		nDataAddr += itrRange.size();
+	}
+
+	if (nReadMode == ERM_Mapping) {
 		// Allocate Memory if mapping:
 		if (pDisassembler) {
 			for (int nMemType = 0; nMemType < CDisassembler::NUM_MEMORY_TYPES; ++nMemType) {
@@ -567,7 +594,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 																std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
 					if ((shdr.sh_offset == phdr.p_offset) &&
 						(shdr.sh_addr == phdr.p_vaddr) &&
-						(shdr.sh_type == SHT_PROGBITS)) {
+						(shdr.sh_type == SHT_PROGBITS)) {		// Check PROGBITS : .text, .data, etc
 						Elf_Data *pData = nullptr;
 						size_t nIndex = 0;
 						while (nIndex < shdr.sh_size) {
@@ -605,7 +632,19 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 												nAddress -= E_AVR_RAM_VirtualBaseAdj;
 											}
 											if (pDisassembler) {
-												pDisassembler->memory(CDisassembler::MT_RAM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												// Put the actual data in the flash shadow:
+												//	Note: nDataStartAddr already has nNewBase added,
+												//		so there's no need to add it into nFlashShadowAddress
+												TAddress nFlashShadowAddress = shdr.sh_addr + nIndex;
+												if ((ehdr.e_machine == EM_AVR) && (nFlashShadowAddress >= E_AVR_RAM_VirtualBase)) {
+													nFlashShadowAddress -= E_AVR_RAM_VirtualBase;	// Note: Remove ENTIRE virtual address here!
+												}
+												nFlashShadowAddress += nDataStartAddr;
+												pDisassembler->memory(CDisassembler::MT_ROM).setElement(nFlashShadowAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+												if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nFlashShadowAddress) != 0) bRetVal = false;		// Signal overlap
+												pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nFlashShadowAddress, nDesc);
+
+												// Also tag the RAM area descriptors for allocation:
 												if (pDisassembler->memory(CDisassembler::MT_RAM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
 												pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, nDesc);
 											}
@@ -637,6 +676,28 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 							}
 						}
 						break;
+					} else
+						if ((shdr.sh_offset == phdr.p_offset) &&
+							(shdr.sh_addr == phdr.p_vaddr) &&
+							(shdr.sh_type == SHT_NOBITS)) {			// Check NOBITS : .bss, etc
+							size_t nIndex = 0;
+							while (nIndex < shdr.sh_size) {
+								// Handle Read/Write sections as RAM (DATA):
+								if ((phdr.p_flags & PF_R) &&
+									(phdr.p_flags & PF_W) &&
+									((phdr.p_flags & PF_X) == 0)) {
+									// Note: nNewBase is for ROM-area only
+									TAddress nAddress = shdr.sh_addr + nIndex;
+									if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+										nAddress -= E_AVR_RAM_VirtualBaseAdj;
+									}
+									if (pDisassembler) {
+										if (pDisassembler->memory(CDisassembler::MT_RAM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+										pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, nDesc);
+									}
+								}
+								++nIndex;
+							}
 					}
 				}
 			}
