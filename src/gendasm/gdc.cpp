@@ -2424,6 +2424,15 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 							mapMissing.erase(m_PC);		// Remove from our track of missing
 							continue;		// Loaded addresses will get outputted during main part
 						}
+						if ((m_PC != 0) && m_Memory[nMemoryType].containsAddress(m_PC-1) &&
+							(m_Memory[nMemoryType].descriptor(m_PC-1) != DMEM_NOTLOADED)) {
+							// If previous address was part of a main section that will be
+							//	outputted (either code or data) then remove it because it
+							//	means it has to be at the end of a given section and we will
+							//	output it as a label at the end of that section instead...
+							mapMissing.erase(m_PC-1);
+							continue;
+						}
 
 						CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC);
 						if (itrLabels != m_LabelTable[nMemoryType].cend()) {
@@ -2458,6 +2467,15 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 				// Output missed labels for this memory type:
 				bTypeHeader = false;
 				for (auto const & itrMissing : mapMissing) {
+					if ((itrMissing.first != 0) && m_Memory[nMemoryType].containsAddress(itrMissing.first-1) &&
+						(m_Memory[nMemoryType].descriptor(itrMissing.first-1) != DMEM_NOTLOADED)) {
+						// If previous address was part of a main section that will be
+						//	outputted (either code or data) then remove it because it
+						//	means it has to be at the end of a given section and we will
+						//	output it as a label at the end of that section instead...
+						continue;
+					}
+
 					if (!bTypeHeader) {
 						saOutLine[FC_LABEL] = GetCommentStartDelim() + " Out-of-Range Equates for " + g_arrstrMemRanges[nMemoryType] + ": " + GetCommentEndDelim() + "\n";
 						outFile << MakeOutputLine(saOutLine) << "\n";
@@ -2603,6 +2621,22 @@ bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBl
 {
 	bool bRetVal = WritePreSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 
+	CStringArray saOutLine;
+
+	auto const &&fnWriteLabels = [&](TAddress nAddress)->void {
+		CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(nAddress);
+		if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+			for (CLabelArray::size_type i=1; i<itrLabels->second.size(); ++i) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(i), nAddress);
+				outFile << MakeOutputLine(saOutLine) << "\n";
+			}
+			if (itrLabels->second.size()) {
+				saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_CODE, itrLabels->second.at(0), nAddress);
+				if (m_bVBreakCodeLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+			}
+		}
+	};
+
 	if (bRetVal) {
 		bool bDone = false;
 		TAddress nLastAddr = memBlock.logicalAddr() + memBlock.size();
@@ -2622,6 +2656,15 @@ bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBl
 				default:
 					bDone = true;
 					break;
+			}
+		}
+
+		// Output any non-loaded labels at the trail of this section:
+		if (m_Memory[nMemoryType].descriptor(m_PC) == DMEM_NOTLOADED) {
+			ClearOutputLine(saOutLine);
+			fnWriteLabels(m_PC);
+			if (!saOutLine[FC_LABEL].empty()) {
+				outFile << MakeOutputLine(saOutLine) << "\n";
 			}
 		}
 
