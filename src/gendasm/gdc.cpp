@@ -2510,29 +2510,10 @@ bool CDisassembler::WritePostEquates(std::ostream& outFile, std::ostream *msgFil
 
 bool CDisassembler::WritePreDisassembly(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
+	UNUSED(nMemoryType);
+	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
-
-	if (!m_Memory[nMemoryType].empty()) {
-		CStringArray saOutLine;
-
-		ClearOutputLine(saOutLine);
-		saOutLine[FC_ADDRESS] = FormatAddress(0);
-		outFile << MakeOutputLine(saOutLine) << "\n";
-
-		saOutLine[FC_LABEL] = GetCommentStartDelim();
-		saOutLine[FC_LABEL] += " ";
-		for (int i=(GetFieldWidth(FC_LABEL)+
-				GetFieldWidth(FC_MNEMONIC)+
-				GetFieldWidth(FC_OPERANDS)); i; --i) saOutLine[FC_LABEL] += "=";
-		saOutLine[FC_LABEL] += " ";
-		saOutLine[FC_LABEL] += GetCommentEndDelim();
-		outFile << MakeOutputLine(saOutLine) << "\n";
-
-		ClearOutputLine(saOutLine);
-		saOutLine[FC_ADDRESS] = FormatAddress(0);
-		outFile << MakeOutputLine(saOutLine) << "\n";
-	}
 	return true;
 }
 
@@ -2563,7 +2544,7 @@ bool CDisassembler::WriteDisassembly(MEMORY_TYPE nMemoryType, std::ostream& outF
 					case DMEM_ILLEGALCODE:
 					{
 						TAddress nSavedPC = m_PC;
-						bRetVal = bRetVal && WriteSection(nMemoryType, outFile, msgFile, errFile);			// WARNING!! WriteSection MUST properly increment m_PC!!
+						bRetVal = bRetVal && WriteSection(nMemoryType, itrMemory, outFile, msgFile, errFile);			// WARNING!! WriteSection MUST properly increment m_PC!!
 						nSize += (m_PC - nSavedPC);
 						break;
 					}
@@ -2588,33 +2569,55 @@ bool CDisassembler::WritePostDisassembly(MEMORY_TYPE nMemoryType, std::ostream& 
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(nMemoryType);
-	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
+
+	if (memBlock.size() != 0) {
+		CStringArray saOutLine;
+
+		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
+		outFile << MakeOutputLine(saOutLine) << "\n";
+
+		saOutLine[FC_LABEL] = GetCommentStartDelim();
+		saOutLine[FC_LABEL] += " ";
+		for (int i=(GetFieldWidth(FC_LABEL)+
+				GetFieldWidth(FC_MNEMONIC)+
+				GetFieldWidth(FC_OPERANDS)); i; --i) saOutLine[FC_LABEL] += "=";
+		saOutLine[FC_LABEL] += " ";
+		saOutLine[FC_LABEL] += GetCommentEndDelim();
+		outFile << MakeOutputLine(saOutLine) << "\n";
+
+		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
+		outFile << MakeOutputLine(saOutLine) << "\n";
+	}
+
 	return true;		// Don't do anything by default
 }
 
-bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
-	bool bRetVal = WritePreSection(nMemoryType, outFile, msgFile, errFile);
+	bool bRetVal = WritePreSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 
 	if (bRetVal) {
 		bool bDone = false;
-		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
+		TAddress nLastAddr = memBlock.logicalAddr() + memBlock.size();
+		while ((m_PC < nLastAddr) && !bDone && bRetVal) {
 			// WARNING!! Write Data and Code section functions MUST properly increment m_PC!!
 			switch (m_Memory[nMemoryType].descriptor(m_PC)) {
 				case DMEM_DATA:
 				case DMEM_PRINTDATA:
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
-					bRetVal = bRetVal && WriteDataSection(nMemoryType, outFile, msgFile, errFile);
+					bRetVal = bRetVal && WriteDataSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 					break;
 				case DMEM_CODE:
 				case DMEM_ILLEGALCODE:
-					bRetVal = bRetVal && WriteCodeSection(nMemoryType, outFile, msgFile, errFile);
+					bRetVal = bRetVal && WriteCodeSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 					break;
 				default:
 					bDone = true;
@@ -2622,15 +2625,16 @@ bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, std::ostream& outFile,
 			}
 		}
 
-		bRetVal = bRetVal && WritePostSection(nMemoryType, outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(nMemoryType);
+	UNUSED(memBlock);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
@@ -2639,16 +2643,17 @@ bool CDisassembler::WritePostSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(nMemoryType);
+	UNUSED(memBlock);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 	return true;		// Don't do anything by default
 }
 
-bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	bool bRetVal;
 	CStringArray saOutLine;
@@ -2681,10 +2686,11 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 
 	ClearOutputLine(saOutLine);
 
-	bRetVal = WritePreDataSection(nMemoryType, outFile, msgFile, errFile);
+	bRetVal = WritePreDataSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	if (bRetVal) {
 		bDone = false;
-		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
+		TAddress nLastAddr = memBlock.logicalAddr() + memBlock.size();
+		while ((m_PC < nLastAddr) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
@@ -2710,7 +2716,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						if (nDesc != DMEM_DATA) bFlag = true;
-						if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;
+						if (m_PC >= nLastAddr) bFlag = true;
 						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
 					}
 					if (m_bDataOpBytesFlag) saOutLine[FC_OPBYTES] = FormatOpBytes(nMemoryType, MC_DATABYTE, nSavedPC);
@@ -2800,15 +2806,16 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			}
 		}
 
-		bRetVal = bRetVal && WritePostDataSection(nMemoryType, outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostDataSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(nMemoryType);
+	UNUSED(memBlock);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
@@ -2817,16 +2824,17 @@ bool CDisassembler::WritePostDataSection(MEMORY_TYPE nMemoryType, std::ostream& 
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::WritePreCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePreCodeSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(nMemoryType);
+	UNUSED(memBlock);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);
 	return true;		// Don't do anything by default
 }
 
-bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	bool bRetVal;
 	CStringArray saOutLine;
@@ -2852,12 +2860,13 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 
 	ClearOutputLine(saOutLine);
 
-	bRetVal = WritePreCodeSection(nMemoryType, outFile, msgFile, errFile);
+	bRetVal = WritePreCodeSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	if (bRetVal) {
 		bInFunc = false;
 		bDone = false;
 
-		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
+		TAddress nLastAddr = memBlock.logicalAddr() + memBlock.size();
+		while ((m_PC < nLastAddr) && !bDone && bRetVal) {
 			bLastFlag = false;
 			bBranchOutFlag = false;
 
@@ -2993,15 +3002,16 @@ bool CDisassembler::WriteCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outF
 			}
 		}
 
-		bRetVal = bRetVal && WritePostCodeSection(nMemoryType, outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostCodeSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;
 }
 
-bool CDisassembler::WritePostCodeSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CDisassembler::WritePostCodeSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(nMemoryType);
+	UNUSED(memBlock);
 	UNUSED(outFile);
 	UNUSED(msgFile);
 	UNUSED(errFile);

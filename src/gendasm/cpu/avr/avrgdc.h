@@ -129,9 +129,9 @@ public:
 
 	virtual bool WriteHeader(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual bool WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock& memBlock, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
-	virtual bool WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock& memBlock, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
 public:
 	virtual bool ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;

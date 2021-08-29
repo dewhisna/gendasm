@@ -916,11 +916,9 @@ std::string CM6811Disassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE 
 
 // ----------------------------------------------------------------------------
 
-bool CM6811Disassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CM6811Disassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
-	UNUSED(nMemoryType);
-	UNUSED(msgFile);
-	UNUSED(errFile);
+	if (!CDisassembler::WritePreSection(nMemoryType, memBlock, outFile, msgFile, errFile)) return false;
 
 	CStringArray saOutLine;
 	char strTemp[30];

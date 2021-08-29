@@ -1622,12 +1622,11 @@ bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile,
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
-	UNUSED(msgFile);
-	UNUSED(errFile);
-
 	if (nMemoryType == MT_IO) return true;
+
+	if (!CDisassembler::WritePreSection(nMemoryType, memBlock, outFile, msgFile, errFile)) return false;
 
 	CStringArray saOutLine;
 	char strTemp[30];
@@ -1678,7 +1677,7 @@ bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& ou
 
 // ----------------------------------------------------------------------------
 
-bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	// Override needed because the lines in the data sections for AVR must
 	//	keep processor alignment for code -- i.e. they must be a multiple
@@ -1726,10 +1725,11 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 
 	ClearOutputLine(saOutLine);
 
-	bRetVal = WritePreDataSection(nMemoryType, outFile, msgFile, errFile);
+	bRetVal = WritePreDataSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	if (bRetVal) {
 		bDone = false;
-		while ((m_PC <= m_Memory[nMemoryType].highestLogicalAddress()) && !bDone && bRetVal) {
+		TAddress nLastAddr = memBlock.logicalAddr() + memBlock.size();
+		while ((m_PC < nLastAddr) && !bDone && bRetVal) {
 			ClearOutputLine(saOutLine);
 			saOutLine[FC_ADDRESS] = FormatAddress(m_PC);
 
@@ -1796,7 +1796,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 								if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
 								// First transition from data->ascii on the correct boundary will trigger a break:
 								if ((nDesc == DMEM_DATA) && bTransitionBreak) bNeedStop = true;
-								if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
+								if (m_PC >= nLastAddr) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
 								if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bNeedStop = true;
 								if (bOddStop) bNeedStop = true;		// Next time through loop, bOddStop will trigger bFlag
 								if (bNeedStop) {
@@ -1980,7 +1980,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 								if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
 								// First transition from data->ascii on the correct boundary will trigger a break:
 								if (nDesc != nLastDesc) bNeedStop = true;
-								if (m_PC > m_Memory[nMemoryType].highestLogicalAddress()) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
+								if (m_PC >= nLastAddr) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
 								if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bNeedStop = true;
 
 								if (bOddStop) bNeedStop = true;		// Next time through loop, bOddStop will trigger bFlag
@@ -2093,7 +2093,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, std::ostream& o
 			}
 		}
 
-		bRetVal = bRetVal && WritePostDataSection(nMemoryType, outFile, msgFile, errFile);
+		bRetVal = bRetVal && WritePostDataSection(nMemoryType, memBlock, outFile, msgFile, errFile);
 	}
 
 	return bRetVal;

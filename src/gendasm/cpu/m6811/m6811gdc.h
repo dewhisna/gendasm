@@ -47,7 +47,7 @@ protected:
 
 	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress) override;
 
-	virtual bool WritePreSection(MEMORY_TYPE nMemoryType, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+	virtual bool WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock& memBlock, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
 public:
 	virtual bool ResolveIndirect(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress& nResAddress, REFERENCE_TYPE nType) override;
