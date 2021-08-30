@@ -1621,7 +1621,7 @@ bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile,
 		rngEE.consolidate();
 		assert(!rngEE.empty());
 
-		if (!rngEE.empty()) {
+		if (!rngEE.empty() && (rngEE.front().size() > 0)) {
 			std::ostringstream sstrTemp;
 
 			ClearOutputLine(saOutLine);
