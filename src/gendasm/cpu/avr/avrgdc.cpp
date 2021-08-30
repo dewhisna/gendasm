@@ -1599,9 +1599,9 @@ std::string CAVRDisassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nL
 bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	bool bRetVal = CDisassembler::WriteHeader(outFile, msgFile, errFile);	// Call parent
-	if (!m_strDevice.empty()) {
-		CStringArray saOutLine;
+	CStringArray saOutLine;
 
+	if (!m_strDevice.empty()) {
 		ClearOutputLine(saOutLine);
 		saOutLine[FC_ADDRESS] = FormatAddress(0);
 		switch (m_nAssembler) {
@@ -1614,12 +1614,34 @@ bool CAVRDisassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile,
 				break;
 		}
 		outFile << MakeOutputLine(saOutLine) << "\n";
-
-		ClearOutputLine(saOutLine);
-		saOutLine[FC_ADDRESS] = FormatAddress(0);
-		outFile << MakeOutputLine(saOutLine) << "\n";
-		outFile << MakeOutputLine(saOutLine) << "\n";
 	}
+
+	if (m_nAssembler == AAE_ASAVR) {
+		CMemRanges rngEE(m_MemoryRanges[MT_EE]);
+		rngEE.consolidate();
+		assert(!rngEE.empty());
+
+		if (!rngEE.empty()) {
+			std::ostringstream sstrTemp;
+
+			ClearOutputLine(saOutLine);
+			saOutLine[FC_ADDRESS] = FormatAddress(0);
+			saOutLine[FC_MNEMONIC] = ".bank";
+			saOutLine[FC_OPERANDS] = "EE (BASE=" + GetHexDelim();
+			sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << rngEE.front().startAddr();
+			saOutLine[FC_OPERANDS] += sstrTemp.str() + ",SIZE=" + GetHexDelim();
+			sstrTemp.str(std::string());
+			sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << rngEE.front().size();
+			saOutLine[FC_OPERANDS] += sstrTemp.str() + ",FSFX=_EE)";
+			outFile << MakeOutputLine(saOutLine) << "\n";
+		}
+	}
+
+	ClearOutputLine(saOutLine);
+	saOutLine[FC_ADDRESS] = FormatAddress(0);
+	outFile << MakeOutputLine(saOutLine) << "\n";
+	outFile << MakeOutputLine(saOutLine) << "\n";
+
 	return bRetVal;
 }
 
@@ -1666,7 +1688,15 @@ bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock 
 			saOutLine[FC_OPERANDS] = strTemp;
 			break;
 		case MT_EE:
-			std::sprintf(strTemp, "EE%d\t(ESEG,ABS)", ++m_nEESectionCount);
+			if (m_nAssembler == AAE_ASAVR) {
+				// ASAVR only allows CSEG and DSEG.  We have to
+				//	use DSEG so that addressing is correct (as bytes
+				//	instead of words), but we'll assign it to a different
+				//	bank (See CAVRDisassembler::WriteHeader function):
+				std::sprintf(strTemp, "EE%d\t(DSEG,ABS,BANK=EE)", ++m_nEESectionCount);
+			} else {
+				std::sprintf(strTemp, "EE%d\t(ESEG,ABS)", ++m_nEESectionCount);
+			}
 			saOutLine[FC_OPERANDS] = strTemp;
 			break;
 		default:

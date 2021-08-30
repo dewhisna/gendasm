@@ -19,6 +19,7 @@
 
 
               .32bit
+              .bank   EE (BASE=0x0000,SIZE=0x0400,FSFX=_EE)
 
 
 ; Equates for IO:
