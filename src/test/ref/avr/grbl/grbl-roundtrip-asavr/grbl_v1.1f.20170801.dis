@@ -82,7 +82,7 @@ SREG_         =       0x003F                                      ; DRef: 0x0324
                                                                   ;   0x64E6,0x3970,0x397E,0x6A3E,0x3982,0x3990,0x6B36
 
 ; Equates for RAM:
-R0            =       0x0000                                      ; CRef: 0x0346
+R0            =       0x0000
 R1            =       0x0001
 R2            =       0x0002
 R3            =       0x0003
@@ -441,8 +441,8 @@ DL01FB:       .blkb   1                                           ; DRef: 0x0480
 DL01FC:       .blkb   1                                           ; DRef: 0x48E8,0x48F8,0x4DAC,0x6BC0
 DL01FD:       .blkb   801                                         ; DRef: 0x3176,0x34D4,0x35A2,0x368C,0x4662,0x4D74,0x4DA2,
                                                                   ;   0x555C,0x60F4,0x6118,0x624A,0x628E,0x6BBC
-DL051E:       .blkb   25                                          ; CRef: 0x0534; DRef: 0x3172,0x35A6,0x43C8,0x48EC,0x4D78,
-                                                                  ;   0x4DA6,0x5212,0x5568,0x60F8,0x61BC,0x6332
+DL051E:       .blkb   25                                          ; DRef: 0x3172,0x35A6,0x43C8,0x48EC,0x4D78,0x4DA6,0x5212,
+                                                                  ;   0x5568,0x60F8,0x61BC,0x6332
 DL0537:       .blkb   1                                           ; DRef: 0x3678,0x4840,0x48B4
 DL0538:       .blkb   1                                           ; DRef: 0x367C,0x4844,0x48B8
 DL0539:       .blkb   1                                           ; DRef: 0x3680,0x4848,0x48BC
@@ -463,7 +463,7 @@ DL0544:       .blkb   1                                           ; DRef: 0x2B54
 DL0545:       .blkb   1                                           ; DRef: 0x2B58,0x2C8A,0x2CA2,0x2CE2
 DL0546:       .blkb   1                                           ; DRef: 0x2B3C,0x2D2A,0x2D42,0x2D7E
 DL0547:       .blkb   1                                           ; DRef: 0x2B40,0x2D2E,0x2D46,0x2D82
-DL0548:       .blkb   1                                           ; CRef: 0x0544; DRef: 0x2B44,0x2D32,0x2D4A,0x2D86
+DL0548:       .blkb   1                                           ; DRef: 0x2B44,0x2D32,0x2D4A,0x2D86
 DL0549:       .blkb   1                                           ; DRef: 0x2B48,0x2D36,0x2D4E,0x2D8A
 DL054A:       .blkb   1                                           ; DRef: 0x2B2C,0x2DD2,0x2DEA,0x2E26
 DL054B:       .blkb   1                                           ; DRef: 0x2B30,0x2DD6,0x2DEE,0x2E2A
@@ -475,7 +475,7 @@ DL0550:       .blkb   1                                           ; DRef: 0x2A90
 DL0551:       .blkb   1                                           ; DRef: 0x2A80,0x2B70
 DL0552:       .blkb   1                                           ; DRef: 0x2BA0,0x2C6E
 DL0553:       .blkb   1                                           ; DRef: 0x2BA4,0x2C72
-DL0554:       .blkb   1                                           ; CRef: 0x05A2; DRef: 0x2BA8,0x2C76
+DL0554:       .blkb   1                                           ; DRef: 0x2BA8,0x2C76
 DL0555:       .blkb   1                                           ; DRef: 0x2BAC,0x2C7A
 DL0556:       .blkb   1                                           ; DRef: 0x2BCC,0x2D1A
 DL0557:       .blkb   1                                           ; DRef: 0x2BD0,0x2D1E
@@ -487,7 +487,7 @@ DL055C:       .blkb   1                                           ; DRef: 0x2BFE
 DL055D:       .blkb   1                                           ; DRef: 0x2C02,0x2DCE
 DL055E:       .blkb   1                                           ; DRef: 0x2AF6,0x2E80,0x2E8E
 DL055F:       .blkb   1                                           ; DRef: 0x2AF2,0x2E84,0x2E8A
-DL0560:       .blkb   1                                           ; CRef: 0x055C; DRef: 0x2AFC,0x2B04
+DL0560:       .blkb   1                                           ; DRef: 0x2AFC,0x2B04
 DL0561:       .blkb   1                                           ; DRef: 0x2B18,0x2B5C,0x2C12,0x2CA6
 DL0562:       .blkb   1                                           ; DRef: 0x2B14,0x2B60,0x2C16,0x2CAA
 DL0563:       .blkb   1                                           ; DRef: 0x2AAA,0x2ADE,0x2E9A
@@ -501,7 +501,7 @@ DL05EE:       .blkb   1                                           ; DRef: 0x5386
 DL05EF:       .blkb   1                                           ; DRef: 0x538A,0x5F0E,0x60A2
 DL05F0:       .blkb   1                                           ; DRef: 0x538E,0x5F12,0x60A6
 DL05F1:       .blkb   1                                           ; DRef: 0x5330,0x5EBA,0x6072
-DL05F2:       .blkb   1                                           ; CRef: 0x05EE; DRef: 0x5334,0x5EBE,0x6076
+DL05F2:       .blkb   1                                           ; DRef: 0x5334,0x5EBE,0x6076
 DL05F3:       .blkb   1                                           ; DRef: 0x5338,0x5EC2,0x607A
 DL05F4:       .blkb   1                                           ; DRef: 0x533C,0x5EC6,0x607E
 DL05F5:       .blkb   1                                           ; DRef: 0x5356,0x5E90
@@ -511,15 +511,14 @@ DL05F8:       .blkb   1                                           ; DRef: 0x5362
 DL05F9:       .blkb   1                                           ; DRef: 0x5372,0x58CE
 DL05FA:       .blkb   1                                           ; DRef: 0x5376,0x58D2
 DL05FB:       .blkb   1                                           ; DRef: 0x537A,0x58D6
-DL05FC:       .blkb   1                                           ; CRef: 0x05F8; DRef: 0x537E,0x58DA
+DL05FC:       .blkb   1                                           ; DRef: 0x537E,0x58DA
 DL05FD:       .blkb   1                                           ; DRef: 0x5498,0x552C,0x563A,0x579C,0x5844,0x5908,0x5D70,
                                                                   ;   0x5DDE
 DL05FE:       .blkb   1                                           ; DRef: 0x544E,0x550A,0x596E,0x60AA
 DL05FF:       .blkb   1                                           ; DRef: 0x5452,0x550E,0x5974,0x60AE
 DL0600:       .blkb   1                                           ; DRef: 0x5456,0x5512,0x597A,0x60B2
 DL0601:       .blkb   1                                           ; DRef: 0x545A,0x5516,0x5980,0x60B6
-DL0602:       .blkb   1                                           ; CRef: 0x05BE,0x05CC,0x05D4,0x05DC; DRef: 0x31B8,0x53AA,
-                                                                  ;   0x53E6,0x590E,0x5D7C,0x5E1A,0x616A
+DL0602:       .blkb   1                                           ; DRef: 0x31B8,0x53AA,0x53E6,0x590E,0x5D7C,0x5E1A,0x616A
 DL0603:       .blkb   1                                           ; DRef: 0x31BC,0x53AE,0x53EA,0x5914,0x5D80,0x5E1E,0x616E
 DL0604:       .blkb   1                                           ; DRef: 0x31C0,0x53B2,0x53EE,0x591A,0x5D84,0x5E22,0x6172
 DL0605:       .blkb   1                                           ; DRef: 0x31C4,0x53B6,0x53F2,0x5920,0x5D88,0x5E26,0x6176
@@ -527,8 +526,8 @@ DL0606:       .blkb   1                                           ; DRef: 0x56BA
 DL0607:       .blkb   1                                           ; DRef: 0x56BE,0x5776,0x5834,0x586E,0x592C
 DL0608:       .blkb   1                                           ; DRef: 0x56C2,0x577A,0x5838,0x5872,0x5932
 DL0609:       .blkb   1                                           ; DRef: 0x56C6,0x577E,0x583C,0x5876,0x5938
-DL060A:       .blkb   1                                           ; CRef: 0x0606; DRef: 0x539A,0x54F8,0x551A,0x5544,0x5594,
-                                                                  ;   0x566A,0x585A,0x5986
+DL060A:       .blkb   1                                           ; DRef: 0x539A,0x54F8,0x551A,0x5544,0x5594,0x566A,0x585A,
+                                                                  ;   0x5986
 DL060B:       .blkb   1                                           ; DRef: 0x539E,0x54FC,0x551E,0x5548,0x5598,0x566E,0x585E,
                                                                   ;   0x598C
 DL060C:       .blkb   1                                           ; DRef: 0x53A2,0x5500,0x5522,0x554C,0x559C,0x5672,0x5862,
@@ -537,8 +536,7 @@ DL060D:       .blkb   1                                           ; DRef: 0x53A6
                                                                   ;   0x5998
 DL060E:       .blkb   1                                           ; DRef: 0x5530,0x561A,0x57CE,0x57E8,0x584A,0x593E
 DL060F:       .blkb   1                                           ; DRef: 0x5534,0x561E,0x57D2,0x57EC,0x584E,0x5944
-DL0610:       .blkb   1                                           ; CRef: 0x060C; DRef: 0x5538,0x5622,0x57D6,0x57F0,0x5852,
-                                                                  ;   0x594A
+DL0610:       .blkb   1                                           ; DRef: 0x5538,0x5622,0x57D6,0x57F0,0x5852,0x594A
 DL0611:       .blkb   1                                           ; DRef: 0x553C,0x5626,0x57DA,0x57F4,0x5856,0x5950
 DL0612:       .blkb   1                                           ; DRef: 0x56A2,0x574A,0x57F8,0x5956
 DL0613:       .blkb   1                                           ; DRef: 0x56A6,0x574E,0x57FC,0x595C
@@ -546,7 +544,7 @@ DL0614:       .blkb   1                                           ; DRef: 0x56AA
 DL0615:       .blkb   1                                           ; DRef: 0x56AE,0x5756,0x5804,0x5968
 DL0616:       .blkb   1                                           ; DRef: 0x5438,0x5E0A
 DL0617:       .blkb   1                                           ; DRef: 0x543C,0x5E0E
-DL0618:       .blkb   1                                           ; CRef: 0x0610; DRef: 0x5440,0x5E12
+DL0618:       .blkb   1                                           ; DRef: 0x5440,0x5E12
 DL0619:       .blkb   1                                           ; DRef: 0x5444,0x5E16
 DL061A:       .blkb   1                                           ; DRef: 0x5E46,0x5E5C,0x5E84
 DL061B:       .blkb   1                                           ; DRef: 0x34D8,0x3690,0x4DB0,0x610C,0x6114,0x61C8,0x6336,

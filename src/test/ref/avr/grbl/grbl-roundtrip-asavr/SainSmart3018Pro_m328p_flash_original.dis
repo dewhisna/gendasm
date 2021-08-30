@@ -81,7 +81,7 @@ SREG_         =       0x003F                                      ; DRef: 0x027E
                                                                   ;   0x3CE4,0x3E22,0x3E28,0x35D2,0x35D8,0x3808,0x380E
 
 ; Equates for RAM:
-R0            =       0x0000                                      ; CRef: 0x02A0
+R0            =       0x0000
 R1            =       0x0001
 R2            =       0x0002
 R3            =       0x0003
@@ -262,7 +262,7 @@ DL0246:       .blkb   91                                          ; DRef: 0x1FEE
 DL02A1:       .blkb   1                                           ; DRef: 0x1D86,0x212E,0x213A
 DL02A2:       .blkb   1                                           ; DRef: 0x0958,0x095E,0x1C9C,0x1CA4,0x226C,0x23F4,0x23FA
 DL02A3:       .blkb   1                                           ; DRef: 0x2218,0x290C,0x29EA
-DL02A4:       .blkb   1                                           ; CRef: 0x3EAA,0x62DA,0x67C4; DRef: 0x221C,0x2910,0x29EE
+DL02A4:       .blkb   1                                           ; DRef: 0x221C,0x2910,0x29EE
 DL02A5:       .blkb   1                                           ; DRef: 0x2220,0x2914,0x29F2
 DL02A6:       .blkb   1                                           ; DRef: 0x2224,0x2918,0x29F6
 DL02A7:       .blkb   1                                           ; DRef: 0x20AC,0x21C4,0x29C2
@@ -334,7 +334,7 @@ DL0614:       .blkb   1                                           ; DRef: 0x2B58
 DL0615:       .blkb   1                                           ; DRef: 0x310E,0x311C,0x040E,0x0414,0x6176
 DL0616:       .blkb   1                                           ; DRef: 0x31B4,0x31C2,0x03FC,0x0402,0x617A
 DL0617:       .blkb   1                                           ; DRef: 0x2D12,0x57BA,0x0554,0x0562,0x056A,0x0572,0x5C62
-DL0618:       .blkb   1                                           ; CRef: 0x066E; DRef: 0x5CFE,0x5D1A
+DL0618:       .blkb   1                                           ; DRef: 0x5CFE,0x5D1A
 DL0619:       .blkb   1                                           ; DRef: 0x5D02,0x5D1E
 DL061A:       .blkb   1                                           ; DRef: 0x5D06,0x5D22
 DL061B:       .blkb   1                                           ; DRef: 0x5D0A,0x5D26
@@ -422,7 +422,7 @@ DL0664:       .blkb   1                                           ; DRef: 0x3C30
 DL0665:       .blkb   1                                           ; DRef: 0x3C34
 DL0666:       .blkb   1                                           ; DRef: 0x3C40
 DL0667:       .blkb   1                                           ; DRef: 0x3C44
-DL0668:       .blkb   1                                           ; CRef: 0x0634,0x0662; DRef: 0x3C48
+DL0668:       .blkb   1                                           ; DRef: 0x3C48
 DL0669:       .blkb   1                                           ; DRef: 0x3C4C
 DL066A:       .blkb   1                                           ; DRef: 0x3C50
 DL066B:       .blkb   1                                           ; DRef: 0x3C54
@@ -469,8 +469,7 @@ DL068E:       .blkb   1                                           ; DRef: 0x110E
 DL068F:       .blkb   1                                           ; DRef: 0x1112,0x3B60,0x69CA,0x3692,0x394A
 DL0690:       .blkb   1                                           ; DRef: 0x1116,0x3B64,0x69CE,0x3696,0x394E
 DL0691:       .blkb   1                                           ; DRef: 0x1122,0x3B70,0x69DA,0x3842
-DL0692:       .blkb   1                                           ; CRef: 0x32A0,0x5868,0x61C2,0x65BA; DRef: 0x1126,0x3B6C,
-                                                                  ;   0x69D6,0x3846
+DL0692:       .blkb   1                                           ; DRef: 0x1126,0x3B6C,0x69D6,0x3846
 DL0693:       .blkb   1                                           ; DRef: 0x1130,0x3B7C,0x69E0,0x3854
 DL0694:       .blkb   1                                           ; DRef: 0x1134,0x3B80,0x69E4,0x3858
 DL0695:       .blkb   1                                           ; DRef: 0x1138,0x3B84,0x69E8,0x385C
@@ -503,8 +502,7 @@ DL06AE:       .blkb   37                                          ; DRef: 0x4F10
 DL06D3:       .blkb   1                                           ; DRef: 0x2EDA,0x45A0,0x4696,0x477A,0x50B8,0x50D0,0x655E
 DL06D4:       .blkb   1                                           ; DRef: 0x2EDE,0x45A4,0x469A,0x477E,0x50BC,0x50D4,0x6562
 DL06D5:       .blkb   1                                           ; DRef: 0x2EE2,0x45A8,0x469E,0x4782,0x50C0,0x50D8,0x6566
-DL06D6:       .blkb   1                                           ; CRef: 0x2346,0x32D4,0x185E; DRef: 0x2EE6,0x45AC,0x46A2,
-                                                                  ;   0x4786,0x50C4,0x50DC,0x656A
+DL06D6:       .blkb   1                                           ; DRef: 0x2EE6,0x45AC,0x46A2,0x4786,0x50C4,0x50DC,0x656A
 DL06D7:       .blkb   1                                           ; DRef: 0x401C,0x403A,0x4192,0x4450,0x4990,0x5044,0x5112
 DL06D8:       .blkb   1                                           ; DRef: 0x3FC0,0x3FEE,0x43AC,0x4662,0x48DC,0x51E2,0x3E7E
 DL06D9:       .blkb   1                                           ; DRef: 0x4004,0x439C,0x4F14,0x3E82
@@ -539,7 +537,7 @@ DL06F6:       .blkb   1                                           ; DRef: 0x4118
 DL06F7:       .blkb   1                                           ; DRef: 0x411C,0x42EA,0x4F00
 DL06F8:       .blkb   1                                           ; DRef: 0x42F2,0x4552,0x5054
 DL06F9:       .blkb   1                                           ; DRef: 0x42F6,0x4556,0x5058
-DL06FA:       .blkb   1                                           ; CRef: 0x06F6; DRef: 0x42FA,0x455A,0x505C
+DL06FA:       .blkb   1                                           ; DRef: 0x42FA,0x455A,0x505C
 DL06FB:       .blkb   1                                           ; DRef: 0x42FE,0x455E,0x5060
 DL06FC:       .blkb   1                                           ; DRef: 0x4306,0x4B26,0x4B3A,0x4B4A,0x4C44,0x4DC2,0x525C
 DL06FD:       .blkb   1                                           ; DRef: 0x430A,0x4B2A,0x4B3E,0x4B4E,0x4C48,0x4DC6,0x5260

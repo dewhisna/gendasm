@@ -1922,16 +1922,18 @@ std::string CDisassembler::FormatReferences(MEMORY_TYPE nMemoryType, MNEMONIC_CO
 	std::string strRetVal;
 	bool bFlag = false;
 
-	CAddressTableMap::const_iterator itrBranches = m_BranchTable.find(nAddress);
-	if (itrBranches != m_BranchTable.cend()) {
-		if (itrBranches->second.size() != 0) {
-			strRetVal += "CRef: ";
-			bFlag = true;
-			for (CAddressArray::size_type i=0; i<itrBranches->second.size(); ++i) {
-				if (i != 0) strRetVal += ",";
-				std::ostringstream sstrTemp;
-				sstrTemp << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrBranches->second.at(i);
-				strRetVal += sstrTemp.str();
+	if (!allowMemRangeOverlap() || (nMemoryType == MT_ROM)) {
+		CAddressTableMap::const_iterator itrBranches = m_BranchTable.find(nAddress);
+		if (itrBranches != m_BranchTable.cend()) {
+			if (itrBranches->second.size() != 0) {
+				strRetVal += "CRef: ";
+				bFlag = true;
+				for (CAddressArray::size_type i=0; i<itrBranches->second.size(); ++i) {
+					if (i != 0) strRetVal += ",";
+					std::ostringstream sstrTemp;
+					sstrTemp << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrBranches->second.at(i);
+					strRetVal += sstrTemp.str();
+				}
 			}
 		}
 	}

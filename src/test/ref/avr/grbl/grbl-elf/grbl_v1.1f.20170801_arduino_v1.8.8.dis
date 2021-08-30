@@ -81,7 +81,7 @@
                                                                   ;   0x54E6,0x57A8,0x58EA,0x58F0,0x61AA,0x61B0,0x6AA6
 
 ; Equates for RAM:
-.equ R0       =       0x0000                                      ; CRef: 0x0346
+.equ R0       =       0x0000
 .equ R1       =       0x0001
 .equ R2       =       0x0002
 .equ R3       =       0x0003
@@ -536,13 +536,13 @@
 .equ block_buffer_lto_priv_30 =       0x02DB
 .equ block_buffer_head_lto_priv_31 =       0x05FB                                      ; DRef: 0x3952,0x3980,0x4D24,0x4FC8,0x321E,0x364E,0x3DD4,
                                                                   ;   0x40FE,0x4C60,0x54C0
-.equ segment_next_head =       0x05FC                                      ; CRef: 0x046E; DRef: 0x3DB4,0x5546,0x4BAC,0x4BBA,0x4BC0
+.equ segment_next_head =       0x05FC                                      ; DRef: 0x3DB4,0x5546,0x4BAC,0x4BBA,0x4BC0
 .equ st_prep_block =       0x05FD                                      ; DRef: 0x3E3C,0x4948
 .equ DL05FE   =       0x05FE                                      ; DRef: 0x3E38,0x494C
 .equ pl_block =       0x05FF                                      ; DRef: 0x4CBC,0x4CF6,0x5538,0x3DBE,0x3DEE,0x3DF2,0x4418,
                                                                   ;   0x4BC4,0x4C58
-.equ DL0600   =       0x0600                                      ; CRef: 0x0536; DRef: 0x4CC0,0x4CF2,0x5534,0x3DC2,0x3DEA,
-                                                                  ;   0x3DF6,0x441C,0x4BC8,0x4C54
+.equ DL0600   =       0x0600                                      ; DRef: 0x4CC0,0x4CF2,0x5534,0x3DC2,0x3DEA,0x3DF6,0x441C,
+                                                                  ;   0x4BC8,0x4C54
 .equ pl_lto_priv_19 =       0x0601
 .equ DL0619   =       0x0619                                      ; DRef: 0x3720,0x5414,0x5488
 .equ DL061A   =       0x061A                                      ; DRef: 0x3724,0x5418,0x548C
@@ -556,11 +556,11 @@
 .equ sys_rt_exec_motion_override =       0x061F                                      ; DRef: 0x55EA,0x55F0,0x209C,0x35E0,0x35EE
 .equ sys_rt_exec_accessory_override =       0x0620                                      ; DRef: 0x55D8,0x55DE,0x20A0,0x3740,0x374E
 .equ serial_rx_buffer =       0x0621
-.equ pwm_gradient =       0x06A2                                      ; CRef: 0x069C; DRef: 0x693A,0x65C4
+.equ pwm_gradient =       0x06A2                                      ; DRef: 0x693A,0x65C4
 .equ DL06A3   =       0x06A3                                      ; DRef: 0x693E,0x65C8
 .equ DL06A4   =       0x06A4                                      ; DRef: 0x6942,0x65CC
 .equ DL06A5   =       0x06A5                                      ; DRef: 0x6946,0x65D0
-.equ serial_tx_buffer_head =       0x06A6                                      ; CRef: 0x0664,0x066E,0x0674; DRef: 0x6458,0x647C,0x64A4
+.equ serial_tx_buffer_head =       0x06A6                                      ; DRef: 0x6458,0x647C,0x64A4
 .equ serial_tx_buffer =       0x06A7
 .equ serial_tx_buffer_tail =       0x0710                                      ; DRef: 0x643A,0x6454,0x6494
 .equ line_lto_priv_17 =       0x0711                                      ; DRef: 0x03A0,0x55B2,0x5A26,0x21C8,0x2566,0x5A42
