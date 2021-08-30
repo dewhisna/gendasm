@@ -390,6 +390,8 @@ Symbol table '.symtab' contains 342 entries:
                 0x0100 - 0x08FF  (Size: 0x0800)
              IO Memory Map:
                 0x0000 - 0x003F  (Size: 0x0040)
+             EE Memory Map:
+                0x0000 - 0x03FF  (Size: 0x0400)
 
         143 Entry Points:
                 0x0000
@@ -961,6 +963,8 @@ Symbol table '.symtab' contains 342 entries:
                 0x003D=SPL_
                 0x003E=SPH_
                 0x003F=SREG_
+
+        0 Unique EE Labels Defined
 
 Writing printable data as ASCII in disassembly file.
 Writing byte value comments for ASCII data in disassembly file.

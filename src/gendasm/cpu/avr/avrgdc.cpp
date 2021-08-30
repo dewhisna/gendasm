@@ -716,7 +716,8 @@ CAVRDisassembler::CAVRDisassembler()
 		m_bLastOpcodeWasSkip(false),
 		m_nStartPC(0),
 		m_nCodeSectionCount(0),
-		m_nDataSectionCount(0)
+		m_nDataSectionCount(0),
+		m_nEESectionCount(0)
 {
 	using namespace TAVRDisassembler_ENUMS;
 
@@ -985,12 +986,14 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 
 	// TODO : Put this is a global array that we can enumerate:
 	// Memory Mapping:
-	m_Memory[MT_RAM].push_back(CMemBlock{ 0x100ul, 0x100ul, true, 0x800ul, 0, DMEM_DATA });
+	m_Memory[MT_RAM].push_back(CMemBlock{ 0x100ul, 0x100ul, true, 0x800ul, 0, DMEM_DATA });		// RAM space
+//	m_Memory[MT_EE].push_back(CMemBlock{ 0x0000ul, 0x0000ul, true, 0x400ul, 0xFF, DMEM_DATA });	// EE space
 
-	m_MemoryRanges[MT_ROM].push_back(CMemRange(0x0000, 0x8000));	// Main Flash Memory
-	m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0000, 0x0100));	// I/O Space addressable as RAM
-	m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0100, 0x0800));	// RAM Memory
-	m_MemoryRanges[MT_IO].push_back(CMemRange(0x0000, 0x0040));		// I/O Space addressable as I/O
+	m_MemoryRanges[MT_ROM].push_back(CMemRange(0x0000ul, 0x8000ul));	// Main Flash Memory
+	m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0000ul, 0x0100ul));	// I/O Space addressable as RAM
+	m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0100ul, 0x0800ul));	// RAM Memory
+	m_MemoryRanges[MT_EE].push_back(CMemRange(0x0000ul, 0x0400ul));		// EE Memory
+	m_MemoryRanges[MT_IO].push_back(CMemRange(0x0000ul, 0x0040ul));		// I/O Space addressable as I/O
 
 	return true;
 }
@@ -1320,7 +1323,7 @@ std::string CAVRDisassembler::FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_C
 					return "=";
 				case MC_DATABYTE:
 				case MC_ASCII:
-					if (nMemoryType == MT_ROM) {
+					if ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) {
 						return ".db";
 					} else if (nMemoryType == MT_RAM) {
 						return ".byte";
@@ -1343,7 +1346,7 @@ std::string CAVRDisassembler::FormatMnemonic(MEMORY_TYPE nMemoryType, MNEMONIC_C
 				case MC_EQUATE:
 					return "=";
 				case MC_DATABYTE:
-					if (nMemoryType == MT_ROM) {
+					if ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) {
 						return ".byte";
 					} else if (nMemoryType == MT_RAM) {
 						return ".blkb";
@@ -1380,7 +1383,7 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			break;
 		case MC_DATABYTE:
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			if (nMemoryType == MT_ROM) {
+			if ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) {
 				for (decltype(m_OpMemory)::size_type i=0; i<m_OpMemory.size(); ++i) {
 					if (i != 0) strOpStr += ",";
 					std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), m_OpMemory.at(i));
@@ -1393,7 +1396,7 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			break;
 		case MC_ASCII:
 			// Unlike real opcode OpMemory symbols, these will always be bytes
-			if (nMemoryType == MT_ROM) {
+			if ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) {
 				switch (m_nAssembler) {
 					case AAE_AVRA:
 						if (!m_OpMemory.empty()) {
@@ -1642,6 +1645,9 @@ bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock 
 				case MT_RAM:
 					saOutLine[FC_MNEMONIC] = ".dseg";
 					break;
+				case MT_EE:
+					saOutLine[FC_MNEMONIC] = ".eseg";
+					break;
 				default:
 					break;
 			}
@@ -1657,6 +1663,10 @@ bool CAVRDisassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock 
 			break;
 		case MT_RAM:
 			std::sprintf(strTemp, "DATA%d\t(DSEG,ABS)", ++m_nDataSectionCount);
+			saOutLine[FC_OPERANDS] = strTemp;
+			break;
+		case MT_EE:
+			std::sprintf(strTemp, "EE%d\t(ESEG,ABS)", ++m_nEESectionCount);
 			saOutLine[FC_OPERANDS] = strTemp;
 			break;
 		default:
@@ -1707,7 +1717,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 	CMemoryArray maTempOpMemoryAscii;	// ASCII-only bytes
 
 	size_t nSymbolSize = ((nMemoryType == MT_ROM) ? opcodeSymbolSize() : 1);
-	int nMaxNonPrint = ((nMemoryType == MT_ROM) ? m_nMaxNonPrint : m_Memory[nMemoryType].totalMemorySize());
+	int nMaxNonPrint = (((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) ? m_nMaxNonPrint : m_Memory[nMemoryType].totalMemorySize());
 
 	auto const &&fnWriteLabels = [&](TAddress nAddress)->void {
 		CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(nAddress);
@@ -1809,7 +1819,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							}
 
 							// First, print a line of the output bytes for reference:
-							if (m_bAsciiBytesFlag && bHadAscii && (nMemoryType == MT_ROM)) {
+							if (m_bAsciiBytesFlag && bHadAscii && ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE))) {
 								CStringArray saAsciiLine;
 								ClearOutputLine(saAsciiLine);
 
@@ -1994,7 +2004,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							}
 
 							// First, print a line of the output bytes for reference:
-							if (m_bAsciiBytesFlag && bHadAscii && (nMemoryType == MT_ROM) && !maTempOpMemory.empty()) {
+							if (m_bAsciiBytesFlag && bHadAscii && ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) && !maTempOpMemory.empty()) {
 								CStringArray saAsciiLine;
 								ClearOutputLine(saAsciiLine);
 
@@ -2135,6 +2145,9 @@ TLabel CAVRDisassembler::GenLabel(MEMORY_TYPE nMemoryType, TAddress nAddress)
 			break;
 		case MT_IO:
 			strPrefix = "IL";		// Label I/O
+			break;
+		case MT_EE:
+			strPrefix = "EL";		// Label EE
 			break;
 		default:
 			break;

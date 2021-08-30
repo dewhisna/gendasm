@@ -124,6 +124,8 @@ namespace {
 
 	static constexpr TAddress E_AVR_RAM_VirtualBase = 0x00800100ul;		// Virtual Starting Address in ELF files for AVR RAM
 	static constexpr TAddress E_AVR_RAM_VirtualBaseAdj = 0x00800000ul;	// Adjustment value for AVR RAM (amount to subtract from E_AVR_RAM_VirtualBase)
+	static constexpr TAddress E_AVR_EE_VirtualBase = 0x00810000ul;		// Virtual Starting Address in ELF files for AVR EE
+	static constexpr TAddress E_AVR_EE_VirtualBaseAdj = 0x00810000ul;	// Adjustment value for AVR EE (amount to subtract from E_AVR_EE_VirtualBase)
 
 	/* Processor specific flags for the ELF header e_flags field.  */
 	#define EF_AVR_MACH 0x7F
@@ -407,21 +409,26 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 				}
 
 				ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase, phdr.p_memsz));
-			} else // Handle Read/Write sections as RAM (DATA):
+			} else // Handle Read/Write sections as RAM/EE (DATA):
 				if ((phdr.p_flags & PF_R) &&
 					(phdr.p_flags & PF_W) &&
 					((phdr.p_flags & PF_X) == 0)) {
 				// Note: nNewBase is for ROM-area only
-				if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
+				if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_EE_VirtualBase)) {		// Do EE first since it's >RAM
+					ranges[CDisassembler::MT_EE].push_back(CMemRange(phdr.p_vaddr - E_AVR_EE_VirtualBaseAdj, phdr.p_memsz));
+				} else if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
 					ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
 				} else {
 					ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr, phdr.p_memsz));
 				}
-			} else // Handle Read-only sections as ROM (DATA):
+			} else // Handle Read-only sections as ROM/EE (DATA):
 				if ((phdr.p_flags & PF_R) &&
 					((phdr.p_flags & PF_W) == 0) &&
 					((phdr.p_flags & PF_X) == 0)) {
-				if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
+				if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_EE_VirtualBase)) {		// Do EE first since it's >RAM
+					// Note: nNewBase is for ROM-area only
+					ranges[CDisassembler::MT_EE].push_back(CMemRange(phdr.p_vaddr - E_AVR_EE_VirtualBaseAdj, phdr.p_memsz));
+				} else if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
 					ranges[CDisassembler::MT_ROM].push_back(CMemRange(phdr.p_vaddr + nNewBase - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
 					if (nReadMode == ERM_Mapping) {
 						if (pRange) {
@@ -594,7 +601,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 																std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
 					if ((shdr.sh_offset == phdr.p_offset) &&
 						(shdr.sh_addr == phdr.p_vaddr) &&
-						(shdr.sh_type == SHT_PROGBITS)) {		// Check PROGBITS : .text, .data, etc
+						(shdr.sh_type == SHT_PROGBITS)) {		// Check PROGBITS : .text, .data, .eeprom, etc
 						Elf_Data *pData = nullptr;
 						size_t nIndex = 0;
 						while (nIndex < shdr.sh_size) {
@@ -622,41 +629,62 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 												if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
 												pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nAddress, nDesc);
 											}
-										} else // Handle Read/Write sections as RAM (DATA):
+										} else // Handle Read/Write sections as RAM/EE (DATA):
 											if ((phdr.p_flags & PF_R) &&
 												(phdr.p_flags & PF_W) &&
 												((phdr.p_flags & PF_X) == 0)) {
 											// Note: nNewBase is for ROM-area only
+											bool bIsEE = false;
 											TAddress nAddress = shdr.sh_addr + nIndex;
-											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_EE_VirtualBase)) {		// Do EE first since it's >RAM
+												nAddress -= E_AVR_EE_VirtualBaseAdj;
+												bIsEE = true;
+											} else if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
 												nAddress -= E_AVR_RAM_VirtualBaseAdj;
 											}
 											if (pDisassembler) {
-												// Put the actual data in the flash shadow:
-												//	Note: nDataStartAddr already has nNewBase added,
-												//		so there's no need to add it into nFlashShadowAddress
-												TAddress nFlashShadowAddress = shdr.sh_addr + nIndex;
-												if ((ehdr.e_machine == EM_AVR) && (nFlashShadowAddress >= E_AVR_RAM_VirtualBase)) {
-													nFlashShadowAddress -= E_AVR_RAM_VirtualBase;	// Note: Remove ENTIRE virtual address here!
-												}
-												nFlashShadowAddress += nDataStartAddr;
-												pDisassembler->memory(CDisassembler::MT_ROM).setElement(nFlashShadowAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
-												if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nFlashShadowAddress) != 0) bRetVal = false;		// Signal overlap
-												pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nFlashShadowAddress, nDesc);
+												if (bIsEE) {
+													pDisassembler->memory(CDisassembler::MT_EE).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+													if (pDisassembler->memory(CDisassembler::MT_EE).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+													pDisassembler->memory(CDisassembler::MT_EE).setDescriptor(nAddress, nDesc);
+												} else {
+													// Put the actual data in the flash shadow:
+													//	Note: nDataStartAddr already has nNewBase added,
+													//		so there's no need to add it into nFlashShadowAddress
+													TAddress nFlashShadowAddress = shdr.sh_addr + nIndex;
+													if ((ehdr.e_machine == EM_AVR) && (nFlashShadowAddress >= E_AVR_RAM_VirtualBase)) {
+														nFlashShadowAddress -= E_AVR_RAM_VirtualBase;	// Note: Remove ENTIRE virtual address here!
+													}
+													nFlashShadowAddress += nDataStartAddr;
+													pDisassembler->memory(CDisassembler::MT_ROM).setElement(nFlashShadowAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+													if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nFlashShadowAddress) != 0) bRetVal = false;		// Signal overlap
+													pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nFlashShadowAddress, nDesc);
+													if (pMemory) {
+														// If only a single memory object is given, it's taken to be
+														//	the MT_ROM range:
+														pMemory->setElement(nFlashShadowAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+														if (pMemory->descriptor(nFlashShadowAddress) != 0) bRetVal = false;		// Signal overlap
+														pMemory->setDescriptor(nFlashShadowAddress, nDesc);
+													}
 
-												// Also tag the RAM area descriptors for allocation:
-												if (pDisassembler->memory(CDisassembler::MT_RAM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
-												pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, nDesc);
+													// Also tag the RAM area descriptors for allocation:
+													if (pDisassembler->memory(CDisassembler::MT_RAM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+													pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, nDesc);
+												}
 											}
-										} else // Handle Read-only sections as ROM (DATA):
+										} else // Handle Read-only sections as ROM/EE (DATA):
 											if ((phdr.p_flags & PF_R) &&
 												((phdr.p_flags & PF_W) == 0) &&
 												((phdr.p_flags & PF_X) == 0)) {
+											bool bIsEE = false;
 											TAddress nAddress = shdr.sh_addr + nNewBase + nIndex;
-											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+											if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_EE_VirtualBase)) {		// Do EE first since it's >RAM
+												nAddress -= E_AVR_EE_VirtualBaseAdj;
+												bIsEE = true;
+											} else if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
 												nAddress -= E_AVR_RAM_VirtualBaseAdj;
 											}
-											if (pMemory) {
+											if (!bIsEE && pMemory) {
 												// If only a single memory object is given, it's taken to be
 												//	the MT_ROM range:
 												pMemory->setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
@@ -664,9 +692,15 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 												pMemory->setDescriptor(nAddress, nDesc);
 											}
 											if (pDisassembler) {
-												pDisassembler->memory(CDisassembler::MT_ROM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
-												if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
-												pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nAddress, nDesc);
+												if (bIsEE) {
+													pDisassembler->memory(CDisassembler::MT_EE).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+													if (pDisassembler->memory(CDisassembler::MT_EE).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+													pDisassembler->memory(CDisassembler::MT_EE).setDescriptor(nAddress, nDesc);
+												} else {
+													pDisassembler->memory(CDisassembler::MT_ROM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
+													if (pDisassembler->memory(CDisassembler::MT_ROM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
+													pDisassembler->memory(CDisassembler::MT_ROM).setDescriptor(nAddress, nDesc);
+												}
 											}
 										}
 									}
@@ -803,8 +837,12 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 						if (gelf_getshdr(pScnRef, &shdrRef) != &shdrRef) THROW_EXCEPTION_ERROR(EXCEPTION_ERROR::ERR_READFAILED, 0,
 																	std::string("getshdr() failed: ") + std::string(elf_errmsg(-1)));
 
+						bool bIsEE = false;
 						TAddress nAddress = sym.st_value;
-						if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
+						if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_EE_VirtualBase)) {		// Do EE first since it's >RAM
+							nAddress -= E_AVR_EE_VirtualBaseAdj;
+							bIsEE = true;
+						} else if ((ehdr.e_machine == EM_AVR) && (nAddress >= E_AVR_RAM_VirtualBase)) {
 							nAddress -= E_AVR_RAM_VirtualBaseAdj;
 						}
 
@@ -822,14 +860,14 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 										// TODO : See if there's a way to distinguish Code and Data here to possibly
 										//		set an entry point?
 									} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
-										pDisassembler->AddLabel(CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+										pDisassembler->AddLabel(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
 									}
 									break;
 								case STT_OBJECT:
 									if (shdrRef.sh_flags & SHF_EXECINSTR) {
 										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
 									} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
-										pDisassembler->AddLabel(CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+										pDisassembler->AddLabel(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
 									}
 									break;
 								case STT_FUNC:
@@ -842,7 +880,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 									if (shdrRef.sh_flags & SHF_ALLOC) {
 										if (shdrRef.sh_flags & SHF_WRITE) {
 											pDisassembler->AddLabel((shdrRef.sh_flags & SHF_EXECINSTR) ?
-																		CDisassembler::MT_ROM : CDisassembler::MT_RAM,
+																		CDisassembler::MT_ROM : (bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM),
 																	(shdrRef.sh_flags & SHF_EXECINSTR) ?
 																		nAddress + nNewBase : nAddress,
 																	false, 0, strLabel);

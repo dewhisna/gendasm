@@ -285,7 +285,7 @@ protected:
 	TString		m_strFilePathName;
 	TString		m_strFileName;
 
-	CMemRanges		m_MemoryRanges[MEMORY_TYPE::NUM_MEMORY_TYPES];	// ROM, RAM, I/O Ranges/Mapping
+	CMemRanges		m_MemoryRanges[MEMORY_TYPE::NUM_MEMORY_TYPES];	// ROM, RAM, I/O, EE Ranges/Mapping
 
 	bool			m_bAllowMemRangeOverlap = false;	// Set to true on Harvard (and similar) architectures where ROM/RAM/IO/etc can overlap in address range since they are on separate buses
 	size_t			m_nOpcodeSymbolSize = 1;			// Width of opcode symbols

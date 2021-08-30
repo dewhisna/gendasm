@@ -14,6 +14,8 @@
 ;                       0x0100 - 0x08FF  (Size: 0x0800)
 ;                    IO Memory Map:
 ;                       0x0000 - 0x003F  (Size: 0x0040)
+;                    EE Memory Map:
+;                       0x0000 - 0x03FF  (Size: 0x0400)
 ;
 
 

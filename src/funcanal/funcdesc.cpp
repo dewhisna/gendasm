@@ -23,7 +23,7 @@
 //			#type|addr|size
 //			   |    |    |____  Size of Mapped area (hex)
 //			   |    |_________  Absolute Address of Mapped area (hex)
-//			   |______________  Type of Mapped area (One of following: ROM, RAM, IO)
+//			   |______________  Type of Mapped area (One of following: ROM, RAM, IO, EE)
 //
 //		Label Definitions:
 //			!addr|label
@@ -141,12 +141,13 @@ namespace {
 		{ "^ROM$", CFuncDescFile::MEMORY_TYPE::MT_ROM },
 		{ "^RAM$", CFuncDescFile::MEMORY_TYPE::MT_RAM },
 		{ "^IO$", CFuncDescFile::MEMORY_TYPE::MT_IO },
+		{ "^EE$", CFuncDescFile::MEMORY_TYPE::MT_EE },
 	};
 
 	// --------------------------------
 
 	static const std::string g_arrstrMemRanges[CFuncDescFile::MEMORY_TYPE::NUM_MEMORY_TYPES] = {		// Both Human readable names for ranges for printing AND names used in Functions file!
-		"ROM", "RAM", "IO",
+		"ROM", "RAM", "IO", "EE",
 	};
 
 	// --------------------------------
@@ -1371,8 +1372,10 @@ TLabel CFuncDescFile::GetAnyPrimaryLabel(bool bInvertPriority, TAddress nAddress
 		strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_ROM, nAddress);
 		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_RAM, nAddress);
 		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_IO, nAddress);
+		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_EE, nAddress);
 	} else {
-		strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_IO, nAddress);
+		strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_EE, nAddress);
+		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_IO, nAddress);
 		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_RAM, nAddress);
 		if (strLabel.empty()) strLabel = GetPrimaryLabel(MEMORY_TYPE::MT_ROM, nAddress);
 	}

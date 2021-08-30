@@ -367,7 +367,7 @@ public:
 	enum REFERENCE_TYPE { RT_CODE, RT_DATA, NUM_REFERENCE_TYPES };
 
 	// The following defines the memory types:
-	enum MEMORY_TYPE { MT_ROM, MT_RAM, MT_IO, NUM_MEMORY_TYPES };
+	enum MEMORY_TYPE { MT_ROM, MT_RAM, MT_IO, MT_EE, NUM_MEMORY_TYPES };
 
 	// The following defines the commit type flags for determining when to output
 	//	specific user-defined comments.  It is used by the FormatComments function.

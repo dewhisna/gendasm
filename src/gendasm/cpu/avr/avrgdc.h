@@ -208,6 +208,7 @@ private:
 
 	int m_nCodeSectionCount;
 	int m_nDataSectionCount;
+	int m_nEESectionCount;
 };
 
 // ============================================================================

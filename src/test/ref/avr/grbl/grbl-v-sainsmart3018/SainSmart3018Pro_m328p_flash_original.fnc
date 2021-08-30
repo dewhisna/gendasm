@@ -14,6 +14,8 @@
 ;                       0x0100 - 0x08FF  (Size: 0x0800)
 ;                    IO Memory Map:
 ;                       0x0000 - 0x003F  (Size: 0x0040)
+;                    EE Memory Map:
+;                       0x0000 - 0x03FF  (Size: 0x0400)
 ;
 
 -memrangeoverlap|true
@@ -23,6 +25,7 @@
 #RAM|0000|0100
 #RAM|0100|0800
 #IO|0000|0040
+#EE|0000|0400
 
 !ROM|0000|RESET_vect
 !ROM|0004|INT0_vect

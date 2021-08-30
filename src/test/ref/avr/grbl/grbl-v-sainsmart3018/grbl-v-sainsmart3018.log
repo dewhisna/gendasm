@@ -16,6 +16,8 @@ Reading Function Definition File "grbl_v1.1f.20170801.fnc"...
             0x0100 - 0x08FF  (Size: 0x0800)
          IO Memory Map:
             0x0000 - 0x003F  (Size: 0x0040)
+         EE Memory Map:
+            0x0000 - 0x03FF  (Size: 0x0400)
 
     198 Functions Defined:
         0x0000 -> RESET_vect
@@ -407,6 +409,8 @@ Reading Function Definition File "grbl_v1.1f.20170801.fnc"...
         0x003E=SPH_
         0x003F=SREG_
 
+    0 Unique EE Labels Defined
+
 Reading Function Definition File "SainSmart3018Pro_m328p_flash_original.fnc"...
 
     Allowing Memory Range Overlaps
@@ -421,6 +425,8 @@ Reading Function Definition File "SainSmart3018Pro_m328p_flash_original.fnc"...
             0x0100 - 0x08FF  (Size: 0x0800)
          IO Memory Map:
             0x0000 - 0x003F  (Size: 0x0040)
+         EE Memory Map:
+            0x0000 - 0x03FF  (Size: 0x0400)
 
     198 Functions Defined:
         0x0000 -> RESET_vect
@@ -811,6 +817,8 @@ Reading Function Definition File "SainSmart3018Pro_m328p_flash_original.fnc"...
         0x003D=SPL_
         0x003E=SPH_
         0x003F=SREG_
+
+    0 Unique EE Labels Defined
 
 Cross-Comparing Functions...
 Computing Function Comparison : Please Wait......................................................................................................................................................................................................

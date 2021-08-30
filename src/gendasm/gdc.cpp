@@ -121,6 +121,7 @@ namespace {
 		{ "^ROM$", CDisassembler::MT_ROM },
 		{ "^RAM$", CDisassembler::MT_RAM },
 		{ "^IO$", CDisassembler::MT_IO },
+		{ "^EE$", CDisassembler::MT_EE },
 	};
 
 	static const TKeywordMap g_mapParseOutputType = {
@@ -138,7 +139,7 @@ namespace {
 	// --------------------------------
 
 	static const std::string g_arrstrMemRanges[CDisassembler::NUM_MEMORY_TYPES] = {		// Both Human readable names for ranges for printing AND names used in Functions file!
-		"ROM", "RAM", "IO",
+		"ROM", "RAM", "IO", "EE",
 	};
 };
 
@@ -1398,7 +1399,7 @@ bool CDisassembler::Pass2(std::ostream& outFile, std::ostream *msgFile, std::ost
 	bRetVal = bRetVal && WriteHeader(outFile, msgFile, errFile);
 	bRetVal = bRetVal && WriteEquates(outFile, msgFile, errFile);
 
-	MEMORY_TYPE arrMemTypes[NUM_MEMORY_TYPES] = { MT_IO, MT_RAM, MT_ROM };
+	MEMORY_TYPE arrMemTypes[NUM_MEMORY_TYPES] = { MT_IO, MT_RAM, MT_EE, MT_ROM };
 	for (int ndxType = 0; ndxType < NUM_MEMORY_TYPES; ++ndxType) {
 		MEMORY_TYPE nMemoryType = arrMemTypes[ndxType];
 		bRetVal = bRetVal && WriteDisassembly(static_cast<MEMORY_TYPE>(nMemoryType), outFile, msgFile, errFile);
@@ -2403,7 +2404,7 @@ bool CDisassembler::WriteEquates(std::ostream& outFile, std::ostream *msgFile, s
 	if (bRetVal) {
 		ClearOutputLine(saOutLine);
 
-		MEMORY_TYPE arrMemTypes[NUM_MEMORY_TYPES] = { MT_IO, MT_RAM, MT_ROM };
+		MEMORY_TYPE arrMemTypes[NUM_MEMORY_TYPES] = { MT_IO, MT_RAM, MT_EE, MT_ROM };
 		for (int ndxType = 0; ndxType < NUM_MEMORY_TYPES; ++ndxType) {
 			MEMORY_TYPE nMemoryType = arrMemTypes[ndxType];
 
