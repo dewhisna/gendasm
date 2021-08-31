@@ -53,6 +53,7 @@ typedef std::string TMnemonic;								// Basic Mnemonic type (should support bas
 typedef std::vector<TLabel> CLabelArray;					// Array of labels
 typedef std::vector<TAddress> CAddressArray;				// Array of addresses
 typedef std::set<TAddress> CAddressSet;						// Set of addresses as collection of addresses discovered
+typedef std::map<TAddress, TAddress> CAddressMap;			// Mapping of Address to Address (used for objects where each member of the object points to the base address where the label is available)
 typedef std::map<TAddress, CAddressArray> CAddressTableMap;	// Mapping of Address to Array of Addresses
 typedef std::map<TAddress, TLabel> CAddressLabelMap;		// Mapping of Address to single Label
 typedef std::map<TAddress, CLabelArray> CLabelTableMap;		// Mapping of Address to Array of Labels
@@ -561,6 +562,8 @@ public:
 	virtual bool HaveDataIndirect(TAddress nAddress) const { return m_DataIndirectTable.contains(nAddress); }
 	virtual bool AddDataIndirect(TAddress nAddress, const TLabel &strLabel = TLabel());
 
+	virtual bool AddObjectMapping(MEMORY_TYPE nMemoryType, TAddress nBaseObjectAddress, TSize nSize);
+
 protected:
 	virtual void GenDataLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Calls AddLabel to create a label for nAddress -- unlike calling direct, this function outputs the new label to msgFile if specified...
 	virtual void GenAddrLabel(TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel = TLabel(), std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// (Always MT_ROM) Calls AddLabel to create a label for nAddress, then calls AddBranch to add a branch address -- unlike calling direct, this function outputs the new label to msgFile if specified and displays "out of source" errors for the branches to errFile...
@@ -645,6 +648,8 @@ protected:
 	CAddressTableMap m_LabelRefTable[NUM_MEMORY_TYPES];	// Table of reference addresses for labels.  User specified labels have no reference added.
 	CAddressLabelMap m_CodeIndirectTable;	// (Always MT_ROM) Table of indirect code vectors with labels specified by the user and from disassembly
 	CAddressLabelMap m_DataIndirectTable;	// (Always MT_ROM) Table of indirect data vectors with labels specified by the user and from disassembly
+
+	CAddressMap		m_ObjectMap[NUM_MEMORY_TYPES];		// Mapping of addresses in objects to the object base address from which the label can be derived
 
 	CMemRanges		m_rngDataBlocks;		// Explicitly added Data Block declarations from the Control File, used to split discovered Data Blocks from declared Data Blocks
 

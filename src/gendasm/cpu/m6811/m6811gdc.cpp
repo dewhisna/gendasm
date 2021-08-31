@@ -1463,17 +1463,31 @@ TLabel CM6811Disassembler::LabelDeref4(TAddress nAddress)
 
 	const MEMORY_TYPE nMemType = MemoryTypeFromAddress(nAddress);
 
-	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemType].find(nAddress);
+	TAddress nBaseAddress = nAddress;
+	TAddressOffset nOffset = 0;
+	CAddressMap::const_iterator itrObjectMap = m_ObjectMap[nMemType].find(nAddress);
+	if (itrObjectMap != m_ObjectMap[nMemType].cend()) {
+		nBaseAddress = itrObjectMap->second;
+		nOffset = nAddress - itrObjectMap->second;
+	}
+
+	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemType].find(nBaseAddress);
 	if (itrLabel != m_LabelTable[nMemType].cend()) {
 		if (itrLabel->second.size()) {
-			strTemp = FormatLabel(nMemType, LC_REF, itrLabel->second.at(0), nAddress);
+			strTemp = FormatLabel(nMemType, LC_REF, itrLabel->second.at(0), nBaseAddress);
 		} else {
-			strTemp = FormatLabel(nMemType, LC_REF, TLabel(), nAddress);
+			strTemp = FormatLabel(nMemType, LC_REF, TLabel(), nBaseAddress);
 		}
 	} else {
-		std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nAddress);
+		std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nBaseAddress);
 		strTemp = strCharTemp;
 	}
+
+	if (nOffset) {
+		std::sprintf(strCharTemp, "+%s%X", GetHexDelim().c_str(), nOffset);
+		strTemp += strCharTemp;
+	}
+
 	return strTemp;
 }
 

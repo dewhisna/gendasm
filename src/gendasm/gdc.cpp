@@ -3278,6 +3278,16 @@ bool CDisassembler::AddDataIndirect(TAddress nAddress, const TLabel &strLabel)
 
 // ----------------------------------------------------------------------------
 
+bool CDisassembler::AddObjectMapping(MEMORY_TYPE nMemoryType, TAddress nBaseObjectAddress, TSize nSize)
+{
+	for (TSize ndx = 0; ndx < nSize; ++ndx) {
+		m_ObjectMap[nMemoryType][nBaseObjectAddress+ndx] = nBaseObjectAddress;
+	}
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+
 void CDisassembler::GenDataLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, TAddress nRefAddress, const TLabel & strLabel, std::ostream *msgFile, std::ostream *errFile)
 {
 	UNUSED(strLabel);

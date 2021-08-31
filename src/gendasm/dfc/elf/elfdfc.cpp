@@ -866,8 +866,10 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 								case STT_OBJECT:
 									if (shdrRef.sh_flags & SHF_EXECINSTR) {
 										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+										pDisassembler->AddObjectMapping(CDisassembler::MT_ROM, nAddress + nNewBase, sym.st_size);
 									} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
 										pDisassembler->AddLabel(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+										pDisassembler->AddObjectMapping(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, sym.st_size);
 									}
 									break;
 								case STT_FUNC:
