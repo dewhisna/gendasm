@@ -1483,8 +1483,40 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 
 	using namespace TAVRDisassembler_ENUMS;
 
+	// If it's a branch into the middle of a function (and we know that function's offset),
+	//	show the function name and offset into the function the comments:
+	if ((nMCCode == MC_OPCODE) && ((m_CurrentOpcode.control() & CTL_MASK) == CTL_DetBra)) {
+		CAddressMap::const_iterator itrObjectMap = m_ObjectMap[nMemoryType].find(CreateOperandAddress());
+		if (itrObjectMap != m_ObjectMap[nMemoryType].cend()) {
+			TAddress nBaseAddress = itrObjectMap->second;
+			TAddressOffset nOffset = itrObjectMap->first - itrObjectMap->second;
+
+			CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
+			std::string strLabel;
+			if (itrLabel != m_LabelTable[nMemoryType].cend()) {
+				if (itrLabel->second.size()) {
+					strLabel = FormatLabel(nMemoryType, LC_REF, itrLabel->second.at(0), nBaseAddress);
+				} else {
+					strLabel = FormatLabel(nMemoryType, LC_REF, TLabel(), nBaseAddress);
+				}
+			}
+
+			if (!strLabel.empty() && nOffset) {
+				std::sprintf(strTemp, "+%s%X", GetHexDelim().c_str(), nOffset);
+				strLabel += strTemp;
+
+				if (!strRetVal.empty()) strRetVal += "\n";
+				strRetVal += "<" + strLabel + ">";
+			}
+		}
+	}
+
 	// Add Function Flag Debug Comments (if enabled):
-	strRetVal += FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
+	std::string strFuncFlagComments = FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
+	if (!strFuncFlagComments.empty()) {
+		if (!strRetVal.empty()) strRetVal += "  ";
+		strRetVal += strFuncFlagComments;
+	}
 
 	// Add user comments:
 	std::string strUserComments = FormatUserComments(nMemoryType, nMCCode, nStartAddress);

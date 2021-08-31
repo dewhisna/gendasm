@@ -876,6 +876,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 									if (shdrRef.sh_flags & SHF_EXECINSTR) {
 										pDisassembler->AddEntry(nAddress + nNewBase);
 										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+										pDisassembler->AddObjectMapping(CDisassembler::MT_ROM, nAddress + nNewBase, sym.st_size);
 									}
 									break;
 								case STT_TLS:

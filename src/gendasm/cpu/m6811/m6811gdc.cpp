@@ -811,11 +811,66 @@ std::string CM6811Disassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC
 std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
 	std::string strRetVal;
+	char strTemp[30];
 	bool bBranchOutside;
 	TAddress nAddress;
 
+	// If it's a branch into the middle of a function (and we know that function's offset),
+	//	show the function name and offset into the function the comments:
+	if (nMCCode == MC_OPCODE) {
+		bool bHaveBranch = false;
+		TAddress nOperandAddress = 0;
+		m_nOpPointer = m_CurrentOpcode.opcode().size();	// Get position of start of operands following opcode
+		switch (OCTL_DST()) {
+			case 0x2:
+			case 0x3:
+			case 0x4:
+				nOperandAddress = AddressFromOperand(OCTL_DST());
+				bHaveBranch = true;
+				break;
+		}
+		switch (OCTL_SRC()) {
+			case 0x2:
+			case 0x3:
+			case 0x4:
+				nOperandAddress = AddressFromOperand(OCTL_SRC());
+				bHaveBranch = true;
+				break;
+		}
+
+		if (bHaveBranch) {
+			CAddressMap::const_iterator itrObjectMap = m_ObjectMap[nMemoryType].find(nOperandAddress);
+			if (itrObjectMap != m_ObjectMap[nMemoryType].cend()) {
+				TAddress nBaseAddress = itrObjectMap->second;
+				TAddressOffset nOffset = itrObjectMap->first - itrObjectMap->second;
+
+				CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
+				std::string strLabel;
+				if (itrLabel != m_LabelTable[nMemoryType].cend()) {
+					if (itrLabel->second.size()) {
+						strLabel = FormatLabel(nMemoryType, LC_REF, itrLabel->second.at(0), nBaseAddress);
+					} else {
+						strLabel = FormatLabel(nMemoryType, LC_REF, TLabel(), nBaseAddress);
+					}
+				}
+
+				if (!strLabel.empty() && nOffset) {
+					std::sprintf(strTemp, "+%s%X", GetHexDelim().c_str(), nOffset);
+					strLabel += strTemp;
+
+					if (!strRetVal.empty()) strRetVal += "\n";
+					strRetVal += "<" + strLabel + ">";
+				}
+			}
+		}
+	}
+
 	// Add Function Flag Debug Comments (if enabled):
-	strRetVal += FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
+	std::string strFuncFlagComments = FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
+	if (!strFuncFlagComments.empty()) {
+		if (!strRetVal.empty()) strRetVal += "  ";
+		strRetVal += strFuncFlagComments;
+	}
 
 	// Add user comments:
 	std::string strUserComments = FormatUserComments(nMemoryType, nMCCode, nStartAddress);
@@ -1405,31 +1460,43 @@ std::string CM6811Disassembler::FormatOperandRefComments(TM6811Disassembler::TGr
 	return FormatUserComments(MT_ROM, MC_INDIRECT, nAddress);
 }
 
-bool CM6811Disassembler::CheckBranchOutside(MEMORY_TYPE nMemoryType, TM6811Disassembler::TGroupFlags nGroup)
+TAddress CM6811Disassembler::AddressFromOperand(TM6811Disassembler::TGroupFlags nGroup)
 {
-	bool bRetVal = true;
-	TAddress nAddress;
+	TAddress nAddress = 0;
 
 	switch (nGroup) {
 		case 0x1:								// absolute 8-bit, assume msb=$00
 			nAddress = m_OpMemory.at(m_nOpPointer);
-			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer++;
 			break;
 		case 0x2:								// 16-bit Absolute
 			nAddress = m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1);
-			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer += 2;
 			break;
 		case 0x3:								// 8-bit Relative
 			nAddress = m_PC+(signed long)(signed char)(m_OpMemory.at(m_nOpPointer));
-			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer++;
 			break;
 		case 0x4:								// 16-bit Relative
 			nAddress = m_PC+(signed long)(signed short)(m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
-			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			m_nOpPointer += 2;
+			break;
+	}
+
+	return nAddress;
+}
+
+bool CM6811Disassembler::CheckBranchOutside(MEMORY_TYPE nMemoryType, TM6811Disassembler::TGroupFlags nGroup)
+{
+	bool bRetVal = true;
+	TAddress nAddress = AddressFromOperand(nGroup);
+
+	switch (nGroup) {
+		case 0x1:								// absolute 8-bit, assume msb=$00
+		case 0x2:								// 16-bit Absolute
+		case 0x3:								// 8-bit Relative
+		case 0x4:								// 16-bit Relative
+			bRetVal = IsAddressLoaded(nMemoryType, nAddress, 1);
 			break;
 	}
 	return bRetVal;

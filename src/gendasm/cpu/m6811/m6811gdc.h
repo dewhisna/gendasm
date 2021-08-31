@@ -110,6 +110,7 @@ private:
 	bool DecodeOpcode(TM6811Disassembler::TGroupFlags nGroup, TM6811Disassembler::TControlFlags nControl, bool bAddLabels, std::ostream *msgFile, std::ostream *errFile);
 	void CreateOperand(TM6811Disassembler::TGroupFlags nGroup, std::string& strOpStr);
 	std::string FormatOperandRefComments(TM6811Disassembler::TGroupFlags nGroup);
+	TAddress AddressFromOperand(TM6811Disassembler::TGroupFlags nGroup);
 	bool CheckBranchOutside(MEMORY_TYPE nMemoryType, TM6811Disassembler::TGroupFlags nGroup);
 	TLabel LabelDeref2(TAddress nAddress);
 	TLabel LabelDeref4(TAddress nAddress);
