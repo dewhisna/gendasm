@@ -2183,8 +2183,8 @@ std::string CDisassembler::MakeOutputLine(CStringArray& saOutputData) const
 				if (nTempPos != std::string::npos) {
 					nToss = (bNeedsTossing ? 1 : 0);
 					strTemp = strItem.substr(0, nTempPos + 1 - nToss);	// Throw ' ' and '\t' away
-					if ((nTempPos+1+nToss) < strItem.size()) {	// If it's the very last character, we need to clear or we'll crash trying to access off the end
-						strCommentPart = "  " + strItem.substr(nTempPos+1 + nToss);
+					if ((nTempPos+1) < strItem.size()) {	// If it's the very last character, we need to clear or we'll crash trying to access off the end
+						strCommentPart = "  " + strItem.substr(nTempPos+1);
 					} else {
 						strCommentPart.clear();
 					}
