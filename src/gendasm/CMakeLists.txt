@@ -18,6 +18,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(FUNC_FLAG_COMMENT "Add Function Flags to Comment Field" OFF)
 option(ELF_SUPPORT "Use ELF Support" ON)
+option(LIBIBERTY_SUPPORT "Use libiberty Support" ON)
 
 # -----------------------------------------------------------------------------
 
@@ -28,6 +29,12 @@ if(ELF_SUPPORT)
 
 	find_package(PkgConfig REQUIRED)
 	pkg_check_modules(LIBELF REQUIRED IMPORTED_TARGET libelf)
+endif()
+
+# -----------------------------------------------------------------------------
+
+if(LIBIBERTY_SUPPORT)
+	find_library(LIBIBERTY libiberty.a REQUIRED)
 endif()
 
 # -----------------------------------------------------------------------------
@@ -160,12 +167,6 @@ add_executable(gendasm
 	${cpu_avr_Headers}
 )
 
-if(ELF_SUPPORT)
-	target_link_libraries(gendasm PRIVATE
-		PkgConfig::LIBELF
-	)
-endif()
-
 if(FUNC_FLAG_COMMENT)
 	target_compile_definitions(gendasm PRIVATE
 		FUNC_FLAG_COMMENT
@@ -173,9 +174,19 @@ if(FUNC_FLAG_COMMENT)
 endif()
 
 if(ELF_SUPPORT)
+	target_link_libraries(gendasm PRIVATE
+		PkgConfig::LIBELF
+	)
 	target_compile_definitions(gendasm PRIVATE
 		ELF_SUPPORT
 	)
+endif()
+
+if(LIBIBERTY_SUPPORT)
+	target_compile_definitions(gendasm PRIVATE
+		LIBIBERTY_SUPPORT
+	)
+	target_link_libraries(gendasm PRIVATE ${LIBIBERTY})
 endif()
 
 install(TARGETS gendasm DESTINATION bin)

@@ -137,6 +137,10 @@
 
 #include <assert.h>
 
+#ifdef LIBIBERTY_SUPPORT
+#include <libiberty/demangle.h>
+#endif
+
 // ============================================================================
 
 #define DataDelim	"'"			// Specify ' as delimiter for data literals
@@ -808,12 +812,41 @@ std::string CM6811Disassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC
 	return strOpStr;
 }
 
+#ifdef LIBIBERTY_SUPPORT
+extern "C" {
+	static void demangle_callback(const char *pString, size_t nSize, void *pData)
+	{
+		std::string *pRetVal = (std::string *)(pData);
+		if (pRetVal) {
+			(*pRetVal) += std::string(pString, nSize);
+		}
+	}
+}
+#endif
+
 std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
 	std::string strRetVal;
 	char strTemp[30];
 	bool bBranchOutside;
 	TAddress nAddress;
+
+	// Output demangled label in comments if it's available:
+	CLabelTableMap::const_iterator itrLabel;
+#ifdef LIBIBERTY_SUPPORT
+	itrLabel = m_LabelTable[nMemoryType].find(nStartAddress);
+	if (itrLabel != m_LabelTable[nMemoryType].cend()) {
+		std::string strDemangled;
+		if (itrLabel->second.size() && !itrLabel->second.at(0).empty()) {
+			if (!cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE | DMGL_TYPES, demangle_callback, &strDemangled))
+				cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_NO_OPTS, demangle_callback, &strDemangled);
+		}
+		if (!strDemangled.empty()) {
+			if (!strRetVal.empty()) strRetVal += "\n";
+			strRetVal += strDemangled;
+		}
+	}
+#endif
 
 	// If it's a branch into the middle of a function (and we know that function's offset),
 	//	show the function name and offset into the function the comments:
@@ -844,21 +877,29 @@ std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC
 				TAddress nBaseAddress = itrObjectMap->second;
 				TAddressOffset nOffset = itrObjectMap->first - itrObjectMap->second;
 
-				CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
+				itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
 				std::string strLabel;
+				std::string strDemangled;
 				if (itrLabel != m_LabelTable[nMemoryType].cend()) {
 					if (itrLabel->second.size()) {
 						strLabel = FormatLabel(nMemoryType, LC_REF, itrLabel->second.at(0), nBaseAddress);
+#ifdef LIBIBERTY_SUPPORT
+						if (!itrLabel->second.at(0).empty()) {
+							cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_NO_OPTS, demangle_callback, &strDemangled);
+						}
+						if (!strDemangled.empty()) strLabel = strDemangled;
+#endif
 					} else {
 						strLabel = FormatLabel(nMemoryType, LC_REF, TLabel(), nBaseAddress);
 					}
 				}
 
-				if (!strLabel.empty() && nOffset) {
-					std::sprintf(strTemp, "+%s%X", GetHexDelim().c_str(), nOffset);
-					strLabel += strTemp;
-
+				if ((!strLabel.empty() && nOffset) || !strDemangled.empty()) {
 					if (!strRetVal.empty()) strRetVal += "\n";
+					if (!strLabel.empty() && nOffset) {
+						std::sprintf(strTemp, " +%s%X", GetHexDelim().c_str(), nOffset);
+						strLabel += strTemp;
+					}
 					strRetVal += "<" + strLabel + ">";
 				}
 			}
@@ -868,7 +909,7 @@ std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC
 	// Add Function Flag Debug Comments (if enabled):
 	std::string strFuncFlagComments = FormatFunctionFlagComments(nMemoryType, nMCCode, nStartAddress);
 	if (!strFuncFlagComments.empty()) {
-		if (!strRetVal.empty()) strRetVal += "  ";
+		if (!strRetVal.empty()) strRetVal += "\n";
 		strRetVal += strFuncFlagComments;
 	}
 
