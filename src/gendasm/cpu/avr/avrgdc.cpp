@@ -1500,18 +1500,18 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 	using namespace TAVRDisassembler_ENUMS;
 
 	// Output demangled label in comments if it's available:
-	CLabelTableMap::const_iterator itrLabel;
+	TLabel strLabel;
 #ifdef LIBIBERTY_SUPPORT
-	itrLabel = m_LabelTable[nMemoryType].find(nStartAddress);
-	if (itrLabel != m_LabelTable[nMemoryType].cend()) {
-		std::string strDemangled;
-		if (itrLabel->second.size() && !itrLabel->second.at(0).empty()) {
-			if (!cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE | DMGL_TYPES, demangle_callback, &strDemangled))
-				cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_NO_OPTS, demangle_callback, &strDemangled);
+	CAddressLabelMap::const_iterator itrSymbol;
+	itrSymbol = m_SymbolTable[nMemoryType].find(nStartAddress);
+	if (itrSymbol != m_SymbolTable[nMemoryType].cend()) {
+		if (!itrSymbol->second.empty()) {
+			if (!cplus_demangle_v3_callback(itrSymbol->second.c_str(), DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE | DMGL_TYPES, demangle_callback, &strLabel))
+				cplus_demangle_v3_callback(itrSymbol->second.c_str(), DMGL_NO_OPTS, demangle_callback, &strLabel);
 		}
-		if (!strDemangled.empty()) {
+		if (!strLabel.empty()) {
 			if (!strRetVal.empty()) strRetVal += "\n";
-			strRetVal += strDemangled;
+			strRetVal += strLabel;
 		}
 	}
 #endif
@@ -1524,26 +1524,27 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			TAddress nBaseAddress = itrObjectMap->second;
 			TAddressOffset nOffset = itrObjectMap->first - itrObjectMap->second;
 
-			itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
-			std::string strLabel;
-			std::string strDemangled;
-			if (itrLabel != m_LabelTable[nMemoryType].cend()) {
+			bool bIsDemangled = false;
+			CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
+			strLabel.clear();
+#ifdef LIBIBERTY_SUPPORT
+			itrSymbol = m_SymbolTable[nMemoryType].find(nBaseAddress);
+			if (itrSymbol != m_SymbolTable[nMemoryType].cend() && !itrSymbol->second.empty()) {
+				cplus_demangle_v3_callback(itrSymbol->second.c_str(), DMGL_NO_OPTS, demangle_callback, &strLabel);
+				if (!strLabel.empty()) bIsDemangled = true;
+			}
+#endif
+			if (strLabel.empty() && (itrLabel != m_LabelTable[nMemoryType].cend())) {
 				if (itrLabel->second.size()) {
 					strLabel = FormatLabel(nMemoryType, LC_REF, itrLabel->second.at(0), nBaseAddress);
-#ifdef LIBIBERTY_SUPPORT
-					if (!itrLabel->second.at(0).empty()) {
-						cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_NO_OPTS, demangle_callback, &strDemangled);
-					}
-					if (!strDemangled.empty()) strLabel = strDemangled;
-#endif
 				} else {
 					strLabel = FormatLabel(nMemoryType, LC_REF, TLabel(), nBaseAddress);
 				}
 			}
 
-			if ((!strLabel.empty() && nOffset) || !strDemangled.empty()) {
+			if ((!strLabel.empty() && nOffset) || bIsDemangled) {
 				if (!strRetVal.empty()) strRetVal += "\n";
-				if (!strLabel.empty() && nOffset) {
+				if (nOffset) {
 					std::sprintf(strTemp, " +%s%X", GetHexDelim().c_str(), nOffset);
 					strLabel += strTemp;
 				}
@@ -1564,19 +1565,19 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			TAddress nBaseAddress = itrObjectMap->second;
 			TAddressOffset nOffset = itrObjectMap->first - itrObjectMap->second;
 
-			itrLabel = m_LabelTable[MT_RAM].find(nBaseAddress);
-			std::string strDemangled;
-			if ((itrLabel != m_LabelTable[MT_RAM].cend()) && itrLabel->second.size() && !itrLabel->second.at(0).empty()) {
-				cplus_demangle_v3_callback(itrLabel->second.at(0).c_str(), DMGL_NO_OPTS, demangle_callback, &strDemangled);
+			strLabel.clear();
+			itrSymbol = m_SymbolTable[MT_RAM].find(nBaseAddress);
+			if (itrSymbol != m_SymbolTable[MT_RAM].cend() && !itrSymbol->second.empty()) {
+				cplus_demangle_v3_callback(itrSymbol->second.c_str(), DMGL_NO_OPTS, demangle_callback, &strLabel);
 			}
 
-			if (!strDemangled.empty()) {
+			if (!strLabel.empty()) {
 				if (!strRetVal.empty()) strRetVal += "\n";
 				if (nOffset) {
 					std::sprintf(strTemp, " +%s%X", GetHexDelim().c_str(), nOffset);
-					strDemangled += strTemp;
+					strLabel += strTemp;
 				}
-				strRetVal += "<" + strDemangled + ">";
+				strRetVal += "<" + strLabel + ">";
 			}
 		}
 	}

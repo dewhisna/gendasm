@@ -816,6 +816,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 
 					// Add symbols to Disassembler:
 					unsigned char nSymType = GELF_ST_TYPE(sym.st_info);
+					TLabel strSymbol = pSymName;
 					TLabel strLabel = pSymName;
 					if (pDisassembler &&
 						!strLabel.empty() &&				// Must have a label
@@ -857,18 +858,22 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 								case STT_NOTYPE:
 									if (shdrRef.sh_flags & SHF_EXECINSTR) {
 										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+										pDisassembler->AddSymbol(CDisassembler::MT_ROM, nAddress + nNewBase, strSymbol);
 										// TODO : See if there's a way to distinguish Code and Data here to possibly
 										//		set an entry point?
 									} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
 										pDisassembler->AddLabel(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+										pDisassembler->AddSymbol(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, strSymbol);
 									}
 									break;
 								case STT_OBJECT:
 									if (shdrRef.sh_flags & SHF_EXECINSTR) {
 										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+										pDisassembler->AddSymbol(CDisassembler::MT_ROM, nAddress + nNewBase, strSymbol);
 										pDisassembler->AddObjectMapping(CDisassembler::MT_ROM, nAddress + nNewBase, sym.st_size);
 									} else if (shdrRef.sh_flags & SHF_ALLOC) {		// necessary??
 										pDisassembler->AddLabel(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, false, 0, strLabel);
+										pDisassembler->AddSymbol(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, strSymbol);
 										pDisassembler->AddObjectMapping(bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM, nAddress, sym.st_size);
 									}
 									break;
@@ -876,6 +881,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 									if (shdrRef.sh_flags & SHF_EXECINSTR) {
 										pDisassembler->AddEntry(nAddress + nNewBase);
 										pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+										pDisassembler->AddSymbol(CDisassembler::MT_ROM, nAddress + nNewBase, strSymbol);
 										pDisassembler->AddObjectMapping(CDisassembler::MT_ROM, nAddress + nNewBase, sym.st_size);
 									}
 									break;
@@ -887,8 +893,14 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 																	(shdrRef.sh_flags & SHF_EXECINSTR) ?
 																		nAddress + nNewBase : nAddress,
 																	false, 0, strLabel);
+											pDisassembler->AddSymbol((shdrRef.sh_flags & SHF_EXECINSTR) ?
+																		CDisassembler::MT_ROM : (bIsEE ? CDisassembler::MT_EE : CDisassembler::MT_RAM),
+																	(shdrRef.sh_flags & SHF_EXECINSTR) ?
+																		nAddress + nNewBase : nAddress,
+																	strSymbol);
 										} else if (shdrRef.sh_flags & SHF_EXECINSTR) {
 											pDisassembler->AddLabel(CDisassembler::MT_ROM, nAddress + nNewBase, false, 0, strLabel);
+											pDisassembler->AddSymbol(CDisassembler::MT_ROM, nAddress + nNewBase, strSymbol);
 										}
 									}
 									break;
@@ -897,6 +909,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 										!pDisassembler->HaveCodeIndirect(nAddress + nNewBase) &&
 										!pDisassembler->HaveDataIndirect(nAddress + nNewBase)) {
 										pDisassembler->AddCodeIndirect(nAddress + nNewBase, strLabel);
+										pDisassembler->AddSymbol(CDisassembler::MT_ROM, nAddress + nNewBase, strSymbol);
 									}
 									break;
 								default:

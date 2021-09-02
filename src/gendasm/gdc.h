@@ -562,6 +562,7 @@ public:
 	virtual bool HaveDataIndirect(TAddress nAddress) const { return m_DataIndirectTable.contains(nAddress); }
 	virtual bool AddDataIndirect(TAddress nAddress, const TLabel &strLabel = TLabel());
 
+	virtual bool AddSymbol(MEMORY_TYPE nMemoryType, TAddress nAddress, const TLabel &strLabel);
 	virtual bool AddObjectMapping(MEMORY_TYPE nMemoryType, TAddress nBaseObjectAddress, TSize nSize);
 
 protected:
@@ -649,6 +650,7 @@ protected:
 	CAddressLabelMap m_CodeIndirectTable;	// (Always MT_ROM) Table of indirect code vectors with labels specified by the user and from disassembly
 	CAddressLabelMap m_DataIndirectTable;	// (Always MT_ROM) Table of indirect data vectors with labels specified by the user and from disassembly
 
+	CAddressLabelMap m_SymbolTable[NUM_MEMORY_TYPES];	// Table of symbols generated from ELF file.  Is like the equivalent added to m_LabelTable, but is unaltered so that demangling will work correctly
 	CAddressMap		m_ObjectMap[NUM_MEMORY_TYPES];		// Mapping of addresses in objects to the object base address from which the label can be derived
 
 	CMemRanges		m_rngDataBlocks;		// Explicitly added Data Block declarations from the Control File, used to split discovered Data Blocks from declared Data Blocks

@@ -3278,6 +3278,14 @@ bool CDisassembler::AddDataIndirect(TAddress nAddress, const TLabel &strLabel)
 
 // ----------------------------------------------------------------------------
 
+bool CDisassembler::AddSymbol(MEMORY_TYPE nMemoryType, TAddress nAddress, const TLabel &strLabel)
+{
+	CAddressLabelMap::iterator itrSymbols = m_SymbolTable[nMemoryType].find(nAddress);
+	if (itrSymbols != m_SymbolTable[nMemoryType].cend()) return false;
+	m_SymbolTable[nMemoryType][nAddress] = strLabel;
+	return true;
+}
+
 bool CDisassembler::AddObjectMapping(MEMORY_TYPE nMemoryType, TAddress nBaseObjectAddress, TSize nSize)
 {
 	for (TSize ndx = 0; ndx < nSize; ++ndx) {
