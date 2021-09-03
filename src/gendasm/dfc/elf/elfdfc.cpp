@@ -388,6 +388,7 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 	}
 
 	CMemRanges ranges[CDisassembler::NUM_MEMORY_TYPES];
+	CMemRanges rangesRAMInit;		// Ranges for RAM init
 
 	for (size_t ndxP = 0; ndxP < nPHdrNum; ++ndxP) {
 		GElf_Phdr phdr;
@@ -418,8 +419,10 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 					ranges[CDisassembler::MT_EE].push_back(CMemRange(phdr.p_vaddr - E_AVR_EE_VirtualBaseAdj, phdr.p_memsz));
 				} else if ((ehdr.e_machine == EM_AVR) && (phdr.p_vaddr >= E_AVR_RAM_VirtualBase)) {
 					ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBaseAdj, phdr.p_memsz));
+					rangesRAMInit.push_back(CMemRange(phdr.p_vaddr - E_AVR_RAM_VirtualBaseAdj, phdr.p_filesz));
 				} else {
 					ranges[CDisassembler::MT_RAM].push_back(CMemRange(phdr.p_vaddr, phdr.p_memsz));
+					rangesRAMInit.push_back(CMemRange(phdr.p_vaddr, phdr.p_filesz));
 				}
 			} else // Handle Read-only sections as ROM/EE (DATA):
 				if ((phdr.p_flags & PF_R) &&
@@ -496,30 +499,54 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 		if (msgFile) (*msgFile) << "\n";
 	}
 
-	// End of Flash contains init bytes for the .data section:
-	TAddress nDataStartAddr = ranges[CDisassembler::MT_ROM].highestAddress()+1;		// Note: Already had nNewBase added in
-	TAddress nDataAddr = nDataStartAddr;
-	for (auto const & itrRange : ranges[CDisassembler::MT_RAM]) {
-		ranges[CDisassembler::MT_ROM].push_back(CMemRange(nDataAddr, itrRange.size()));
-		if (nReadMode == ERM_Mapping) {
-			if (pRange) {
-				// If only a single range is given, it's taken to be
-				//	the MT_ROM range:
-				pRange->push_back(CMemRange(nDataAddr, itrRange.size()));
-			}
-		}
-		nDataAddr += itrRange.size();
-	}
-
 	if (nReadMode == ERM_Mapping) {
 		// Allocate Memory if mapping:
 		if (pDisassembler) {
 			for (int nMemType = 0; nMemType < CDisassembler::NUM_MEMORY_TYPES; ++nMemType) {
+				if (nMemType == CDisassembler::MT_RAM) {
+					// Skip RAM and init below when we determine the flash shadow,
+					//	but clear any existing allocation so we can just pushback
+					//	our new allocations:
+					pDisassembler->memory(CDisassembler::MT_RAM).clear();
+					continue;
+				}
 				if (!ranges[nMemType].isNullRange()) {
 					pDisassembler->memory(static_cast<CDisassembler::MEMORY_TYPE>(nMemType)).initFromRanges(ranges[nMemType], 0, true, 0, nDesc);
 				}
 			}
 		}
+	}
+
+	// End of Flash contains init bytes for the .data section:
+	assert(ranges[CDisassembler::MT_RAM].size() == rangesRAMInit.size());	// We should have made these parallel arrays above!
+	TAddress nDataStartAddr = ranges[CDisassembler::MT_ROM].highestAddress()+1;		// Note: Already had nNewBase added in
+	TAddress nDataAddr = nDataStartAddr;
+	for (CMemRanges::size_type ndx = 0; ndx < rangesRAMInit.size(); ++ndx) {
+		ranges[CDisassembler::MT_ROM].push_back(CMemRange(nDataAddr, rangesRAMInit.at(ndx).size()));
+		if (nReadMode == ERM_Mapping) {
+			if (pRange) {
+				// If only a single range is given, it's taken to be
+				//	the MT_ROM range:
+				pRange->push_back(CMemRange(nDataAddr, rangesRAMInit.at(ndx).size()));
+			}
+
+			// Allocate memory for flash shadow and cross-link with RAM:
+			if (pDisassembler && !rangesRAMInit.at(ndx).isNullRange()) {
+				pDisassembler->memory(CDisassembler::MT_ROM).push_back(
+							CMemBlock(nDataAddr, ranges[CDisassembler::MT_RAM].at(ndx).startAddr(), true,
+										rangesRAMInit.at(ndx).size(), 0, nDesc));
+			}
+			// Allocate memory for RAM and cross-link with ROM:
+			//	Note: While the number of the ranges are the same, the size
+			//		of each range may be different!
+			if (pDisassembler && !ranges[CDisassembler::MT_RAM].isNullRange()) {
+				pDisassembler->memory(CDisassembler::MT_RAM).push_back(
+							CMemBlock(ranges[CDisassembler::MT_RAM].at(ndx).startAddr(), nDataAddr, true,
+										ranges[CDisassembler::MT_RAM].at(ndx).size(), 0, nDesc));
+
+			}
+		}
+		nDataAddr += rangesRAMInit.at(ndx).size();
 	}
 
 
