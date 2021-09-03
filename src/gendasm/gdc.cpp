@@ -1278,6 +1278,25 @@ bool CDisassembler::ScanData(const std::string & strExcludeChars, std::ostream *
 		}
 	}
 
+	// Check for allocated RAM that has no values or if it
+	//		was loaded as 'data' but should be 'printdata':
+	if (!m_Memory[MT_RAM].empty()) {
+		for (auto & itrMemory : m_Memory[MT_RAM]) {
+			m_PC = itrMemory.logicalAddr();
+			for (TSize nSize = 0; nSize < itrMemory.size(); ++nSize, ++m_PC) {
+				if (itrMemory.descriptor(m_PC) == DMEM_DATA) {
+					c = itrMemory.element(m_PC);
+					if (isprint(c) && (strExcludeChars.find(c) == std::string::npos)) {
+						itrMemory.setDescriptor(m_PC, DMEM_PRINTDATA);
+					}
+					continue;
+				} else if (itrMemory.descriptor(m_PC) != DMEM_LOADED) continue;	// Only modify memory locations that have been loaded but not processed!
+				itrMemory.setDescriptor(m_PC, DMEM_ALLOC);
+			}
+		}
+	}
+
+	// Check for data:
 	for (int nMemType = 0; nMemType < NUM_MEMORY_TYPES; ++nMemType) {
 		if (m_Memory[nMemType].empty()) continue;
 
@@ -1714,6 +1733,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					[[fallthrough]];
 				case DMEM_DATA:
 				case DMEM_PRINTDATA:
+				case DMEM_ALLOC:
 					if (!bInFunc && !bLastFlag) {
 						if (bInDataBlock && !rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) {
 							aFunctionsFile << "\n";
@@ -1748,7 +1768,7 @@ bool CDisassembler::Pass3(std::ostream& outFile, std::ostream *msgFile, std::ost
 					[[fallthrough]];
 				case DMEM_ILLEGALCODE:
 				{
-					static const std::set<MEM_DESC> setData = { DMEM_DATA, DMEM_PRINTDATA };
+					static const std::set<MEM_DESC> setData = { DMEM_DATA, DMEM_PRINTDATA, DMEM_ALLOC };
 					std::ostringstream sstrTemp;
 					sstrTemp << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << m_PC << "|";
 					m_sFunctionalOpcode = sstrTemp.str();
@@ -2559,6 +2579,7 @@ bool CDisassembler::WriteDisassembly(MEMORY_TYPE nMemoryType, std::ostream& outF
 						break;
 					case DMEM_DATA:
 					case DMEM_PRINTDATA:
+					case DMEM_ALLOC:
 					case DMEM_CODEINDIRECT:
 					case DMEM_DATAINDIRECT:
 					case DMEM_CODE:
@@ -2648,6 +2669,7 @@ bool CDisassembler::WriteSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBl
 			switch (m_Memory[nMemoryType].descriptor(m_PC)) {
 				case DMEM_DATA:
 				case DMEM_PRINTDATA:
+				case DMEM_ALLOC:
 				case DMEM_CODEINDIRECT:
 				case DMEM_DATAINDIRECT:
 					bRetVal = bRetVal && WriteDataSection(nMemoryType, memBlock, outFile, msgFile, errFile);
@@ -2746,6 +2768,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &m
 			if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 			switch (nDesc) {
 				case DMEM_DATA:
+				case DMEM_ALLOC:
 					fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 					nCount = 0;
 					clearOpMemory();
@@ -2761,7 +2784,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &m
 						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
 						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
-						if (nDesc != DMEM_DATA) bFlag = true;
+						if ((nDesc != DMEM_DATA) && (nDesc != DMEM_ALLOC)) bFlag = true;
 						if (m_PC >= nLastAddr) bFlag = true;
 						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
 					}

@@ -668,8 +668,9 @@ bool CELFDataFileConverter::_ReadDataFile(ELF_READ_MODE_ENUM nReadMode, CDisasse
 													}
 
 													// Also tag the RAM area descriptors for allocation:
+													pDisassembler->memory(CDisassembler::MT_RAM).setElement(nAddress, ((unsigned char *)pData->d_buf)[nDataIndex]);
 													if (pDisassembler->memory(CDisassembler::MT_RAM).descriptor(nAddress) != 0) bRetVal = false;		// Signal overlap
-													pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, nDesc);
+													pDisassembler->memory(CDisassembler::MT_RAM).setDescriptor(nAddress, CDisassembler::DMEM_DATA);
 												}
 											}
 										} else // Handle Read-only sections as ROM/EE (DATA):

@@ -335,16 +335,20 @@ public:
 	//		31 = The memory is loaded, has been processed, and is an indirect vector to Data
 	//		40 = The memory is loaded, has been processed, and found to be code
 	//		41 = The memory is loaded, has been processed, and should be code, but was determined to be an illegal opcode
+	//		50 = The memory is allocated, has been processed, but has no data associated with it
 	//	NOTE: These should NOT be changed -- enough room has been allowed for future expansion!
 	//		(Changing them will break functions like ResolveIndirect, for example)
-	enum MEM_DESC {	DMEM_NOTLOADED = 0,
-					DMEM_LOADED = 10,
-					DMEM_DATA = 20,
-					DMEM_PRINTDATA = 21,
-					DMEM_CODEINDIRECT = 30,
-					DMEM_DATAINDIRECT = 31,
-					DMEM_CODE = 40,
-					DMEM_ILLEGALCODE = 41 };
+	enum MEM_DESC {
+		DMEM_NOTLOADED = 0,
+		DMEM_LOADED = 10,
+		DMEM_DATA = 20,
+		DMEM_PRINTDATA = 21,
+		DMEM_CODEINDIRECT = 30,
+		DMEM_DATAINDIRECT = 31,
+		DMEM_CODE = 40,
+		DMEM_ILLEGALCODE = 41,
+		DMEM_ALLOC = 50,
+	};
 
 	// The following define field positions for obtaining field widths from overrides.
 	//	Additional entries can be added on overrides, but this order should NOT change

@@ -990,8 +990,8 @@ bool CAVRDisassembler::SetMCU(const std::string &strMCUName)
 
 	// TODO : Put this is a global array that we can enumerate:
 	// Memory Mapping:
-	m_Memory[MT_RAM].push_back(CMemBlock{ 0x100ul, 0x100ul, true, 0x800ul, 0, DMEM_DATA });		// RAM space
-//	m_Memory[MT_EE].push_back(CMemBlock{ 0x0000ul, 0x0000ul, true, 0x400ul, 0xFF, DMEM_DATA });	// EE space
+	m_Memory[MT_RAM].push_back(CMemBlock{ 0x100ul, 0x100ul, true, 0x800ul, 0, DMEM_LOADED });		// RAM space
+//	m_Memory[MT_EE].push_back(CMemBlock{ 0x0000ul, 0x0000ul, true, 0x400ul, 0xFF, DMEM_LOADED });	// EE space
 
 	m_MemoryRanges[MT_ROM].push_back(CMemRange(0x0000ul, 0x8000ul));	// Main Flash Memory
 	m_MemoryRanges[MT_RAM].push_back(CMemRange(0x0000ul, 0x0100ul));	// I/O Space addressable as RAM
@@ -1851,7 +1851,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 	CMemoryArray maTempOpMemoryAscii;	// ASCII-only bytes
 
 	size_t nSymbolSize = ((nMemoryType == MT_ROM) ? opcodeSymbolSize() : 1);
-	int nMaxNonPrint = (((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) ? m_nMaxNonPrint : m_Memory[nMemoryType].totalMemorySize());
+	int nMaxNonPrint = m_nMaxNonPrint;
 
 	auto const &&fnWriteLabels = [&](TAddress nAddress)->void {
 		CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(nAddress);
@@ -1882,11 +1882,13 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 			nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 			if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 			nLastDesc = nDesc;
+			nMaxNonPrint = (nDesc == DMEM_ALLOC) ? m_Memory[nMemoryType].totalMemorySize() : m_nMaxNonPrint;
 			switch (m_nAssembler) {
 				case AAE_AVRA:
 					switch (nDesc) {
 						case DMEM_DATA:
 						case DMEM_PRINTDATA:
+						case DMEM_ALLOC:
 							fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 							nCount = 0;
 							maTempOpMemory.clear();
@@ -1901,31 +1903,40 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							while (!bFlag) {
 								nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 								if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
+								if ((nMemoryType == MT_RAM) && (nDesc != DMEM_ALLOC)) nDesc = DMEM_DATA;	// In RAM, we only allocate except for printing pre-init.  So just treat it as DATA
+								if (maTempOpMemory.empty()) nLastDesc = nDesc;		// First time through, set accordingly for tests below
 
 								maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
-								if (nDesc == DMEM_DATA) {
+								if (nDesc != DMEM_PRINTDATA) {
 									maTempOpMemoryData.push_back(m_Memory[nMemoryType].element(m_PC));
 								} else {
 									maTempOpMemoryAscii.push_back(m_Memory[nMemoryType].element(m_PC));
 									bHadAscii = true;
 								}
 
-								if (nDesc != nLastDesc) {
-									CMemoryArray &arrData = (nLastDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
-									if (!arrData.empty()) {
-										clearOpMemory();
-										pushBackOpMemory(nIntermediatePC, arrData);
-										if (m_bDataOpBytesFlag) {
-											if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
-											saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+								if (nMemoryType != MT_RAM) {
+									if (nDesc != nLastDesc) {
+										CMemoryArray &arrData = (nLastDesc != DMEM_PRINTDATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
+										if (!arrData.empty()) {
+											clearOpMemory();
+											pushBackOpMemory(nIntermediatePC, arrData);
+											if (m_bDataOpBytesFlag) {
+												if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
+												saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+											}
+											if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
+											saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+											bFirstOutput = false;
+											nIntermediatePC += arrData.size();
+											arrData.clear();
+											nLastDesc = nDesc;
+											bTransitionBreak = true;
 										}
-										if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
-										saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
-										bFirstOutput = false;
-										nIntermediatePC += arrData.size();
-										arrData.clear();
+									}
+								} else {
+									if (nDesc != nLastDesc) {
 										nLastDesc = nDesc;
-										bTransitionBreak = true;
+										bTransitionBreak = true;		// Must break out going to/from DATA and ALLOC
 									}
 								}
 
@@ -1939,7 +1950,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 								if (bHadAscii && (nCount >= m_nMaxPrint)) bNeedStop = true;
 								if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
 								// First transition from data->ascii on the correct boundary will trigger a break:
-								if ((nDesc == DMEM_DATA) && bTransitionBreak) bNeedStop = true;
+								if ((nDesc != DMEM_PRINTDATA) && bTransitionBreak) bNeedStop = true;
 								if (m_PC >= nLastAddr) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
 								if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bNeedStop = true;
 								if (bOddStop) bNeedStop = true;		// Next time through loop, bOddStop will trigger bFlag
@@ -1953,7 +1964,8 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							}
 
 							// First, print a line of the output bytes for reference:
-							if (m_bAsciiBytesFlag && bHadAscii && ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE))) {
+							if ((nDesc != DMEM_ALLOC) &&
+								m_bAsciiBytesFlag && bHadAscii && ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE))) {
 								CStringArray saAsciiLine;
 								ClearOutputLine(saAsciiLine);
 
@@ -1967,16 +1979,16 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 
 							// Finish remaining output:
 							if (!maTempOpMemoryAscii.empty() || !maTempOpMemoryData.empty()) {
-								CMemoryArray &arrData = (nDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
-								assert((nDesc != DMEM_DATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed up
+								CMemoryArray &arrData = (nDesc != DMEM_PRINTDATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
+								assert((nDesc == DMEM_PRINTDATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed up
 								clearOpMemory();
 								pushBackOpMemory(nIntermediatePC, arrData);
 								if (m_bDataOpBytesFlag) {
 									if (!bFirstOutput) saOutLine[FC_OPBYTES] += " ";
-									saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+									saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
 								}
 								if (!bFirstOutput) saOutLine[FC_OPERANDS] += ",";
-								saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
+								saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nIntermediatePC);
 								bFirstOutput = false;
 								nIntermediatePC += arrData.size();
 								arrData.clear();
@@ -1989,6 +2001,20 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							// Already done FC_OPERANDS
 							saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, nSavedPC);		// Won't matter if this is MC_DATABYTE or MC_ASCII
 							outFile << MakeOutputLine(saOutLine) << "\n";
+
+							// For pre-initialized data, print a line of the output bytes for reference:
+							if ((nMemoryType == MT_RAM) && (nDesc != DMEM_ALLOC)) {
+								CStringArray saAsciiLine;
+								ClearOutputLine(saAsciiLine);
+
+								clearOpMemory();
+								pushBackOpMemory(nSavedPC, maTempOpMemory);
+								// Print it as if it were ROM data:
+								saAsciiLine[FC_OPERANDS] = GetCommentStartDelim() + " " +
+														FormatOperands(MT_ROM, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
+								saAsciiLine[FC_ADDRESS] = FormatAddress(nSavedPC);
+								outFile << MakeOutputLine(saAsciiLine) << "\n";
+							}
 
 							if (bOddStop) {
 								// Workaround for:
@@ -2041,6 +2067,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 					switch (nDesc) {
 						case DMEM_DATA:
 						case DMEM_PRINTDATA:
+						case DMEM_ALLOC:
 						{
 							fnWriteLabels(m_PC);	// Must do this before bumping m_PC
 							nCount = 0;
@@ -2053,17 +2080,21 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							while (!bFlag) {
 								nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 								if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
+								if ((nMemoryType == MT_RAM) && (nDesc != DMEM_ALLOC)) nDesc = DMEM_DATA;	// In RAM, we only allocate except for printing pre-init.  So just treat it as DATA
+								if (maTempOpMemory.empty()) nLastDesc = nDesc;		// First time through, set accordingly for tests below
 
 								if (nDesc == nLastDesc) {
 									maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
-									if (nDesc == DMEM_DATA) {
+									if (nDesc != DMEM_PRINTDATA) {
 										TMemoryElement c = m_Memory[nMemoryType].element(m_PC);
 										maTempOpMemoryData.push_back(c);
-										if (isprint(c) && (GetExcludedPrintChars().find(c) == std::string::npos)) {
-											// If this is a printable character, it's probably one
-											//	we backed out of a ascii->data change on an odd
-											//	byte break.  Set the flag so we'll print ascii byte comments
-											bHadAscii = true;
+										if (nDesc != DMEM_ALLOC) {
+											if (isprint(c) && (GetExcludedPrintChars().find(c) == std::string::npos)) {
+												// If this is a printable character, it's probably one
+												//	we backed out of a ascii->data change on an odd
+												//	byte break.  Set the flag so we'll print ascii byte comments
+												bHadAscii = true;
+											}
 										}
 									} else {
 										maTempOpMemoryAscii.push_back(m_Memory[nMemoryType].element(m_PC));
@@ -2108,7 +2139,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 											--nCount;
 											maTempOpMemory.pop_back();
 											maTempOpMemoryAscii.pop_back();
-											m_Memory[nMemoryType].setDescriptor(m_PC, DMEM_DATA);
+											m_Memory[nMemoryType].setDescriptor(m_PC, DMEM_DATA);		// Note: This could technically toggle a DMEM_ALLOC to DMEM_DATA, but it really shouldn't happen since this should only be ROM
 										}
 
 										// We'll set bNeedStop below for these two (since nDesc != nLastDesc) and breakout...
@@ -2119,7 +2150,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 								//	hit the specified line limit, hit another label, or
 								//	hit another user-declared DataBlock range:
 								bool bNeedStop = false;
-								if ((nLastDesc == DMEM_DATA) && (nCount >= nMaxNonPrint)) bNeedStop = true;
+								if ((nLastDesc != DMEM_PRINTDATA) && (nCount >= nMaxNonPrint)) bNeedStop = true;
 								if ((nLastDesc == DMEM_PRINTDATA) && (nCount >= m_nMaxPrint)) bNeedStop = true;
 								if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
 								// First transition from data->ascii on the correct boundary will trigger a break:
@@ -2138,7 +2169,8 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							}
 
 							// First, print a line of the output bytes for reference:
-							if (m_bAsciiBytesFlag && bHadAscii && ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) && !maTempOpMemory.empty()) {
+							if ((nLastDesc != DMEM_ALLOC) &&
+								m_bAsciiBytesFlag && bHadAscii && ((nMemoryType == MT_ROM) || (nMemoryType == MT_EE)) && !maTempOpMemory.empty()) {
 								CStringArray saAsciiLine;
 								ClearOutputLine(saAsciiLine);
 
@@ -2171,35 +2203,49 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 							//		on the first to second byte of a pair and backed it out
 							//		and switched to data:
 							if (!maTempOpMemoryAscii.empty() || !maTempOpMemoryData.empty()) {
-								CMemoryArray &arrData = (nLastDesc == DMEM_DATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
-								assert((nLastDesc != DMEM_DATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed up
+								CMemoryArray &arrData = (nLastDesc != DMEM_PRINTDATA) ? maTempOpMemoryData : maTempOpMemoryAscii;
+								assert((nLastDesc == DMEM_PRINTDATA) ? maTempOpMemoryData.empty() : maTempOpMemoryAscii.empty());	// Other array must be empty (and processed) or we screwed up
 								clearOpMemory();
 								pushBackOpMemory(nSavedPC, arrData);
 								arrData.clear();
 
 								if (m_bDataOpBytesFlag) {
-									saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
+									saOutLine[FC_OPBYTES] += FormatOpBytes(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
 								}
-								saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
-								saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
-								saOutLine[FC_COMMENT] = FormatComments(nMemoryType, (nLastDesc == DMEM_DATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
+								saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
+								saOutLine[FC_OPERANDS] += FormatOperands(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
+								saOutLine[FC_COMMENT] = FormatComments(nMemoryType, (nLastDesc != DMEM_PRINTDATA) ? MC_DATABYTE : MC_ASCII, nSavedPC);
 								outFile << MakeOutputLine(saOutLine) << "\n";
+							}
 
-								if (bOddStop) {
-									// Workaround for:
-									//	https://github.com/Ro5bert/avra/issues/39
-									CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC-1);
-									if (itrLabels != m_LabelTable[nMemoryType].cend()) {
-										ClearOutputLine(saOutLine);
-										saOutLine[FC_ADDRESS] = FormatAddress(m_PC-1);
-										for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
-											saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrLabels->second.at(i), m_PC-1);
-											if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
-											saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC-1);
-											saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC-1);
-											saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC-1);
-											outFile << MakeOutputLine(saOutLine) << "\n";
-										}
+							// For pre-initialized data, print a line of the output bytes for reference:
+							if ((nMemoryType == MT_RAM) && (nLastDesc != DMEM_ALLOC)) {
+								CStringArray saAsciiLine;
+								ClearOutputLine(saAsciiLine);
+
+								clearOpMemory();
+								pushBackOpMemory(nSavedPC, maTempOpMemory);
+								// Print it as if it were ROM data:
+								saAsciiLine[FC_OPERANDS] = GetCommentStartDelim() + " " +
+														FormatOperands(MT_ROM, MC_DATABYTE, nSavedPC) + " " + GetCommentEndDelim();
+								saAsciiLine[FC_ADDRESS] = FormatAddress(nSavedPC);
+								outFile << MakeOutputLine(saAsciiLine) << "\n";
+							}
+
+							if (bOddStop) {
+								// Workaround for:
+								//	https://github.com/Ro5bert/avra/issues/39
+								CLabelTableMap::const_iterator itrLabels = m_LabelTable[nMemoryType].find(m_PC-1);
+								if (itrLabels != m_LabelTable[nMemoryType].cend()) {
+									ClearOutputLine(saOutLine);
+									saOutLine[FC_ADDRESS] = FormatAddress(m_PC-1);
+									for (CLabelArray::size_type i=0; i<itrLabels->second.size(); ++i) {
+										saOutLine[FC_LABEL] = FormatLabel(nMemoryType, LC_EQUATE, itrLabels->second.at(i), m_PC-1);
+										if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
+										saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC-1);
+										saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC-1);
+										saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC-1);
+										outFile << MakeOutputLine(saOutLine) << "\n";
 									}
 								}
 							}
