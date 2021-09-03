@@ -858,7 +858,7 @@ std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC
 			case 0x2:
 			case 0x3:
 			case 0x4:
-				nOperandAddress = AddressFromOperand(OCTL_DST());
+				nOperandAddress = AddressFromOperand(OGRP_DST());
 				bHaveBranch = true;
 				break;
 		}
@@ -866,7 +866,7 @@ std::string CM6811Disassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC
 			case 0x2:
 			case 0x3:
 			case 0x4:
-				nOperandAddress = AddressFromOperand(OCTL_SRC());
+				nOperandAddress = AddressFromOperand(OGRP_SRC());
 				bHaveBranch = true;
 				break;
 		}
