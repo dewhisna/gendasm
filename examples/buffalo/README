@@ -1,0 +1,12 @@
+Buffalo Monitor 3.4 Source Code
+This was obtained from:
+https://www.mil.ufl.edu/projects/gup/
+
+The assembler they reference is available here:
+https://www.mgtek.com/miniide/
+These assembly files were assembled using that
+assembler on Linux to produce the .s19 files for
+this example.
+
+Another good resource for the 68HC11:
+https://github.com/croberson94/68HC11-resources
