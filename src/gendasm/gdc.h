@@ -473,8 +473,10 @@ public:
 protected:
 	virtual bool ParseControlLine(const std::string & strLine, const CStringArray& argv, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Parses a line from the control file -- strLine is full line, argv is array of whitespace delimited args.  Should return false ONLY if ReadControlFile should print the ParseError string to errFile with line info
 
+	virtual bool ScanSymbols(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Scans through the symbols to generate labels, indirects, comments, etc., based on symbols from the file sources (such as an elf file)
+	virtual bool ScanIndirects(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Scans through the indirect lists and handles resolving and labeling them
 	virtual bool ScanEntries(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Scans through the entry list looking for code
-	virtual bool ScanBranches(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);		// Scans through the branch lists looking for code
+	virtual bool ScanBranches(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Scans through the branch lists looking for code
 	virtual bool ScanData(const std::string & strExcludeChars, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);			// Scans through the data that remains and tags it as printable or non-printable
 
 	virtual bool Pass1(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr);	// Performs Pass1 which finds code and data -- i.e. calls Scan functions
@@ -498,6 +500,7 @@ protected:
 	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress);	// This function modifies the specified label to be in the Lxxxx format for the nAddress if strLabel is null. If strLabel is not empty no changes are made.  This function should be overridden to add the correct suffix delimiters as needed!
 	virtual std::string FormatReferences(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all references for the specified address
 	virtual std::string FormatUserComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nAddress);		// Makes a string to place in the comment field that contains all user comments for the specified address
+	virtual bool AddressHasUserComments(MEMORY_TYPE nMemoryType, COMMENT_TYPE_FLAGS nFlags, TAddress nAddress);		// Check the specified address to see if it has comments for the specified usage
 	virtual std::string FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress);	// Generate debug comments from the function flags if it's enabled
 
 	virtual TAddressOffset GetOpBytesFWAddressOffset() const;				// Returns the number of bytes to increment FC_ADDRESS by for the field width of OpcodeByte display.  That is, if OpcodeByte field width is 12 and Opbyte Output is "XX XX XX XX ", then this would return 4.

@@ -921,6 +921,20 @@ CAVRDisassembler::CAVRDisassembler()
 
 // ----------------------------------------------------------------------------
 
+#ifdef LIBIBERTY_SUPPORT
+extern "C" {
+	static void demangle_callback(const char *pString, size_t nSize, void *pData)
+	{
+		std::string *pRetVal = (std::string *)(pData);
+		if (pRetVal) {
+			(*pRetVal) += std::string(pString, nSize);
+		}
+	}
+}
+#endif
+
+// ----------------------------------------------------------------------------
+
 unsigned int CAVRDisassembler::GetVersionNumber() const
 {
 	return (CDisassembler::GetVersionNumber() | VERSION);			// Get GDC version and append our version to it
@@ -1018,6 +1032,47 @@ bool CAVRDisassembler::SetTargetAssembler(const std:: string &strTargetAssembler
 	if (!contains(GetTargetAssemblerList(), strTargetAssembler)) return false;
 
 	m_nAssembler = static_cast<AVR_ASSEMBLERS_ENUM>(g_mapTargetAssemblers.at(strTargetAssembler));
+	return true;
+}
+
+// ----------------------------------------------------------------------------
+
+bool CAVRDisassembler::ScanSymbols(std::ostream *msgFile, std::ostream *errFile)
+{
+	UNUSED(msgFile);
+	UNUSED(errFile);
+
+#ifdef LIBIBERTY_SUPPORT
+	// Try to find vtables which get copied from the flash shadow
+	//	to RAM on init.  Then we can set its entries as indirects:
+	for (auto const & itrSymbol : m_SymbolTable[MT_RAM]) {
+		if (itrSymbol.second.starts_with("_ZTV")) {
+			TLabel strDemangled;
+			if (!cplus_demangle_v3_callback(itrSymbol.second.c_str(), DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE | DMGL_TYPES, demangle_callback, &strDemangled))
+				cplus_demangle_v3_callback(itrSymbol.second.c_str(), DMGL_NO_OPTS, demangle_callback, &strDemangled);
+			if (strDemangled.starts_with("vtable")) {
+				// Lookup and compute the size of the object:
+				CAddressMap::const_iterator itrObject = m_ObjectMap[MT_RAM].find(itrSymbol.first);
+				TSize nObjectSize = 0;
+				while ((itrObject != m_ObjectMap[MT_RAM].cend()) && (itrObject->second == itrSymbol.first)) {
+					++nObjectSize;
+					++itrObject;		// maps are ordered so we can just increment the iterator instead of researching
+				}
+				nObjectSize /= opcodeSymbolSize();		// Pointers are the same width as opcode symbols
+				for (TSize ndxFunc = 2; ndxFunc < nObjectSize; ++ndxFunc) {		// Note: The first two vtable entries are a parent pointer and offset (which will both be zero in the shadow)
+					// The ELF reader links ROM and RAM via the physicalAddr:
+					AddCodeIndirect(m_Memory[MT_RAM].physicalAddr(itrSymbol.first + (ndxFunc*opcodeSymbolSize())));
+				}
+
+				// Set the comment on the vtable in the flash shadow to the same as the
+				//	demangled name for the RAM copy.  Note: this will be considered "DATA"
+				//	in the disassembly process, as it's data containing the direct.
+				AddComment(MT_ROM, m_Memory[MT_RAM].physicalAddr(itrSymbol.first), CComment(CTF_DATA, strDemangled));
+			}
+		}
+	}
+#endif
+
 	return true;
 }
 
@@ -1478,18 +1533,6 @@ std::string CAVRDisassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC_C
 	return strOpStr;
 }
 
-#ifdef LIBIBERTY_SUPPORT
-extern "C" {
-	static void demangle_callback(const char *pString, size_t nSize, void *pData)
-	{
-		std::string *pRetVal = (std::string *)(pData);
-		if (pRetVal) {
-			(*pRetVal) += std::string(pString, nSize);
-		}
-	}
-}
-#endif
-
 std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
 {
 	std::string strRetVal;
@@ -1906,12 +1949,15 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 								if ((nMemoryType == MT_RAM) && (nDesc != DMEM_ALLOC)) nDesc = DMEM_DATA;	// In RAM, we only allocate except for printing pre-init.  So just treat it as DATA
 								if (maTempOpMemory.empty()) nLastDesc = nDesc;		// First time through, set accordingly for tests below
 
-								maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
-								if (nDesc != DMEM_PRINTDATA) {
-									maTempOpMemoryData.push_back(m_Memory[nMemoryType].element(m_PC));
-								} else {
-									maTempOpMemoryAscii.push_back(m_Memory[nMemoryType].element(m_PC));
-									bHadAscii = true;
+								// Must check the type here because of the inner-while loop:
+								if (std::set<MEM_DESC>({ DMEM_DATA, DMEM_PRINTDATA, DMEM_ALLOC }).contains(nDesc)) {
+									maTempOpMemory.push_back(m_Memory[nMemoryType].element(m_PC));
+									if (nDesc != DMEM_PRINTDATA) {
+										maTempOpMemoryData.push_back(m_Memory[nMemoryType].element(m_PC));
+									} else {
+										maTempOpMemoryAscii.push_back(m_Memory[nMemoryType].element(m_PC));
+										bHadAscii = true;
+									}
 								}
 
 								if (nMemoryType != MT_RAM) {
@@ -1936,12 +1982,19 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 								} else {
 									if (nDesc != nLastDesc) {
 										nLastDesc = nDesc;
-										bTransitionBreak = true;		// Must break out going to/from DATA and ALLOC
+										bTransitionBreak = true;		// Must break out going to/from DATA and ALLOC or other types
 									}
 								}
 
-								++m_PC;
-								++nCount;
+								if (std::set<MEM_DESC>({ DMEM_DATA, DMEM_PRINTDATA, DMEM_ALLOC }).contains(nDesc)) {
+									// Process while we are in this case type (needed due to inner-while loop)
+									++m_PC;
+									++nCount;
+								} else {
+									// If we run into another section, bail-out:
+									bFlag = true;
+								}
+
 								// Stop on this line when we've either run out of data,
 								//	hit the specified line limit, hit another label, or
 								//	hit another user-declared DataBlock range:
@@ -1949,6 +2002,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 								if (!bHadAscii && (nCount >= nMaxNonPrint)) bNeedStop = true;
 								if (bHadAscii && (nCount >= m_nMaxPrint)) bNeedStop = true;
 								if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
+								if (AddressHasUserComments(nMemoryType, CTF_DATA, m_PC)) bNeedStop = true;
 								// First transition from data->ascii on the correct boundary will trigger a break:
 								if ((nDesc != DMEM_PRINTDATA) && bTransitionBreak) bNeedStop = true;
 								if (m_PC >= nLastAddr) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
@@ -2028,7 +2082,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 										if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 										saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC-1);
 										saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC-1);
-										saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC-1);
+										saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, m_PC-1);	// Format the comments for data
 										outFile << MakeOutputLine(saOutLine) << "\n";
 									}
 								}
@@ -2153,6 +2207,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 								if ((nLastDesc != DMEM_PRINTDATA) && (nCount >= nMaxNonPrint)) bNeedStop = true;
 								if ((nLastDesc == DMEM_PRINTDATA) && (nCount >= m_nMaxPrint)) bNeedStop = true;
 								if (m_LabelTable[nMemoryType].contains(m_PC)) bNeedStop = true;
+								if (AddressHasUserComments(nMemoryType, CTF_DATA, m_PC)) bNeedStop = true;
 								// First transition from data->ascii on the correct boundary will trigger a break:
 								if (nDesc != nLastDesc) bNeedStop = true;
 								if (m_PC >= nLastAddr) bFlag = true;		// This one forces break now.  If it's 'odd' then the original image is broken, so we should get a warning on reassembly
@@ -2244,7 +2299,7 @@ bool CAVRDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock
 										if (m_bVBreakEquateLabels && (saOutLine[FC_LABEL].size() >= static_cast<size_t>(GetFieldWidth(FC_LABEL)))) saOutLine[FC_LABEL] += '\v';
 										saOutLine[FC_MNEMONIC] = FormatMnemonic(nMemoryType, MC_EQUATE, m_PC-1);
 										saOutLine[FC_OPERANDS] = FormatOperands(nMemoryType, MC_EQUATE, m_PC-1);
-										saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_EQUATE, m_PC-1);
+										saOutLine[FC_COMMENT] = FormatComments(nMemoryType, MC_DATABYTE, m_PC-1);	// Format the comments for data
 										outFile << MakeOutputLine(saOutLine) << "\n";
 									}
 								}

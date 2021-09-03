@@ -485,93 +485,6 @@ bool CDisassembler::ReadControlFile(ifstreamControlFile& inFile, bool bLastFile,
 				if ((m_bOpcodeFlag) && (m_bDataOpBytesFlag)) (*msgFile) << "Writing OpBytes for data in disassembly file\n";
 				(*msgFile) << "\n";
 			}
-
-
-			// Ok, now we resolve the indirect tables...  This process should create the indirect
-			//		label name from the resolved address if the corresponding string in the hash table is "".
-			//		This process requires the purely virtual ResolveIndirect function from overrides...
-			if (msgFile) (*msgFile) << "Compiling Indirect Code (branch) Table as specified in Control File...\n";
-			if (msgFile) {
-				(*msgFile) << "        " << m_CodeIndirectTable.size() << " Indirect Code Vector"
-							<< ((m_CodeIndirectTable.size() != 1) ? "s" : "")
-							<< ((m_CodeIndirectTable.size() != 0) ? ":" : "")
-							<< "\n";
-			}
-			for (auto const & itrIndirects : m_CodeIndirectTable) {
-				TAddress nResolvedAddress;
-
-				if (msgFile) {
-					(*msgFile) << "                ["
-								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
-								<< std::nouppercase << std::setbase(0) << "] -> ";
-				}
-				if (!ResolveIndirect(MT_ROM, itrIndirects.first, nResolvedAddress, RT_CODE)) {
-					if (msgFile) (*msgFile) << "ERROR\n";
-					if (errFile) {
-						(*errFile) << "    *** Warning: Vector Address "
-									<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
-									<< std::nouppercase << std::setbase(0) << " is outside of loaded source file(s)...\n";
-						(*errFile) << "                    Or the vector location conflicted with other analyzed areas.\n";
-					}
-				} else {
-					if (msgFile) {
-						(*msgFile) << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
-									<< std::nouppercase << std::setbase(0);
-					}
-					AddLabel(MT_ROM, nResolvedAddress, false, 0, itrIndirects.second);	// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
-					m_FunctionEntryTable[nResolvedAddress] = FUNCF_INDIRECT;		// Resolved code indirects are also considered start-of functions
-					if (!AddBranch(nResolvedAddress, true, itrIndirects.first)) {
-						if (errFile) {
-							(*errFile) << "    *** Warning: Indirect Address ["
-										<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
-										<< std::nouppercase << std::setbase(0) << "] -> "
-										<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
-										<< std::nouppercase << std::setbase(0) << " is outside of loaded source file(s)...\n";
-						}
-						if ((msgFile) && (msgFile != errFile)) {
-							(*msgFile) << "\n";
-						}
-					} else {
-						if (msgFile) {
-							(*msgFile) << "\n";
-						}
-					}
-				}
-			}
-			if (msgFile) (*msgFile) << "\n";
-			// Now, repeat for Data indirects:
-			if (msgFile) (*msgFile) << "Compiling Indirect Data Table as specified in Control File...\n";
-			if (msgFile) {
-				(*msgFile) << "        " << m_DataIndirectTable.size() << " Indirect Data Vector"
-							<< ((m_DataIndirectTable.size() != 1) ? "s" : "")
-							<< ((m_DataIndirectTable.size() != 0) ? ":" : "")
-							<< "\n";
-			}
-			for (auto const & itrIndirects : m_DataIndirectTable) {
-				TAddress nResolvedAddress;
-
-				if (msgFile) {
-					(*msgFile) << "                ["
-								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
-								<< std::nouppercase << std::setbase(0) << "] -> ";
-				}
-				if (!ResolveIndirect(MT_ROM, itrIndirects.first, nResolvedAddress, RT_DATA)) {
-					if (msgFile) (*msgFile) << "ERROR\n";
-					if (errFile) {
-						(*errFile) << "    *** Warning: Vector Address "
-									<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
-									<< std::nouppercase << std::setbase(0) << " is outside of loaded source file(s)...\n";
-						(*errFile) << "                    Or the vector location conflicted with other analyzed areas.\n";
-					}
-				} else {
-					if (msgFile) {
-						(*msgFile) << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
-									<< std::nouppercase << std::setbase(0) << "\n";
-					}
-					AddLabel(MT_ROM, nResolvedAddress, true, itrIndirects.first, itrIndirects.second);		// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
-				}
-			}
-			if (msgFile) (*msgFile) << "\n";
 		}
 	}
 
@@ -1191,6 +1104,104 @@ bool CDisassembler::ReadSourceFile(const std::string & strFilename, TAddress nLo
 
 // ----------------------------------------------------------------------------
 
+bool CDisassembler::ScanSymbols(std::ostream *msgFile, std::ostream *errFile)
+{
+	UNUSED(msgFile);
+	UNUSED(errFile);
+	return true;
+}
+
+bool CDisassembler::ScanIndirects(std::ostream *msgFile, std::ostream *errFile)
+{
+	// Ok, now we resolve the indirect tables...  This process should create the indirect
+	//		label name from the resolved address if the corresponding string in the hash table is "".
+	//		This process requires the purely virtual ResolveIndirect function from overrides...
+	if (msgFile) (*msgFile) << "    Compiling Indirect Code (branch) Table as specified in Control File(s)...\n";
+	if (msgFile) {
+		(*msgFile) << "        " << m_CodeIndirectTable.size() << " Indirect Code Vector"
+					<< ((m_CodeIndirectTable.size() != 1) ? "s" : "")
+					<< ((m_CodeIndirectTable.size() != 0) ? ":" : "")
+					<< "\n";
+	}
+	for (auto const & itrIndirects : m_CodeIndirectTable) {
+		TAddress nResolvedAddress;
+
+		if (msgFile) {
+			(*msgFile) << "                ["
+						<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
+						<< std::nouppercase << std::setbase(0) << "] -> ";
+		}
+		if (!ResolveIndirect(MT_ROM, itrIndirects.first, nResolvedAddress, RT_CODE)) {
+			if (msgFile) (*msgFile) << "ERROR\n";
+			if (errFile) {
+				(*errFile) << "    *** Warning: Vector Address "
+							<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
+							<< std::nouppercase << std::setbase(0) << " is outside of loaded source file(s)...\n";
+				(*errFile) << "                    Or the vector location conflicted with other analyzed areas.\n";
+			}
+		} else {
+			if (msgFile) {
+				(*msgFile) << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
+							<< std::nouppercase << std::setbase(0);
+			}
+			AddLabel(MT_ROM, nResolvedAddress, false, 0, itrIndirects.second);	// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
+			m_FunctionEntryTable[nResolvedAddress] = FUNCF_INDIRECT;		// Resolved code indirects are also considered start-of functions
+			if (!AddBranch(nResolvedAddress, true, itrIndirects.first)) {
+				if (errFile) {
+					(*errFile) << "    *** Warning: Indirect Address ["
+								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
+								<< std::nouppercase << std::setbase(0) << "] -> "
+								<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
+								<< std::nouppercase << std::setbase(0) << " is outside of loaded source file(s)...\n";
+				}
+				if ((msgFile) && (msgFile != errFile)) {
+					(*msgFile) << "\n";
+				}
+			} else {
+				if (msgFile) {
+					(*msgFile) << "\n";
+				}
+			}
+		}
+	}
+	if (msgFile) (*msgFile) << "\n";
+	// Now, repeat for Data indirects:
+	if (msgFile) (*msgFile) << "    Compiling Indirect Data Table as specified in Control File(s)...\n";
+	if (msgFile) {
+		(*msgFile) << "        " << m_DataIndirectTable.size() << " Indirect Data Vector"
+					<< ((m_DataIndirectTable.size() != 1) ? "s" : "")
+					<< ((m_DataIndirectTable.size() != 0) ? ":" : "")
+					<< "\n";
+	}
+	for (auto const & itrIndirects : m_DataIndirectTable) {
+		TAddress nResolvedAddress;
+
+		if (msgFile) {
+			(*msgFile) << "                ["
+						<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
+						<< std::nouppercase << std::setbase(0) << "] -> ";
+		}
+		if (!ResolveIndirect(MT_ROM, itrIndirects.first, nResolvedAddress, RT_DATA)) {
+			if (msgFile) (*msgFile) << "ERROR\n";
+			if (errFile) {
+				(*errFile) << "    *** Warning: Vector Address "
+							<< GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << itrIndirects.first
+							<< std::nouppercase << std::setbase(0) << " is outside of loaded source file(s)...\n";
+				(*errFile) << "                    Or the vector location conflicted with other analyzed areas.\n";
+			}
+		} else {
+			if (msgFile) {
+				(*msgFile) << GetHexDelim() << std::uppercase << std::setfill('0') << std::setw(4) << std::setbase(16) << nResolvedAddress
+							<< std::nouppercase << std::setbase(0) << "\n";
+			}
+			AddLabel(MT_ROM, nResolvedAddress, true, itrIndirects.first, itrIndirects.second);		// Add label for resolved name.  If empty, add it so later we can resolve Lxxxx from it.
+		}
+	}
+	if (msgFile) (*msgFile) << "\n\n";
+
+	return true;
+}
+
 bool CDisassembler::ScanEntries(std::ostream *msgFile, std::ostream *errFile)
 {
 	bool bRetVal = true;
@@ -1336,7 +1347,7 @@ bool CDisassembler::Disassemble(std::ostream *msgFile, std::ostream *errFile, st
 	}
 
 	while (1) {		// Setup dummy endless loop so we can use 'break' instead of 'goto'
-		if (msgFile) (*msgFile) << "\nPass 1 - Finding Code, Data, and Labels...\n";
+		if (msgFile) (*msgFile) << "\nPass 1 - Finding Code, Data, and Labels...\n\n";
 		bRetVal = Pass1(*theOutput, msgFile, errFile);
 		if (!bRetVal) break;
 
@@ -1403,6 +1414,8 @@ bool CDisassembler::Pass1(std::ostream& outFile, std::ostream *msgFile, std::ost
 	}
 
 	// Note that Short-Circuiting will keep following process stages from being called in the event of an error!
+	bRetVal = bRetVal && ScanSymbols(msgFile, errFile);
+	bRetVal = bRetVal && ScanIndirects(msgFile, errFile);
 	bRetVal = bRetVal && ScanEntries(msgFile, errFile);
 	bRetVal = bRetVal && ScanBranches(msgFile, errFile);
 	bRetVal = bRetVal && ScanData(strExcludeChars, msgFile, errFile);
@@ -2019,6 +2032,18 @@ std::string CDisassembler::FormatUserComments(MEMORY_TYPE nMemoryType, MNEMONIC_
 	rtrim(strRetVal);				// Trim extra trailing '\n' from above
 
 	return strRetVal;
+}
+
+bool CDisassembler::AddressHasUserComments(MEMORY_TYPE nMemoryType, COMMENT_TYPE_FLAGS nFlags, TAddress nAddress)
+{
+	CCommentTableMap::const_iterator itrUserComments = m_CommentTable[nMemoryType].find(nAddress);
+	if (itrUserComments == m_CommentTable[nMemoryType].cend()) return false;
+
+	for (auto const & itrComment : itrUserComments->second) {
+		if (itrComment.m_nFlags & nFlags) return true;
+	}
+
+	return false;
 }
 
 std::string CDisassembler::FormatFunctionFlagComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress)
@@ -2782,6 +2807,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &m
 						//	hit another user-declared DataBlock range:
 						if (nCount >= m_nMaxNonPrint) bFlag = true;
 						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
+						if (AddressHasUserComments(nMemoryType, CTF_DATA, m_PC)) bFlag = true;
 						nDesc = static_cast<MEM_DESC>(m_Memory[nMemoryType].descriptor(m_PC));
 						if (!m_bAsciiFlag && (nDesc == DMEM_PRINTDATA)) nDesc = DMEM_DATA;		// If not doing ASCII, treat print data as data
 						if ((nDesc != DMEM_DATA) && (nDesc != DMEM_ALLOC)) bFlag = true;
@@ -2808,6 +2834,7 @@ bool CDisassembler::WriteDataSection(MEMORY_TYPE nMemoryType, const CMemBlock &m
 						//	hit another user-declared DataBlock range:
 						if (nCount >= m_nMaxPrint) bFlag = true;
 						if (m_LabelTable[nMemoryType].contains(m_PC)) bFlag = true;
+						if (AddressHasUserComments(nMemoryType, CTF_DATA, m_PC)) bFlag = true;
 						if (m_Memory[nMemoryType].descriptor(m_PC) != DMEM_PRINTDATA) bFlag = true;
 						if (!rngDataBlock.isNullRange() && !rngDataBlock.addressInRange(m_PC)) bFlag = true;
 					}

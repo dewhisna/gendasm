@@ -969,7 +969,10 @@ Symbol table '.symtab' contains 342 entries:
 Writing printable data as ASCII in disassembly file.
 Writing byte value comments for ASCII data in disassembly file.
 
-Compiling Indirect Code (branch) Table as specified in Control File...
+
+Pass 1 - Finding Code, Data, and Labels...
+
+    Compiling Indirect Code (branch) Table as specified in Control File(s)...
         83 Indirect Code Vectors:
                 [0x0068] -> 0x06F2
                 [0x006A] -> 0x1E28
@@ -1055,11 +1058,10 @@ Compiling Indirect Code (branch) Table as specified in Control File...
                 [0x010A] -> 0x6A8C
                 [0x010C] -> 0x6A62
 
-Compiling Indirect Data Table as specified in Control File...
+    Compiling Indirect Data Table as specified in Control File(s)...
         0 Indirect Data Vectors
 
 
-Pass 1 - Finding Code, Data, and Labels...
 CL0388 CL0398 CL03AC CL1E6A DL0170 CL1F0E CL1F16 DL011D CL1EF2 CL1FB2
 CL2A22 DL015C DL015D DL015E CL2ACA CL2AE8 CL2ACE CL2F70 DL020E DL020D
 DL020C DL0220 DL0221 CL2B66 CL2CE4 CL2F9E CL2FA0 CL3060 CL302A CL3020

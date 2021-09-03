@@ -114,6 +114,8 @@ public:
 
 	// --------------------------------
 
+	virtual bool ScanSymbols(std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
+
 	virtual bool ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 	virtual bool CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 	virtual bool CurrentOpcodeIsStop() const override;

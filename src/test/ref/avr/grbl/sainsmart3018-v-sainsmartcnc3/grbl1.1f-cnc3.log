@@ -251,7 +251,10 @@ Writing printable data as ASCII in disassembly file.
 Writing byte value comments for ASCII data in disassembly file.
 Writing OpBytes for data in disassembly file
 
-Compiling Indirect Code (branch) Table as specified in Control File...
+
+Pass 1 - Finding Code, Data, and Labels...
+
+    Compiling Indirect Code (branch) Table as specified in Control File(s)...
         83 Indirect Code Vectors:
                 [0x0068] -> 0x0A6E
                 [0x006A] -> 0x0A72
@@ -337,11 +340,10 @@ Compiling Indirect Code (branch) Table as specified in Control File...
                 [0x010A] -> 0x1A32
                 [0x010C] -> 0x1A4C
 
-Compiling Indirect Data Table as specified in Control File...
+    Compiling Indirect Data Table as specified in Control File(s)...
         0 Indirect Data Vectors
 
 
-Pass 1 - Finding Code, Data, and Labels...
 CL0322 CL0346 CL3AFC CL3484 CL4802 CL476A CL0A02 CL0418 CL0338 CL0336
 CL034A CL7744 CL04A4 CL5808 CL6AEE CL34F4 CL0362 DL06DF DL0751 CL037C
 CL0398 DL06E6 DL06E7 DL06E8 CL03B2 DL06F2 DL06F1 DL070B DL06DE DL06F0
