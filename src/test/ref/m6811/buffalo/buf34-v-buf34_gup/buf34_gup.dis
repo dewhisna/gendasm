@@ -1251,74 +1251,74 @@ E56D                  rts                                                 ; ---|
 E56E    ; ==================================================================
 E56E
 E56E                  .byte   0x05,0x41,0x53,0x53,0x45,0x4D
-E574                  .word   ASSEM
+E574                  .word   ASSEM                                       ; Code Indirect->0xEAF5
 E576                  .byte   0x05,0x42,0x52,0x45,0x41,0x4B
-E57C                  .word   BREAK
+E57C                  .word   BREAK                                       ; Code Indirect->0xE70E
 E57E                  .byte   0x04,0x42,0x55,0x4C,0x4B
-E583                  .word   BULK
+E583                  .word   BULK                                        ; Code Indirect->0xE7C9
 E585                  .byte   0x07,0x42,0x55,0x4C,0x4B,0x41,0x4C,0x4C
-E58D                  .word   BULKALL
+E58D                  .word   BULKALL                                     ; Code Indirect->0xE7CD
 E58F                  .byte   0x04,0x43,0x41,0x4C,0x4C
-E594                  .word   CALL
+E594                  .word   CALL                                        ; Code Indirect->0xF9CE
 E596                  .byte   0x04,0x44,0x55,0x4D,0x50
-E59B                  .word   DUMP
+E59B                  .word   DUMP                                        ; Code Indirect->0xE7D6
 E59D                  .byte   0x05,0x45,0x45,0x4D,0x4F,0x44
-E5A3                  .word   EEMOD
+E5A3                  .word   EEMOD                                       ; Code Indirect->0xE86B
 E5A5                  .byte   0x04,0x46,0x49,0x4C,0x4C
-E5AA                  .word   FILL
+E5AA                  .word   FILL                                        ; Code Indirect->0xE86C
 E5AC                  .byte   0x02,0x47,0x4F
-E5AF                  .word   GO
+E5AF                  .word   GO                                          ; Code Indirect->0xFA27
 E5B1                  .byte   0x04,0x48,0x45,0x4C,0x50
-E5B6                  .word   HELP
+E5B6                  .word   HELP                                        ; Code Indirect->0xF5D5
 E5B8                  .byte   0x04,0x48,0x4F,0x53,0x54
-E5BD                  .word   HOST
+E5BD                  .word   HOST                                        ; Code Indirect->0xFBA0
 E5BF                  .byte   0x04,0x4C,0x4F,0x41,0x44
-E5C4                  .word   LOAD
+E5C4                  .word   LOAD                                        ; Code Indirect->0xFC3E
 E5C6                  .byte   0x06,0x4D,0x45,0x4D,0x4F,0x52,0x59
-E5CD                  .word   MEMORY
+E5CD                  .word   MEMORY                                      ; Code Indirect->0xE8D4
 E5CF                  .byte   0x04,0x4D,0x4F,0x56,0x45
-E5D4                  .word   MOVE
+E5D4                  .word   MOVE                                        ; Code Indirect->0xE9A8
 E5D6                  .byte   0x06,0x4F,0x46,0x46,0x53,0x45,0x54
-E5DD                  .word   OFFSET
+E5DD                  .word   OFFSET                                      ; Code Indirect->0xFD52
 E5DF                  .byte   0x07,0x50,0x52,0x4F,0x43,0x45,0x45,0x44
-E5E7                  .word   PROCEED
+E5E7                  .word   PROCEED                                     ; Code Indirect->0xFA15
 E5E9                  .byte   0x08,0x52,0x45,0x47,0x49,0x53,0x54,0x45
 E5F1                  .byte   0x52
-E5F2                  .word   REGISTER
+E5F2                  .word   REGISTER                                    ; Code Indirect->0xFD93
 E5F4                  .byte   0x06,0x53,0x54,0x4F,0x50,0x41,0x54
-E5FB                  .word   STOPAT
+E5FB                  .word   STOPAT                                      ; Code Indirect->0xFB01
 E5FD                  .byte   0x05,0x54,0x52,0x41,0x43,0x45
-E603                  .word   TRACE
+E603                  .word   TRACE                                       ; Code Indirect->0xFABC
 E605                  .byte   0x06,0x56,0x45,0x52,0x49,0x46,0x59
-E60C                  .word   VERIFY
+E60C                  .word   VERIFY                                      ; Code Indirect->0xFC36
 E60E                  .byte   0x01,0x3F
-E610                  .word   HELP
+E610                  .word   HELP                                        ; Code Indirect->0xF5D5
 E612                  .byte   0x05,0x58,0x42,0x4F,0x4F,0x54
-E618                  .word   BOOT
+E618                  .word   BOOT                                        ; Code Indirect->0xFE03
 E61A                  .byte   0x01,0x7E
-E61C                  .word   TILDE
+E61C                  .word   TILDE                                       ; Code Indirect->0xFE7B
 E61E                  .byte   0x03,0x41,0x53,0x4D
-E622                  .word   ASSEM
+E622                  .word   ASSEM                                       ; Code Indirect->0xEAF5
 E624                  .byte   0x02,0x42,0x46
-E627                  .word   FILL
+E627                  .word   FILL                                        ; Code Indirect->0xE86C
 E629                  .byte   0x04,0x43,0x4F,0x50,0x59
-E62E                  .word   MOVE
+E62E                  .word   MOVE                                        ; Code Indirect->0xE9A8
 E630                  .byte   0x05,0x45,0x52,0x41,0x53,0x45
-E636                  .word   BULK
+E636                  .word   BULK                                        ; Code Indirect->0xE7C9
 E638                  .byte   0x02,0x4D,0x44
-E63B                  .word   DUMP
+E63B                  .word   DUMP                                        ; Code Indirect->0xE7D6
 E63D                  .byte   0x02,0x4D,0x4D
-E640                  .word   MEMORY
+E640                  .word   MEMORY                                      ; Code Indirect->0xE8D4
 E642                  .byte   0x02,0x52,0x44
-E645                  .word   REGISTER
+E645                  .word   REGISTER                                    ; Code Indirect->0xFD93
 E647                  .byte   0x02,0x52,0x4D
-E64A                  .word   REGISTER
+E64A                  .word   REGISTER                                    ; Code Indirect->0xFD93
 E64C                  .byte   0x04,0x52,0x45,0x41,0x44
-E651                  .word   MOVE
+E651                  .word   MOVE                                        ; Code Indirect->0xE9A8
 E653                  .byte   0x02,0x54,0x4D
-E656                  .word   HOST
+E656                  .word   HOST                                        ; Code Indirect->0xFBA0
 E658                  .byte   0x04,0x54,0x45,0x53,0x54
-E65D                  .word   EVBTEST
+E65D                  .word   EVBTEST                                     ; Code Indirect->0xFE7C
 E65F                  .byte   0xFF,0x42,0x55,0x46,0x46,0x41,0x4C,0x4F
 E667                  .byte   0x20,0x33,0x2E,0x34,0x20,0x28,0x65,0x78
 E66F                  .byte   0x74,0x29,0x20,0x2D,0x20,0x42,0x69,0x74
@@ -4450,4 +4450,4 @@ FFF6    swivect:      .byte   0x01,0x07
 FFF8    ilopvect:     .byte   0x01,0x0A
 FFFA    copvect:      .byte   0x01,0x0D
 FFFC    cmonvect:     .byte   0x01,0x10
-FFFE    rstvect:      .word   reset
+FFFE    rstvect:      .word   reset                                       ; Code Indirect->0xE000

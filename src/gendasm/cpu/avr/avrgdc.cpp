@@ -1686,8 +1686,20 @@ std::string CAVRDisassembler::FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_C
 			if (m_CodeIndirectTable.contains(nStartAddress)) {
 				if (!CheckBranchAddressLoaded(nAddress)) bBranchOutside = true;
 			}
-			// Since addresses are in words and not bytes, print the real address
-			//	as a comment to make it more readable:
+#ifdef LIBIBERTY_SUPPORT
+			itrSymbol = m_SymbolTable[nMemoryType].find(nAddress);
+			if (itrSymbol != m_SymbolTable[nMemoryType].cend()) {
+				strLabel.clear();
+				if (!itrSymbol->second.empty()) {
+					if (!cplus_demangle_v3_callback(itrSymbol->second.c_str(), DMGL_PARAMS | DMGL_ANSI | DMGL_VERBOSE | DMGL_TYPES, demangle_callback, &strLabel))
+						cplus_demangle_v3_callback(itrSymbol->second.c_str(), DMGL_NO_OPTS, demangle_callback, &strLabel);
+				}
+				if (!strLabel.empty()) {
+					if (!strRetVal.empty()) strRetVal += "\n";
+					strRetVal += "Indirect: " + strLabel;
+				}
+			}
+#endif
 			if (!strRetVal.empty()) strRetVal += "\n";
 			if (m_CodeIndirectTable.contains(nStartAddress)) {
 				strRetVal += "Code";

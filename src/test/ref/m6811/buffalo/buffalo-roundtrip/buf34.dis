@@ -1218,139 +1218,139 @@ LE544:        jsr     LE39E                                       ; CALL|---, --
               .byte   0x05
 ; 0x41,0x53,0x53,0x45,0x4D
               .ascii  'ASSEM'
-              .word   ASSEM
+              .word   ASSEM                                       ; Code Indirect->0xEB24
               .byte   0x05
 ; 0x42,0x52,0x45,0x41,0x4B
               .ascii  'BREAK'
-              .word   BREAK
+              .word   BREAK                                       ; Code Indirect->0xE6EE
               .byte   0x04
 ; 0x42,0x55,0x4C,0x4B
               .ascii  'BULK'
-              .word   BULK
+              .word   BULK                                        ; Code Indirect->0xE7A9
               .byte   0x07
 ; 0x42,0x55,0x4C,0x4B,0x41,0x4C,0x4C
               .ascii  'BULKALL'
-              .word   BULKALL
+              .word   BULKALL                                     ; Code Indirect->0xE7AD
               .byte   0x04
 ; 0x43,0x41,0x4C,0x4C
               .ascii  'CALL'
-              .word   CALL
+              .word   CALL                                        ; Code Indirect->0xF9FD
               .byte   0x04
 ; 0x44,0x55,0x4D,0x50
               .ascii  'DUMP'
-              .word   DUMP
+              .word   DUMP                                        ; Code Indirect->0xE7B6
               .byte   0x05
 ; 0x45,0x45,0x4D,0x4F,0x44
               .ascii  'EEMOD'
-              .word   EEMOD
+              .word   EEMOD                                       ; Code Indirect->0xE84B
               .byte   0x04
 ; 0x46,0x49,0x4C,0x4C
               .ascii  'FILL'
-              .word   FILL
+              .word   FILL                                        ; Code Indirect->0xE89B
               .byte   0x02
 ; 0x47,0x4F
               .ascii  'GO'
-              .word   GO
+              .word   GO                                          ; Code Indirect->0xFA56
               .byte   0x04
 ; 0x48,0x45,0x4C,0x50
               .ascii  'HELP'
-              .word   HELP
+              .word   HELP                                        ; Code Indirect->0xF604
               .byte   0x04
 ; 0x48,0x4F,0x53,0x54
               .ascii  'HOST'
-              .word   HOST
+              .word   HOST                                        ; Code Indirect->0xFBD1
               .byte   0x04
 ; 0x4C,0x4F,0x41,0x44
               .ascii  'LOAD'
-              .word   LOAD
+              .word   LOAD                                        ; Code Indirect->0xFC6F
               .byte   0x06
 ; 0x4D,0x45,0x4D,0x4F,0x52,0x59
               .ascii  'MEMORY'
-              .word   MEMORY
+              .word   MEMORY                                      ; Code Indirect->0xE903
               .byte   0x04
 ; 0x4D,0x4F,0x56,0x45
               .ascii  'MOVE'
-              .word   MOVE
+              .word   MOVE                                        ; Code Indirect->0xE9D7
               .byte   0x06
 ; 0x4F,0x46,0x46,0x53,0x45,0x54
               .ascii  'OFFSET'
-              .word   OFFSET
+              .word   OFFSET                                      ; Code Indirect->0xFD83
               .byte   0x07
 ; 0x50,0x52,0x4F,0x43,0x45,0x45,0x44
               .ascii  'PROCEED'
-              .word   PROCEED
+              .word   PROCEED                                     ; Code Indirect->0xFA44
               .byte   0x08
 ; 0x52,0x45,0x47,0x49,0x53,0x54,0x45,0x52
               .ascii  'REGISTER'
-              .word   REGISTER
+              .word   REGISTER                                    ; Code Indirect->0xFDC4
               .byte   0x06
 ; 0x53,0x54,0x4F,0x50,0x41,0x54
               .ascii  'STOPAT'
-              .word   STOPAT
+              .word   STOPAT                                      ; Code Indirect->0xFB2C
               .byte   0x05
 ; 0x54,0x52,0x41,0x43,0x45
               .ascii  'TRACE'
-              .word   TRACE
+              .word   TRACE                                       ; Code Indirect->0xFAE7
               .byte   0x06
 ; 0x56,0x45,0x52,0x49,0x46,0x59
               .ascii  'VERIFY'
-              .word   VERIFY
+              .word   VERIFY                                      ; Code Indirect->0xFC67
               .byte   0x01
 ; 0x3F
               .ascii  '?'
-              .word   HELP
+              .word   HELP                                        ; Code Indirect->0xF604
               .byte   0x05
 ; 0x58,0x42,0x4F,0x4F,0x54
               .ascii  'XBOOT'
-              .word   BOOT
+              .word   BOOT                                        ; Code Indirect->0xFE34
               .byte   0x01
 ; 0x7E
               .ascii  '~'
-              .word   TILDE
+              .word   TILDE                                       ; Code Indirect->0xFEAC
               .byte   0x03
 ; 0x41,0x53,0x4D
               .ascii  'ASM'
-              .word   ASSEM
+              .word   ASSEM                                       ; Code Indirect->0xEB24
               .byte   0x02
 ; 0x42,0x46
               .ascii  'BF'
-              .word   FILL
+              .word   FILL                                        ; Code Indirect->0xE89B
               .byte   0x04
 ; 0x43,0x4F,0x50,0x59
               .ascii  'COPY'
-              .word   MOVE
+              .word   MOVE                                        ; Code Indirect->0xE9D7
               .byte   0x05
 ; 0x45,0x52,0x41,0x53,0x45
               .ascii  'ERASE'
-              .word   BULK
+              .word   BULK                                        ; Code Indirect->0xE7A9
               .byte   0x02
 ; 0x4D,0x44
               .ascii  'MD'
-              .word   DUMP
+              .word   DUMP                                        ; Code Indirect->0xE7B6
               .byte   0x02
 ; 0x4D,0x4D
               .ascii  'MM'
-              .word   MEMORY
+              .word   MEMORY                                      ; Code Indirect->0xE903
               .byte   0x02
 ; 0x52,0x44
               .ascii  'RD'
-              .word   REGISTER
+              .word   REGISTER                                    ; Code Indirect->0xFDC4
               .byte   0x02
 ; 0x52,0x4D
               .ascii  'RM'
-              .word   REGISTER
+              .word   REGISTER                                    ; Code Indirect->0xFDC4
               .byte   0x04
 ; 0x52,0x45,0x41,0x44
               .ascii  'READ'
-              .word   MOVE
+              .word   MOVE                                        ; Code Indirect->0xE9D7
               .byte   0x02
 ; 0x54,0x4D
               .ascii  'TM'
-              .word   HOST
+              .word   HOST                                        ; Code Indirect->0xFBD1
               .byte   0x04
 ; 0x54,0x45,0x53,0x54
               .ascii  'TEST'
-              .word   EVBTEST
+              .word   EVBTEST                                     ; Code Indirect->0xFEAD
               .byte   0xFF
 ; 0x42,0x55,0x46,0x46,0x41,0x4C,0x4F,0x20
 ; 0x33,0x2E,0x34,0x20,0x28,0x65,0x78,0x74
@@ -4991,4 +4991,4 @@ swivect:      .byte   0x00,0xF4
 ilopvect:     .byte   0x00,0xF7
 copvect:      .byte   0x00,0xFA
 cmonvect:     .byte   0x00,0xFD
-rstvect:      .word   reset
+rstvect:      .word   reset                                       ; Code Indirect->0xE000
