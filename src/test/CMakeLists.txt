@@ -190,6 +190,8 @@ set_property(TEST "grbl-roundtrip-asavr,diff_sainsmart3018,bin" APPEND PROPERTY 
 # AVR : ELF Test #1
 # -----------------
 
+if(ELF_SUPPORT)
+
 # Configure data for grbl-elf:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801_arduino_v1.8.8/grbl_v1.1f.20170801_arduino_v1.8.8.elf ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf COPYONLY)
 configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl COPYONLY)
@@ -216,6 +218,8 @@ if(FUNC_FLAG_COMMENT)
 add_test(NAME "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "grbl_v1.1f.20170801_arduino_v1.8.8.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.dis" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/grbl-elf")
 set_property(TEST "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" APPEND PROPERTY DEPENDS "grbl-elf,dasm_v1.1f.20170801_arduino_v1.8.8")
 endif()
+
+endif(ELF_SUPPORT)
 
 # -----------------------------------------------------------------------------
 
@@ -281,6 +285,8 @@ set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,sym" APPEND PROPERTY D
 # AVR : ELF Test #2
 # -----------------
 
+if(ELF_SUPPORT)
+
 # Configure data for tcdaq-elf:
 configure_file(data/avr/tcdaq/tcdaq-elf/tcdaq.elf ${TCDAQ_STAGE_DIR}/tcdaq-elf/tcdaq.elf COPYONLY)
 configure_file(data/avr/tcdaq/tcdaq-elf/tcdaq.ctl ${TCDAQ_STAGE_DIR}/tcdaq-elf/tcdaq.ctl COPYONLY)
@@ -294,9 +300,13 @@ set_property(TEST "tcdaq-elf,dasm" APPEND PROPERTY FIXTURES_REQUIRED tcdaq.elf)
 add_test(NAME "tcdaq-elf,diff,log" COMMAND ${CMAKE_COMMAND} -E compare_files "tcdaq.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/tcdaq/tcdaq-elf/tcdaq.log" WORKING_DIRECTORY "${TCDAQ_STAGE_DIR}/tcdaq-elf")
 set_property(TEST "tcdaq-elf,diff,log" APPEND PROPERTY DEPENDS "tcdaq-elf,dasm")
 if(FUNC_FLAG_COMMENT)
+if(LIBIBERTY_SUPPORT)
 add_test(NAME "tcdaq-elf,diff,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "tcdaq.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/tcdaq/tcdaq-elf/tcdaq.dis" WORKING_DIRECTORY "${TCDAQ_STAGE_DIR}/tcdaq-elf")
 set_property(TEST "tcdaq-elf,diff,dis" APPEND PROPERTY DEPENDS "tcdaq-elf,dasm")
-endif()
+endif(LIBIBERTY_SUPPORT)
+endif(FUNC_FLAG_COMMENT)
+
+endif(ELF_SUPPORT)
 
 # -----------------------------------------------------------------------------
 
@@ -427,4 +437,12 @@ set_property(TEST "buffalo-roundtrip,diff_buf34_gup,bin" APPEND PROPERTY DEPENDS
 
 if(NOT FUNC_FLAG_COMMENT)
 	message(WARNING "Without FUNC_FLAG_COMMENT support enabled, tests comparing actual disassembler text output can't be performed and will be skipped...")
+endif()
+
+if(NOT ELF_SUPPORT)
+	message(WARNING "Without ELF_SUPPORT enabled, tests with ELF source files can't be performed and will be skipped...")
+endif()
+
+if(NOT LIBIBERTY_SUPPORT)
+	message(WARNING "Without LIBIBERTY_SUPPORT enabled, tests comparing actual disassembler text output containing demangled content from libiberty can't be performed and will be skipped...")
 endif()
