@@ -1,0 +1,1251 @@
+GenDasm - Generic Code-Seeking Disassembler
+
+Using: AVR Disassembler
+
+Reading and Parsing Control File: "tcdaq.ctl"...
+Selected MCU and predefined labels and entry points for: m328pb
+Loading "tcdaq.elf" at offset 0x0000 using elf library...
+32-bit ELF object
+ELF Machine Type: Atmel AVR 8-bit microcontroller
+AVR Type: avr5  - enhanced AVR core with up to 64K program memory
+Program Headers:
+    Type           Offset   VirtAddr   PhysAddr   FileSize MemSize  Flg Align  Section
+    LOAD           0x0000B4 0x00000000 0x00000000 0x004812 0x004812 R X 0x02  .text
+    LOAD           0x0048C6 0x00800100 0x00004812 0x00035C 0x00035C RW  0x01  .data
+    LOAD           0x004C22 0x0080045C 0x0080045C 0x000000 0x00028D RW  0x01  .bss
+    LOAD           0x004C22 0x00810000 0x00810000 0x00001C 0x00001C RW  0x01  .eeprom
+
+Section Headers:
+  [Nr]  Name                     Type            Addr       Off      Size     EntS Flg Lk Inf Al
+  [ 0]                           NULL            0x00000000 0x000000 0x000000 0x00      0   0  0
+  [ 1]  .data                    PROGBITS        0x00800100 0x0048C6 0x00035C 0x00 WA   0   0  1
+  [ 2]  .text                    PROGBITS        0x00000000 0x0000B4 0x004812 0x00 AX   0   0  2
+  [ 3]  .bss                     NOBITS          0x0080045C 0x004C22 0x00028D 0x00 WA   0   0  1
+  [ 4]  .eeprom                  PROGBITS        0x00810000 0x004C22 0x00001C 0x00 WA   0   0  1
+  [ 5]  .comment                 PROGBITS        0x00000000 0x004C3E 0x000011 0x01 MS   0   0  1
+  [ 6]  .note.gnu.avr.deviceinfo NOTE            0x00000000 0x004C50 0x000040 0x00      0   0  4
+  [ 7]  .debug_aranges           PROGBITS        0x00000000 0x004C90 0x0001C0 0x00      0   0  8
+  [ 8]  .debug_info              PROGBITS        0x00000000 0x004E50 0x001224 0x00      0   0  1
+  [ 9]  .debug_abbrev            PROGBITS        0x00000000 0x006074 0x000986 0x00      0   0  1
+  [10]  .debug_line              PROGBITS        0x00000000 0x0069FA 0x000B69 0x00      0   0  1
+  [11]  .debug_str               PROGBITS        0x00000000 0x007563 0x000318 0x00      0   0  1
+  [12]  .shstrtab                STRTAB          0x00000000 0x00A896 0x000096 0x00      0   0  1
+  [13]  .symtab                  SYMTAB          0x00000000 0x00787C 0x001570 0x10     14 237  4
+  [14]  .strtab                  STRTAB          0x00000000 0x008DEC 0x001AAA 0x00      0   0  1
+
+Symbol table '.symtab' contains 343 entries:
+   Num: Value      Size  Type    Bind    Vis       Ndx Name
+     0: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   UND 
+     1: 0x00800100     0 SECTION LOCAL   DEFAULT     1 
+     2: 0x00000000     0 SECTION LOCAL   DEFAULT     2 
+     3: 0x0080045C     0 SECTION LOCAL   DEFAULT     3 
+     4: 0x00810000     0 SECTION LOCAL   DEFAULT     4 
+     5: 0x00000000     0 SECTION LOCAL   DEFAULT     5 
+     6: 0x00000000     0 SECTION LOCAL   DEFAULT     6 
+     7: 0x00000000     0 SECTION LOCAL   DEFAULT     7 
+     8: 0x00000000     0 SECTION LOCAL   DEFAULT     8 
+     9: 0x00000000     0 SECTION LOCAL   DEFAULT     9 
+    10: 0x00000000     0 SECTION LOCAL   DEFAULT    10 
+    11: 0x00000000     0 SECTION LOCAL   DEFAULT    11 
+    12: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS 
+    13: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+    14: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+    15: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+    16: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+    17: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+    18: 0x00000180    50 FUNC    LOCAL   DEFAULT     2 _ZL4crc8PKhh.constprop.70
+    19: 0x00800583    28 OBJECT  LOCAL   DEFAULT     3 ee_RAMShadow
+    20: 0x000001B2   186 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire15endTransmissionEh.constprop.54
+    21: 0x00800582     1 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire14txBufferLengthE
+    22: 0x0080055E     1 OBJECT  LOCAL   DEFAULT     3 twi_state
+    23: 0x00800581     1 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire9txAddressE
+    24: 0x0080055D     1 OBJECT  LOCAL   DEFAULT     3 twi_sendStop
+    25: 0x0080055C     1 OBJECT  LOCAL   DEFAULT     3 twi_error
+    26: 0x0080055B     1 OBJECT  LOCAL   DEFAULT     3 twi_masterBufferIndex
+    27: 0x0080055A     1 OBJECT  LOCAL   DEFAULT     3 twi_masterBufferLength
+    28: 0x00800561    32 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire8txBufferE
+    29: 0x0080053A    32 OBJECT  LOCAL   DEFAULT     3 twi_masterBuffer
+    30: 0x00800539     1 OBJECT  LOCAL   DEFAULT     3 twi_slarw
+    31: 0x00800538     1 OBJECT  LOCAL   DEFAULT     3 twi_inRepStart
+    32: 0x00800560     1 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire13txBufferIndexE
+    33: 0x0080055F     1 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire12transmittingE
+    34: 0x0000026C    44 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetServer5writeEh
+    35: 0x00000298    22 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClienteqERKS_
+    36: 0x000002AE    16 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClientcvbEv
+    37: 0x000002BE     2 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient5flushEv
+    38: 0x000002C0    44 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient5writeEh
+    39: 0x000002EC    20 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClientneERKS_
+    40: 0x00000300     4 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClientneEb
+    41: 0x00000304     6 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClienteqEb
+    42: 0x0000030A   214 FUNC    LOCAL   DEFAULT     2 digitalWrite
+    43: 0x0000010E    27 OBJECT  LOCAL   DEFAULT     2 digital_pin_to_timer_PGM
+    44: 0x000000F3    27 OBJECT  LOCAL   DEFAULT     2 digital_pin_to_bit_mask_PGM
+    45: 0x000000D8    27 OBJECT  LOCAL   DEFAULT     2 digital_pin_to_port_PGM
+    46: 0x000000CC    12 OBJECT  LOCAL   DEFAULT     2 port_to_output_PGM
+    47: 0x000003E0   120 FUNC    LOCAL   DEFAULT     2 pinMode
+    48: 0x000000C0    12 OBJECT  LOCAL   DEFAULT     2 port_to_mode_PGM
+    49: 0x00000458    38 FUNC    LOCAL   DEFAULT     2 delayMicroseconds
+    50: 0x0000047E   166 FUNC    LOCAL   DEFAULT     2 micros
+    51: 0x00800523     4 OBJECT  LOCAL   DEFAULT     3 timer0_millis
+    52: 0x00800522     1 OBJECT  LOCAL   DEFAULT     3 timer0_fract
+    53: 0x00000524   100 FUNC    LOCAL   DEFAULT     2 delay
+    54: 0x00000588    24 FUNC    LOCAL   DEFAULT     2 millis
+    55: 0x000005A0     2 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire16onRequestServiceEv
+    56: 0x000005A2     2 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire16onReceiveServiceEPhi
+    57: 0x000005A4    90 FUNC    LOCAL   DEFAULT     2 _ZN5Print5writeEPKhj
+    58: 0x000005FE    30 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial17availableForWriteEv
+    59: 0x0000061C    40 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial4readEv
+    60: 0x00000644    28 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial4peekEv
+    61: 0x00000660    24 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial9availableEv
+    62: 0x00000678    20 FUNC    LOCAL   DEFAULT     2 _Z17Serial0_availablev
+    63: 0x008005AB   157 OBJECT  LOCAL   DEFAULT     3 Serial
+    64: 0x0000068C    66 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial17_tx_udr_empty_irqEv
+    65: 0x000006CE   142 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial5writeEh
+    66: 0x0000075C    64 FUNC    LOCAL   DEFAULT     2 _ZN14HardwareSerial5flushEv
+    67: 0x0000079C    46 FUNC    LOCAL   DEFAULT     2 _Z14serialEventRunv
+    68: 0x000007CA     2 FUNC    LOCAL   DEFAULT     2 _ZN5Print5flushEv
+    69: 0x000007CC    42 FUNC    LOCAL   DEFAULT     2 _ZN6Modbus14searchRegisterEj
+    70: 0x000007F6    36 FUNC    LOCAL   DEFAULT     2 _ZN6Modbus4HregEjj
+    71: 0x0000081A    22 FUNC    LOCAL   DEFAULT     2 _ZN6Modbus3RegEj
+    72: 0x00000830     8 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP9availableEv
+    73: 0x00000838    10 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class7resetSSEv
+    74: 0x00800537     1 OBJECT  LOCAL   DEFAULT     3 SPI_CS
+    75: 0x00000842    10 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class5setSSEv
+    76: 0x0000084C     2 FUNC    LOCAL   DEFAULT     2 _ZN8SPIClass14endTransactionEv
+    77: 0x0000084E    14 FUNC    LOCAL   DEFAULT     2 _ZN8SPIClass8transferEh
+    78: 0x0000085C     6 FUNC    LOCAL   DEFAULT     2 _ZN8SPIClass16beginTransactionE11SPISettings
+    79: 0x00000862   100 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class4readEjhPhj
+    80: 0x0080065A     2 OBJECT  LOCAL   DEFAULT     3 wiznet_SPI_settings
+    81: 0x000008C6    28 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient9remoteMACEPh
+    82: 0x000008E2    28 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient8remoteIPEPh
+    83: 0x000008FE   100 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class5writeEjhPKhj
+    84: 0x00000962    66 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class5writeEjhh
+    85: 0x000009A4    28 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP9remoteMACEPh
+    86: 0x000009C0    28 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP8remoteIPEPh
+    87: 0x000009DC    36 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP5flushEv
+    88: 0x00000A00    44 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP5writeEh
+    89: 0x00000A2C     8 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP10remotePortEv
+    90: 0x00000A34    32 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP8remoteIPEv
+    91: 0x00800456     6 OBJECT  LOCAL   DEFAULT     1 _ZTV9IPAddress
+    92: 0x00000A54    14 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP4readEPcj
+    93: 0x00000A62    18 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class7writeSnEhjh
+    94: 0x00000A74    70 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class6readSnEhj
+    95: 0x00000ABA    32 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class9execCmdSnEh7SockCMD.constprop.49
+    96: 0x00000ADA    26 FUNC    LOCAL   DEFAULT     2 _Z5closeh
+    97: 0x00000AF4   112 FUNC    LOCAL   DEFAULT     2 _Z6sockethhjh.part.0
+    98: 0x008004E1     2 OBJECT  LOCAL   DEFAULT     3 _ZL10local_port
+    99: 0x00000B64    42 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP4stopEv
+   100: 0x00800527    16 OBJECT  LOCAL   DEFAULT     3 _ZN13EthernetClass12_server_portE
+   101: 0x00000B8E   128 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class27send_data_processing_offsetEhjPKhj.constprop.33
+   102: 0x00000C0E   140 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class20recv_data_processingEhPhjh.constprop.29
+   103: 0x00000C9A    76 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient4peekEv
+   104: 0x00000CE6    54 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP4peekEv
+   105: 0x00000D1C    48 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class12readSnRX_RSREh
+   106: 0x00000D4C    56 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class17getRXReceivedSizeEh.constprop.28
+   107: 0x00000D84    18 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient9availableEv
+   108: 0x00000D96    48 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class12readSnTX_FSREh
+   109: 0x00000DC6    56 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class13getTXFreeSizeEh.constprop.31
+   110: 0x00000DFE   100 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP5writeEPKhj
+   111: 0x00000E62    82 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP9endPacketEv
+   112: 0x00000EB4    34 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class12writeSnDPORTEhj
+   113: 0x00000ED6    24 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class11writeSnDIPREhPh
+   114: 0x00000EEE    92 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP11beginPacketE9IPAddressj
+   115: 0x00000F4A     8 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class8readSnSREh
+   116: 0x00000F52    16 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient6statusEv
+   117: 0x00000F62   208 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetServer5beginEv
+   118: 0x008003F4    48 OBJECT  LOCAL   DEFAULT     1 _ZTV14EthernetClient
+   119: 0x00001032    70 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient9connectedEv
+   120: 0x00001078   130 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient4stopEv
+   121: 0x000010FA   242 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetServer6acceptEv
+   122: 0x000011EC   198 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient5writeEPKhj
+   123: 0x000012B2   214 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetServer5writeEPKhj
+   124: 0x00001388   266 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient7connectE9IPAddressj
+   125: 0x00800194     2 OBJECT  LOCAL   DEFAULT     1 _ZN14EthernetClient8_srcportE
+   126: 0x00001492   118 FUNC    LOCAL   DEFAULT     2 _Z4recvhPhi
+   127: 0x00001508     8 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient4readEPhj
+   128: 0x00001510    52 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient4readEv
+   129: 0x00001544    62 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP4readEPhj
+   130: 0x00001582    84 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP4readEv
+   131: 0x000015D6   226 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP14beginMulticastE9IPAddressj
+   132: 0x000016B8    90 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP5beginEj
+   133: 0x00001712     8 FUNC    LOCAL   DEFAULT     2 _ZN10W5500Class8readSnMREh
+   134: 0x0000171A    16 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient15getNoDelayedACKEv
+   135: 0x0000172A    44 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient15setNoDelayedACKEb
+   136: 0x00001756     8 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient13getSocketModeEv
+   137: 0x0000175E    14 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP15getUnicastBlockEv
+   138: 0x0000176C    44 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP15setUnicastBlockEb
+   139: 0x00001798    16 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP17getBroadcastBlockEv
+   140: 0x000017A8    44 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP17setBroadcastBlockEb
+   141: 0x000017D4     8 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP13getSocketModeEv
+   142: 0x000017DC   108 FUNC    LOCAL   DEFAULT     2 _ZN8SPIClass5beginEv
+   143: 0x008004E0     1 OBJECT  LOCAL   DEFAULT     3 _ZN8SPIClass11initializedE
+   144: 0x00001848   450 FUNC    LOCAL   DEFAULT     2 _ZN13EthernetClass5beginEPh9IPAddressS1_S1_S1_.constprop.46
+   145: 0x00800662    43 OBJECT  LOCAL   DEFAULT     3 Ethernet
+   146: 0x00001A0A   184 FUNC    LOCAL   DEFAULT     2 _ZN8ModbusIP6configEPh9IPAddressS1_S1_S1_.constprop.45
+   147: 0x0080069F    21 OBJECT  LOCAL   DEFAULT     3 mbEthernet
+   148: 0x00001AC2    20 FUNC    LOCAL   DEFAULT     2 twi_stop1
+   149: 0x00001AD6    78 FUNC    LOCAL   DEFAULT     2 twi_transmit1
+   150: 0x008004BD     1 OBJECT  LOCAL   DEFAULT     3 twi_txBufferLength
+   151: 0x0080049D    32 OBJECT  LOCAL   DEFAULT     3 twi_txBuffer
+   152: 0x00001B24     2 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire5flushEv
+   153: 0x00001B26    30 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire4peekEv
+   154: 0x008004E8     1 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire13rxBufferIndexE
+   155: 0x008004E7     1 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire14rxBufferLengthE
+   156: 0x0080047D    32 OBJECT  LOCAL   DEFAULT     3 _ZN7TwoWire8rxBufferE
+   157: 0x00001B44    38 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire4readEv
+   158: 0x00001B6A    14 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire9availableEv
+   159: 0x00001B78    90 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire5writeEPKhj
+   160: 0x00001BD2    94 FUNC    LOCAL   DEFAULT     2 _ZN7TwoWire5writeEh
+   161: 0x00001C30     6 FUNC    LOCAL   DEFAULT     2 _ZN5Print17availableForWriteEv
+   162: 0x00001C36   232 FUNC    LOCAL   DEFAULT     2 _ZL26CalculateResonantFrequencyh
+   163: 0x00800474     1 OBJECT  LOCAL   DEFAULT     3 g_nCaptureFlags
+   164: 0x00800475     2 OBJECT  LOCAL   DEFAULT     3 g_nCPUTimerHighWord
+   165: 0x00800479     2 OBJECT  LOCAL   DEFAULT     3 g_nCPUTimerLowWord
+   166: 0x00800477     2 OBJECT  LOCAL   DEFAULT     3 g_nDriveTimerHighWord
+   167: 0x0080047B     2 OBJECT  LOCAL   DEFAULT     3 g_nDriveTimerLowWord
+   168: 0x008004EC     4 OBJECT  LOCAL   DEFAULT     3 g_nResFreq
+   169: 0x00001D1E    60 FUNC    LOCAL   DEFAULT     2 _ZN6Modbus17exceptionResponseEhh
+   170: 0x00001D5A  1482 FUNC    LOCAL   DEFAULT     2 _ZN6Modbus10receivePDUEPh
+   171: 0x00002324   166 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP11parsePacketEv
+   172: 0x000023CA  1298 FUNC    LOCAL   DEFAULT     2 _ZN9DNSClient13getHostByNameEPKcR9IPAddress
+   173: 0x0080064E     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.86
+   174: 0x000028DC   230 FUNC    LOCAL   DEFAULT     2 _ZN14EthernetClient7connectEPKcj
+   175: 0x008003BE    54 OBJECT  LOCAL   DEFAULT     1 _ZTV11EthernetUDP
+   176: 0x000029C2   230 FUNC    LOCAL   DEFAULT     2 _ZN11EthernetUDP11beginPacketEPKcj
+   177: 0x00002AA8   354 FUNC    LOCAL   DEFAULT     2 _ZL14readMCP4725DAChR15TMCP4725setting
+   178: 0x00800693    12 OBJECT  LOCAL   DEFAULT     3 Wire1
+   179: 0x00002C0A   164 FUNC    LOCAL   DEFAULT     2 _ZL19fastwriteMCP4725DAChR15TMCP4725settingj20MCP4725_PD_MODE_ENUM.constprop.35
+   180: 0x00002CAE   260 FUNC    LOCAL   DEFAULT     2 _ZL15writeMCP4725DAChR15TMCP4725settingj20MCP4725_PD_MODE_ENUMb.constprop.34
+   181: 0x00002DB2     4 FUNC    LOCAL   DEFAULT     2 __cxa_pure_virtual
+   182: 0x00002DB6   178 FUNC    LOCAL   DEFAULT     2 _ZN5Print11printNumberEmh
+   183: 0x00002E68   148 FUNC    LOCAL   DEFAULT     2 _ZNK9IPAddress7printToER5Print
+   184: 0x00003756   376 FUNC    LOCAL   DEFAULT     2 _GLOBAL__I_65535_0_main.cpp.o.3585
+   185: 0x0080059F     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.90
+   186: 0x008005A5     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.89
+   187: 0x00800424    18 OBJECT  LOCAL   DEFAULT     1 _ZTV14HardwareSerial
+   188: 0x00800648     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.87
+   189: 0x00800654     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.85
+   190: 0x0080065C     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.84
+   191: 0x0080068D     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.83
+   192: 0x00800436    18 OBJECT  LOCAL   DEFAULT     1 _ZTV7TwoWire
+   193: 0x008006DF     6 OBJECT  LOCAL   DEFAULT     3 _ZL11INADDR_NONE.lto_priv.82
+   194: 0x008006D5    10 OBJECT  LOCAL   DEFAULT     3 g_OCDLimit
+   195: 0x008006CB    10 OBJECT  LOCAL   DEFAULT     3 g_AUXOut
+   196: 0x008006B4    23 OBJECT  LOCAL   DEFAULT     3 mbSerial
+   197: 0x00800448    14 OBJECT  LOCAL   DEFAULT     1 _ZTV14EthernetServer
+   198: 0x00800521     1 OBJECT  LOCAL   DEFAULT     3 timer0_exact.2354
+   199: 0x008001A2    28 OBJECT  LOCAL   DEFAULT     1 _ZL17conexpEE_Defaults
+   200: 0x008004E5     2 OBJECT  LOCAL   DEFAULT     3 twi_onSlaveTransmit
+   201: 0x008004E3     2 OBJECT  LOCAL   DEFAULT     3 twi_onSlaveReceive
+   202: 0x00800104   144 OBJECT  LOCAL   DEFAULT     1 g_regs
+   203: 0x000000BE     2 OBJECT  LOCAL   DEFAULT     2 _ZL18g_conTCDAQRevision
+   204: 0x000000B4    10 OBJECT  LOCAL   DEFAULT     2 _ZL21g_constrModbusVersion
+   205: 0x008004E9     1 OBJECT  LOCAL   DEFAULT     3 g_bEnablePinLatch
+   206: 0x008002BE   256 OBJECT  LOCAL   DEFAULT     1 _ZL10_auchCRCHi
+   207: 0x008001BE   256 OBJECT  LOCAL   DEFAULT     1 _ZL10_auchCRCLo
+   208: 0x00800520     1 OBJECT  LOCAL   DEFAULT     3 g_bHaveADCReadings
+   209: 0x00800514    12 OBJECT  LOCAL   DEFAULT     3 g_ADC_LastReadings
+   210: 0x00800508    12 OBJECT  LOCAL   DEFAULT     3 g_ADC_MinReadings
+   211: 0x008004FC    12 OBJECT  LOCAL   DEFAULT     3 g_ADC_MaxReadings
+   212: 0x008004F0    12 OBJECT  LOCAL   DEFAULT     3 g_ADC_AvgReadings
+   213: 0x008004EA     2 OBJECT  LOCAL   DEFAULT     3 g_nLimitCnt
+   214: 0x008004DF     1 OBJECT  LOCAL   DEFAULT     3 twi_rxBufferIndex
+   215: 0x008004BF    32 OBJECT  LOCAL   DEFAULT     3 twi_rxBuffer
+   216: 0x008004BE     1 OBJECT  LOCAL   DEFAULT     3 twi_txBufferIndex
+   217: 0x00800102     2 OBJECT  LOCAL   DEFAULT     1 _ZZ11__vector_21E19g_nADCSampleCounter
+   218: 0x0080045C    24 OBJECT  LOCAL   DEFAULT     3 _ZZ11__vector_21E19g_nADC_Accummulator
+   219: 0x00800100     2 OBJECT  LOCAL   DEFAULT     1 _ZL15g_nLEDTickCount
+   220: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS malloc.c
+   221: 0x0000003E     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_H__
+   222: 0x0000003D     0 NOTYPE  LOCAL   DEFAULT   ABS __SP_L__
+   223: 0x0000003F     0 NOTYPE  LOCAL   DEFAULT   ABS __SREG__
+   224: 0x00000000     0 NOTYPE  LOCAL   DEFAULT   ABS __tmp_reg__
+   225: 0x00000001     0 NOTYPE  LOCAL   DEFAULT   ABS __zero_reg__
+   226: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _clear_bss.o
+   227: 0x00000158     0 NOTYPE  LOCAL   DEFAULT     2 .do_clear_bss_start
+   228: 0x00000156     0 NOTYPE  LOCAL   DEFAULT     2 .do_clear_bss_loop
+   229: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _udivmodsi4.o
+   230: 0x00004424     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodsi4_ep
+   231: 0x0000440A     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodsi4_loop
+   232: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _udivmodhi4.o
+   233: 0x00004476     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodhi4_ep
+   234: 0x00004468     0 NOTYPE  LOCAL   DEFAULT     2 __udivmodhi4_loop
+   235: 0x00000000     0 FILE    LOCAL   DEFAULT   ABS _exit.o
+   236: 0x00004810     0 NOTYPE  LOCAL   DEFAULT     2 __stop_program
+   237: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_38
+   238: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_22
+   239: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_28
+   240: 0x000043E4     0 NOTYPE  GLOBAL  DEFAULT     2 eeprom_write_r18
+   241: 0x00004442    30 NOTYPE  GLOBAL  HIDDEN      2 __umulhisi3
+   242: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_1
+   243: 0x000045A8    18 NOTYPE  GLOBAL  HIDDEN      2 __muldi3_6
+   244: 0x00003384   138 FUNC    GLOBAL  DEFAULT     2 __vector_32
+   245: 0x0000FFA0     0 NOTYPE  GLOBAL  DEFAULT   ABS __DATA_REGION_LENGTH__
+   246: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_34
+   247: 0x00004460    40 NOTYPE  GLOBAL  HIDDEN      2 __udivmodhi4
+   248: 0x000000B4     0 NOTYPE  GLOBAL  DEFAULT     2 __trampolines_start
+   249: 0x00004812     0 NOTYPE  GLOBAL  DEFAULT     2 _etext
+   250: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_24
+   251: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_12
+   252: 0x00000000     0 NOTYPE  WEAK    DEFAULT   UND _Z12serialEvent1v
+   253: 0x0000017C     0 NOTYPE  GLOBAL  DEFAULT     2 __bad_interrupt
+   254: 0x00004B6E     0 NOTYPE  GLOBAL  DEFAULT   ABS __data_load_end
+   255: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_6
+   256: 0x000045BA   312 FUNC    GLOBAL  DEFAULT     2 malloc
+   257: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_31
+   258: 0x0000332E    86 FUNC    GLOBAL  DEFAULT     2 __vector_35
+   259: 0x00800198     2 OBJECT  GLOBAL  DEFAULT     1 __malloc_heap_start
+   260: 0x000000B4     0 NOTYPE  GLOBAL  DEFAULT     2 __trampolines_end
+   261: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_39
+   262: 0x000034C2    80 FUNC    GLOBAL  DEFAULT     2 __vector_3
+   263: 0x000044EA     4 NOTYPE  GLOBAL  HIDDEN      2 __umoddi3
+   264: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_23
+   265: 0x00004812     0 NOTYPE  GLOBAL  DEFAULT   ABS __data_load_start
+   266: 0x0000012C     0 NOTYPE  GLOBAL  DEFAULT     2 __dtors_end
+   267: 0x008006E9     0 NOTYPE  GLOBAL  DEFAULT     3 __bss_end
+   268: 0x000044EE     2 NOTYPE  GLOBAL  HIDDEN      2 __udivdi3
+   269: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_30
+   270: 0x00000400     0 NOTYPE  GLOBAL  DEFAULT   ABS __LOCK_REGION_LENGTH__
+   271: 0x00004804    10 FUNC    GLOBAL  DEFAULT     2 abort
+   272: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_25
+   273: 0x008006E5     2 OBJECT  GLOBAL  DEFAULT     3 __brkval
+   274: 0x000043E2    28 FUNC    GLOBAL  DEFAULT     2 eeprom_write_byte
+   275: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_11
+   276: 0x0000012C     0 NOTYPE  WEAK    DEFAULT     2 __init
+   277: 0x0000340E    54 FUNC    GLOBAL  DEFAULT     2 __vector_13
+   278: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_17
+   279: 0x00002F80    76 FUNC    GLOBAL  DEFAULT     2 __vector_19
+   280: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_7
+   281: 0x0000014E    16 NOTYPE  GLOBAL  HIDDEN      2 __do_clear_bss
+   282: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_41
+   283: 0x0081001C     0 NOTYPE  GLOBAL  DEFAULT     4 __eeprom_end
+   284: 0x00800196     2 OBJECT  GLOBAL  DEFAULT     1 __malloc_heap_end
+   285: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_43
+   286: 0x00000000     0 NOTYPE  WEAK    DEFAULT   UND _Z11serialEventv
+   287: 0x00000000     0 NOTYPE  GLOBAL  DEFAULT     2 __vectors
+   288: 0x000043D2    16 FUNC    GLOBAL  DEFAULT     2 eeprom_read_byte
+   289: 0x00003512    50 FUNC    GLOBAL  DEFAULT     2 __vector_27
+   290: 0x0080045C     0 NOTYPE  GLOBAL  DEFAULT     1 __data_end
+   291: 0x00000000     0 NOTYPE  WEAK    DEFAULT     2 __vector_default
+   292: 0x00003544    20 FUNC    GLOBAL  DEFAULT     2 __vector_5
+   293: 0x0000326E   192 FUNC    GLOBAL  DEFAULT     2 __vector_33
+   294: 0x00000400     0 NOTYPE  GLOBAL  DEFAULT   ABS __SIGNATURE_REGION_LENGTH__
+   295: 0x00004488    12 NOTYPE  GLOBAL  HIDDEN      2 __tablejump2__
+   296: 0x0000012A     0 NOTYPE  GLOBAL  DEFAULT     2 __ctors_start
+   297: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_37
+   298: 0x00000138    22 NOTYPE  GLOBAL  HIDDEN      2 __do_copy_data
+   299: 0x0080045C     0 NOTYPE  GLOBAL  DEFAULT     3 __bss_start
+   300: 0x000038CE  2820 FUNC    GLOBAL  DEFAULT     2 main
+   301: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_4
+   302: 0x00003558    20 FUNC    GLOBAL  DEFAULT     2 __vector_44
+   303: 0x00810000    28 OBJECT  GLOBAL  DEFAULT     4 ee_memory
+   304: 0x000044F0    22 NOTYPE  GLOBAL  HIDDEN      2 __udivdi3_umoddi3
+   305: 0x00000000     0 NOTYPE  WEAK    DEFAULT   ABS __heap_end
+   306: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_9
+   307: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_2
+   308: 0x00000400     0 NOTYPE  GLOBAL  DEFAULT   ABS __USER_SIGNATURE_REGION_LENGTH__
+   309: 0x0000356C   490 FUNC    GLOBAL  DEFAULT     2 __vector_21
+   310: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_15
+   311: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_36
+   312: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_29
+   313: 0x008006E9     0 NOTYPE  GLOBAL  DEFAULT     3 __heap_start
+   314: 0x0000012C     0 NOTYPE  GLOBAL  DEFAULT     2 __dtors_start
+   315: 0x0000012C     0 NOTYPE  GLOBAL  DEFAULT     2 __ctors_end
+   316: 0x000008FF     0 NOTYPE  WEAK    DEFAULT   ABS __stack
+   317: 0x00003030   574 FUNC    GLOBAL  DEFAULT     2 __vector_40
+   318: 0x0080045C     0 NOTYPE  GLOBAL  DEFAULT     1 _edata
+   319: 0x008006E9     0 NOTYPE  GLOBAL  DEFAULT     3 _end
+   320: 0x00004506   162 NOTYPE  GLOBAL  HIDDEN      2 __udivmod64
+   321: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_8
+   322: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_26
+   323: 0x00004496    84 NOTYPE  GLOBAL  HIDDEN      2 __umulsidi3_helper
+   324: 0x0000480E     0 NOTYPE  WEAK    HIDDEN      2 exit
+   325: 0x008006E7     2 OBJECT  GLOBAL  DEFAULT     3 __flp
+   326: 0x000043FE    68 NOTYPE  GLOBAL  HIDDEN      2 __udivmodsi4
+   327: 0x00000000     0 NOTYPE  WEAK    DEFAULT   UND _Z17Serial1_availablev
+   328: 0x00010000     0 NOTYPE  GLOBAL  DEFAULT   ABS __EEPROM_REGION_LENGTH__
+   329: 0x0000480E     0 NOTYPE  GLOBAL  HIDDEN      2 _exit
+   330: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_14
+   331: 0x00003444   126 FUNC    GLOBAL  DEFAULT     2 __vector_10
+   332: 0x00002EFC   132 FUNC    GLOBAL  DEFAULT     2 __vector_16
+   333: 0x00800100     0 NOTYPE  GLOBAL  DEFAULT     1 __data_start
+   334: 0x00002FCC   100 FUNC    GLOBAL  DEFAULT     2 __vector_18
+   335: 0x00000003     0 NOTYPE  GLOBAL  DEFAULT   ABS __FUSE_REGION_LENGTH__
+   336: 0x00004494     2 NOTYPE  GLOBAL  HIDDEN      2 __umulsidi3
+   337: 0x00020000     0 NOTYPE  GLOBAL  DEFAULT   ABS __TEXT_REGION_LENGTH__
+   338: 0x0080019A     2 OBJECT  GLOBAL  DEFAULT     1 __malloc_margin
+   339: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_20
+   340: 0x0000017C     0 NOTYPE  WEAK    DEFAULT     2 __vector_42
+   341: 0x000046F2   274 FUNC    GLOBAL  DEFAULT     2 free
+   342: 0x0000015E    22 NOTYPE  GLOBAL  HIDDEN      2 __do_global_ctors
+
+
+        1 Source File: tcdaq.elf
+
+        Disassembly Output File: tcdaq.dis
+
+        Memory Mappings:
+            ROM Memory Map:
+                0x0000 - 0x7FFF  (Size: 0x8000)
+            RAM Memory Map:
+                0x0000 - 0x00FF  (Size: 0x0100)
+                0x0100 - 0x08FF  (Size: 0x0800)
+             IO Memory Map:
+                0x0000 - 0x003F  (Size: 0x0040)
+             EE Memory Map:
+                0x0000 - 0x03FF  (Size: 0x0400)
+
+        186 Entry Points:
+                0x0000
+                0x0004
+                0x0008
+                0x000C
+                0x0010
+                0x0014
+                0x0018
+                0x001C
+                0x0020
+                0x0024
+                0x0028
+                0x002C
+                0x0030
+                0x0034
+                0x0038
+                0x003C
+                0x0040
+                0x0044
+                0x0048
+                0x004C
+                0x0050
+                0x0054
+                0x0058
+                0x005C
+                0x0060
+                0x0064
+                0x0068
+                0x006C
+                0x0070
+                0x0074
+                0x0078
+                0x007C
+                0x0080
+                0x0084
+                0x0088
+                0x008C
+                0x0090
+                0x0094
+                0x0098
+                0x009C
+                0x00A0
+                0x00A4
+                0x00A8
+                0x00AC
+                0x00B0
+                0x0180
+                0x01B2
+                0x026C
+                0x0298
+                0x02AE
+                0x02BE
+                0x02C0
+                0x02EC
+                0x0300
+                0x0304
+                0x030A
+                0x03E0
+                0x0458
+                0x047E
+                0x0524
+                0x0588
+                0x05A0
+                0x05A2
+                0x05A4
+                0x05FE
+                0x061C
+                0x0644
+                0x0660
+                0x0678
+                0x068C
+                0x06CE
+                0x075C
+                0x079C
+                0x07CA
+                0x07CC
+                0x07F6
+                0x081A
+                0x0830
+                0x0838
+                0x0842
+                0x084C
+                0x084E
+                0x085C
+                0x0862
+                0x08C6
+                0x08E2
+                0x08FE
+                0x0962
+                0x09A4
+                0x09C0
+                0x09DC
+                0x0A00
+                0x0A2C
+                0x0A34
+                0x0A54
+                0x0A62
+                0x0A74
+                0x0ABA
+                0x0ADA
+                0x0AF4
+                0x0B64
+                0x0B8E
+                0x0C0E
+                0x0C9A
+                0x0CE6
+                0x0D1C
+                0x0D4C
+                0x0D84
+                0x0D96
+                0x0DC6
+                0x0DFE
+                0x0E62
+                0x0EB4
+                0x0ED6
+                0x0EEE
+                0x0F4A
+                0x0F52
+                0x0F62
+                0x1032
+                0x1078
+                0x10FA
+                0x11EC
+                0x12B2
+                0x1388
+                0x1492
+                0x1508
+                0x1510
+                0x1544
+                0x1582
+                0x15D6
+                0x16B8
+                0x1712
+                0x171A
+                0x172A
+                0x1756
+                0x175E
+                0x176C
+                0x1798
+                0x17A8
+                0x17D4
+                0x17DC
+                0x1848
+                0x1A0A
+                0x1AC2
+                0x1AD6
+                0x1B24
+                0x1B26
+                0x1B44
+                0x1B6A
+                0x1B78
+                0x1BD2
+                0x1C30
+                0x1C36
+                0x1D1E
+                0x1D5A
+                0x2324
+                0x23CA
+                0x28DC
+                0x29C2
+                0x2AA8
+                0x2C0A
+                0x2CAE
+                0x2DB2
+                0x2DB6
+                0x2E68
+                0x2EFC
+                0x2F80
+                0x2FCC
+                0x3030
+                0x326E
+                0x332E
+                0x3384
+                0x340E
+                0x3444
+                0x34C2
+                0x3512
+                0x3544
+                0x3558
+                0x356C
+                0x3756
+                0x38CE
+                0x43D2
+                0x43E2
+                0x45BA
+                0x46F2
+                0x4804
+
+        0 Exit Functions Defined
+
+        220 Unique ROM Labels Defined:
+                0x0000=RESET_vect,__vectors,__vector_default
+                0x0004=INT0_vect
+                0x0008=INT1_vect
+                0x000C=PCINT0_vect
+                0x0010=PCINT1_vect
+                0x0014=PCINT2_vect
+                0x0018=WDT_vect
+                0x001C=TIMER2_COMPA_vect
+                0x0020=TIMER2_COMPB_vect
+                0x0024=TIMER2_OVF_vect
+                0x0028=TIMER1_CAPT_vect
+                0x002C=TIMER1_COMPA_vect
+                0x0030=TIMER1_COMPB_vect
+                0x0034=TIMER1_OVF_vect
+                0x0038=TIMER0_COMPA_vect
+                0x003C=TIMER0_COMPB_vect
+                0x0040=TIMER0_OVF_vect
+                0x0044=SPI0_STC_vect
+                0x0048=USART0_RX_vect
+                0x004C=USART0_UDRE_vect
+                0x0050=USART0_TX_vect
+                0x0054=ADC_vect
+                0x0058=EE_READY_vect
+                0x005C=ANALOG_COMP_vect
+                0x0060=TWI0_vect
+                0x0064=SPM_Ready_vect
+                0x0068=USART0_START_vect
+                0x006C=PCINT3_vect
+                0x0070=USART1_RX_vect
+                0x0074=USART1_UDRE_vect
+                0x0078=USART1_TX_vect
+                0x007C=USART1_START_vect
+                0x0080=TIMER3_CAPT_vect
+                0x0084=TIMER3_COMPA_vect
+                0x0088=TIMER3_COMPB_vect
+                0x008C=TIMER3_OVF_vect
+                0x0090=CFD_vect
+                0x0094=PTC_EOC_vect
+                0x0098=PTC_WCOMP_vect
+                0x009C=SPI1_STC_vect
+                0x00A0=TWI1_vect
+                0x00A4=TIMER4_CAPT_vect
+                0x00A8=TIMER4_COMPA_vect
+                0x00AC=TIMER4_COMPB_vect
+                0x00B0=TIMER4_OVF_vect
+                0x00B4=_ZL21g_constrModbusVersion,__trampolines_start,__trampolines_end
+                0x00BE=_ZL18g_conTCDAQRevision
+                0x00C0=port_to_mode_PGM
+                0x00CC=port_to_output_PGM
+                0x00D8=digital_pin_to_port_PGM
+                0x00F3=digital_pin_to_bit_mask_PGM
+                0x010E=digital_pin_to_timer_PGM
+                0x012A=__ctors_start
+                0x012C=__dtors_end,__init,__dtors_start,__ctors_end
+                0x0138=__do_copy_data
+                0x014E=__do_clear_bss
+                0x0156=_do_clear_bss_loop
+                0x0158=_do_clear_bss_start
+                0x015E=__do_global_ctors
+                0x017C=__vector_38,__vector_22,__vector_28,__vector_1,__vector_34,__vector_24,__vector_12,__bad_interrupt,__vector_6,__vector_31,__vector_39,__vector_23,__vector_30,__vector_25,__vector_11,__vector_17,__vector_7,__vector_41,__vector_43,__vector_37,__vector_4,__vector_9,__vector_2,__vector_15,__vector_36,__vector_29,__vector_8,__vector_26,__vector_14,__vector_20,__vector_42
+                0x0180=_ZL4crc8PKhh_constprop_70
+                0x01B2=_ZN7TwoWire15endTransmissionEh_constprop_54
+                0x026C=_ZN14EthernetServer5writeEh
+                0x0298=_ZN14EthernetClienteqERKS_
+                0x02AE=_ZN14EthernetClientcvbEv
+                0x02BE=_ZN14EthernetClient5flushEv
+                0x02C0=_ZN14EthernetClient5writeEh
+                0x02EC=_ZN14EthernetClientneERKS_
+                0x0300=_ZN14EthernetClientneEb
+                0x0304=_ZN14EthernetClienteqEb
+                0x030A=digitalWrite
+                0x03E0=pinMode
+                0x0458=delayMicroseconds
+                0x047E=micros
+                0x0524=delay
+                0x0588=millis
+                0x05A0=_ZN7TwoWire16onRequestServiceEv
+                0x05A2=_ZN7TwoWire16onReceiveServiceEPhi
+                0x05A4=_ZN5Print5writeEPKhj
+                0x05FE=_ZN14HardwareSerial17availableForWriteEv
+                0x061C=_ZN14HardwareSerial4readEv
+                0x0644=_ZN14HardwareSerial4peekEv
+                0x0660=_ZN14HardwareSerial9availableEv
+                0x0678=_Z17Serial0_availablev
+                0x068C=_ZN14HardwareSerial17_tx_udr_empty_irqEv
+                0x06CE=_ZN14HardwareSerial5writeEh
+                0x075C=_ZN14HardwareSerial5flushEv
+                0x079C=_Z14serialEventRunv
+                0x07CA=_ZN5Print5flushEv
+                0x07CC=_ZN6Modbus14searchRegisterEj
+                0x07F6=_ZN6Modbus4HregEjj
+                0x081A=_ZN6Modbus3RegEj
+                0x0830=_ZN11EthernetUDP9availableEv
+                0x0838=_ZN10W5500Class7resetSSEv
+                0x0842=_ZN10W5500Class5setSSEv
+                0x084C=_ZN8SPIClass14endTransactionEv
+                0x084E=_ZN8SPIClass8transferEh
+                0x085C=_ZN8SPIClass16beginTransactionE11SPISettings
+                0x0862=_ZN10W5500Class4readEjhPhj
+                0x08C6=_ZN14EthernetClient9remoteMACEPh
+                0x08E2=_ZN14EthernetClient8remoteIPEPh
+                0x08FE=_ZN10W5500Class5writeEjhPKhj
+                0x0962=_ZN10W5500Class5writeEjhh
+                0x09A4=_ZN11EthernetUDP9remoteMACEPh
+                0x09C0=_ZN11EthernetUDP8remoteIPEPh
+                0x09DC=_ZN11EthernetUDP5flushEv
+                0x0A00=_ZN11EthernetUDP5writeEh
+                0x0A2C=_ZN11EthernetUDP10remotePortEv
+                0x0A34=_ZN11EthernetUDP8remoteIPEv
+                0x0A54=_ZN11EthernetUDP4readEPcj
+                0x0A62=_ZN10W5500Class7writeSnEhjh
+                0x0A74=_ZN10W5500Class6readSnEhj
+                0x0ABA=_ZN10W5500Class9execCmdSnEh7SockCMD_constprop_49
+                0x0ADA=_Z5closeh
+                0x0AF4=_Z6sockethhjh_part_0
+                0x0B64=_ZN11EthernetUDP4stopEv
+                0x0B8E=_ZN10W5500Class27send_data_processing_offsetEhjPKhj_constprop_33
+                0x0C0E=_ZN10W5500Class20recv_data_processingEhPhjh_constprop_29
+                0x0C9A=_ZN14EthernetClient4peekEv
+                0x0CE6=_ZN11EthernetUDP4peekEv
+                0x0D1C=_ZN10W5500Class12readSnRX_RSREh
+                0x0D4C=_ZN10W5500Class17getRXReceivedSizeEh_constprop_28
+                0x0D84=_ZN14EthernetClient9availableEv
+                0x0D96=_ZN10W5500Class12readSnTX_FSREh
+                0x0DC6=_ZN10W5500Class13getTXFreeSizeEh_constprop_31
+                0x0DFE=_ZN11EthernetUDP5writeEPKhj
+                0x0E62=_ZN11EthernetUDP9endPacketEv
+                0x0EB4=_ZN10W5500Class12writeSnDPORTEhj
+                0x0ED6=_ZN10W5500Class11writeSnDIPREhPh
+                0x0EEE=_ZN11EthernetUDP11beginPacketE9IPAddressj
+                0x0F4A=_ZN10W5500Class8readSnSREh
+                0x0F52=_ZN14EthernetClient6statusEv
+                0x0F62=_ZN14EthernetServer5beginEv
+                0x1032=_ZN14EthernetClient9connectedEv
+                0x1078=_ZN14EthernetClient4stopEv
+                0x10FA=_ZN14EthernetServer6acceptEv
+                0x11EC=_ZN14EthernetClient5writeEPKhj
+                0x12B2=_ZN14EthernetServer5writeEPKhj
+                0x1388=_ZN14EthernetClient7connectE9IPAddressj
+                0x1492=_Z4recvhPhi
+                0x1508=_ZN14EthernetClient4readEPhj
+                0x1510=_ZN14EthernetClient4readEv
+                0x1544=_ZN11EthernetUDP4readEPhj
+                0x1582=_ZN11EthernetUDP4readEv
+                0x15D6=_ZN11EthernetUDP14beginMulticastE9IPAddressj
+                0x16B8=_ZN11EthernetUDP5beginEj
+                0x1712=_ZN10W5500Class8readSnMREh
+                0x171A=_ZN14EthernetClient15getNoDelayedACKEv
+                0x172A=_ZN14EthernetClient15setNoDelayedACKEb
+                0x1756=_ZN14EthernetClient13getSocketModeEv
+                0x175E=_ZN11EthernetUDP15getUnicastBlockEv
+                0x176C=_ZN11EthernetUDP15setUnicastBlockEb
+                0x1798=_ZN11EthernetUDP17getBroadcastBlockEv
+                0x17A8=_ZN11EthernetUDP17setBroadcastBlockEb
+                0x17D4=_ZN11EthernetUDP13getSocketModeEv
+                0x17DC=_ZN8SPIClass5beginEv
+                0x1848=_ZN13EthernetClass5beginEPh9IPAddressS1_S1_S1__constprop_46
+                0x1A0A=_ZN8ModbusIP6configEPh9IPAddressS1_S1_S1__constprop_45
+                0x1AC2=twi_stop1
+                0x1AD6=twi_transmit1
+                0x1B24=_ZN7TwoWire5flushEv
+                0x1B26=_ZN7TwoWire4peekEv
+                0x1B44=_ZN7TwoWire4readEv
+                0x1B6A=_ZN7TwoWire9availableEv
+                0x1B78=_ZN7TwoWire5writeEPKhj
+                0x1BD2=_ZN7TwoWire5writeEh
+                0x1C30=_ZN5Print17availableForWriteEv
+                0x1C36=_ZL26CalculateResonantFrequencyh
+                0x1D1E=_ZN6Modbus17exceptionResponseEhh
+                0x1D5A=_ZN6Modbus10receivePDUEPh
+                0x2324=_ZN11EthernetUDP11parsePacketEv
+                0x23CA=_ZN9DNSClient13getHostByNameEPKcR9IPAddress
+                0x28DC=_ZN14EthernetClient7connectEPKcj
+                0x29C2=_ZN11EthernetUDP11beginPacketEPKcj
+                0x2AA8=_ZL14readMCP4725DAChR15TMCP4725setting
+                0x2C0A=_ZL19fastwriteMCP4725DAChR15TMCP4725settingj20MCP4725_PD_MODE_ENUM_constprop_35
+                0x2CAE=_ZL15writeMCP4725DAChR15TMCP4725settingj20MCP4725_PD_MODE_ENUMb_constprop_34
+                0x2DB2=__cxa_pure_virtual
+                0x2DB6=_ZN5Print11printNumberEmh
+                0x2E68=_ZNK9IPAddress7printToER5Print
+                0x2EFC=__vector_16
+                0x2F80=__vector_19
+                0x2FCC=__vector_18
+                0x3030=__vector_40
+                0x326E=__vector_33
+                0x332E=__vector_35
+                0x3384=__vector_32
+                0x340E=__vector_13
+                0x3444=__vector_10
+                0x34C2=__vector_3
+                0x3512=__vector_27
+                0x3544=__vector_5
+                0x3558=__vector_44
+                0x356C=__vector_21
+                0x3756=_GLOBAL__I_65535_0_main_cpp_o_3585
+                0x38CE=main
+                0x43D2=eeprom_read_byte
+                0x43E2=eeprom_write_byte
+                0x43E4=eeprom_write_r18
+                0x43FE=__udivmodsi4
+                0x440A=__udivmodsi4_loop
+                0x4424=__udivmodsi4_ep
+                0x4442=__umulhisi3
+                0x4460=__udivmodhi4
+                0x4468=__udivmodhi4_loop
+                0x4476=__udivmodhi4_ep
+                0x4488=__tablejump2__
+                0x4494=__umulsidi3
+                0x4496=__umulsidi3_helper
+                0x44EA=__umoddi3
+                0x44EE=__udivdi3
+                0x44F0=__udivdi3_umoddi3
+                0x4506=__udivmod64
+                0x45A8=__muldi3_6
+                0x45BA=malloc
+                0x46F2=free
+                0x4804=abort
+                0x480E=exit,_exit
+                0x4810=__stop_program
+                0x4812=_etext
+
+        247 Unique RAM Labels Defined:
+                0x0000=R0
+                0x0001=R1
+                0x0002=R2
+                0x0003=R3
+                0x0004=R4
+                0x0005=R5
+                0x0006=R6
+                0x0007=R7
+                0x0008=R8
+                0x0009=R9
+                0x000A=R10
+                0x000B=R11
+                0x000C=R12
+                0x000D=R13
+                0x000E=R14
+                0x000F=R15
+                0x0010=R16
+                0x0011=R17
+                0x0012=R18
+                0x0013=R19
+                0x0014=R20
+                0x0015=R21
+                0x0016=R22
+                0x0017=R23
+                0x0018=R24
+                0x0019=R25
+                0x001A=R26
+                0x001B=R27
+                0x001C=R28
+                0x001D=R29
+                0x001E=R30
+                0x001F=R31
+                0x0023=PINB
+                0x0024=DDRB
+                0x0025=PORTB
+                0x0026=PINC
+                0x0027=DDRC
+                0x0028=PORTC
+                0x0029=PIND
+                0x002A=DDRD
+                0x002B=PORTD
+                0x002C=PINE
+                0x002D=DDRE
+                0x002E=PORTE
+                0x0035=TIFR0
+                0x0036=TIFR1
+                0x0037=TIFR2
+                0x0038=TIFR3
+                0x0039=TIFR4
+                0x003B=PCIFR
+                0x003C=EIFR
+                0x003D=EIMSK
+                0x003E=GPIOR0
+                0x003F=EECR
+                0x0040=EEDR
+                0x0041=EEADL
+                0x0042=EEADH
+                0x0043=GTCCR
+                0x0044=TCCR0A
+                0x0045=TCCR0B
+                0x0046=TCNT0
+                0x0047=OCRA0
+                0x0048=OCRB0
+                0x004A=GPIOR1
+                0x004B=GPIOR2
+                0x004C=SPCR0
+                0x004D=SPSR0
+                0x004E=SPDR0
+                0x0050=ACSR
+                0x0051=DWDR
+                0x0053=SMCR
+                0x0054=MCUSR
+                0x0055=MCUCR
+                0x0057=SPMCSR
+                0x005D=SPL
+                0x005E=SPH
+                0x005F=SREG
+                0x0060=WDTCSR
+                0x0061=CLKPR
+                0x0062=XFDCSR
+                0x0064=PRR0
+                0x0065=PRR1
+                0x0066=OSCCAL
+                0x0068=PCICR
+                0x0069=EICRA
+                0x006B=PCMSK0
+                0x006C=PCMSK1
+                0x006D=PCMSK2
+                0x006E=TIMSK0
+                0x006F=TIMSK1
+                0x0070=TIMSK2
+                0x0071=TIMSK3
+                0x0072=TIMSK4
+                0x0073=PCMSK3
+                0x0078=ADCL
+                0x0079=ADCH
+                0x007A=ADCSRA
+                0x007B=ADCSRB
+                0x007C=ADMUX
+                0x007E=DIDR0
+                0x007F=DIDR1
+                0x0080=TCCR1A
+                0x0081=TCCR1B
+                0x0082=TCCR1C
+                0x0084=TCNT1L
+                0x0085=TCNT1H
+                0x0086=ICR1L
+                0x0087=ICR1H
+                0x0088=OCR1AL
+                0x0089=OCR1AH
+                0x008A=OCR1BL
+                0x008B=OCR1BH
+                0x0090=TCCR3A
+                0x0091=TCCR3B
+                0x0092=TCCR3C
+                0x0094=TCNT3L
+                0x0095=TCNT3H
+                0x0096=ICR3L
+                0x0097=ICR3H
+                0x0098=OCR3AL
+                0x0099=OCR3AH
+                0x009A=OCR3BL
+                0x009B=OCR3BH
+                0x00A0=TCCR4A
+                0x00A1=TCCR4B
+                0x00A2=TCCR4C
+                0x00A4=TCNT4L
+                0x00A5=TCNT4H
+                0x00A6=ICR4L
+                0x00A7=ICR4H
+                0x00A8=OCR4AL
+                0x00A9=OCR4AH
+                0x00AA=OCR4BL
+                0x00AB=OCR4BH
+                0x00AC=SPCR1
+                0x00AD=SPSR1
+                0x00AE=SPDR1
+                0x00B0=TCCR2A
+                0x00B1=TCCR2B
+                0x00B2=TCNT2
+                0x00B3=OCR2A
+                0x00B4=OCR2B
+                0x00B6=ASSR
+                0x00B8=TWBR0
+                0x00B9=TWSR0
+                0x00BA=TWAR0
+                0x00BB=TWDR0
+                0x00BC=TWCR0
+                0x00BD=TWAMR0
+                0x00C0=UCSR0A
+                0x00C1=UCSR0B
+                0x00C2=UCSR0C
+                0x00C4=UBRR0L
+                0x00C5=UBRR0H
+                0x00C6=UDR0
+                0x00C7=UDR1
+                0x00C8=UCSR1A
+                0x00C9=UCSR1B
+                0x00CA=UCSR1C
+                0x00CC=UBRR1L
+                0x00CD=UBRR1H
+                0x00D8=TWBR1
+                0x00D9=TWSR1
+                0x00DA=TWAR1
+                0x00DB=TWDR1
+                0x00DC=TWCR1
+                0x00DD=TWAMR1
+                0x0100=_ZL15g_nLEDTickCount,__data_start
+                0x0102=_ZZ11__vector_21E19g_nADCSampleCounter
+                0x0104=g_regs
+                0x0194=_ZN14EthernetClient8_srcportE
+                0x0196=__malloc_heap_end
+                0x0198=__malloc_heap_start
+                0x019A=__malloc_margin
+                0x01A2=_ZL17conexpEE_Defaults
+                0x01BE=_ZL10_auchCRCLo
+                0x02BE=_ZL10_auchCRCHi
+                0x03BE=_ZTV11EthernetUDP
+                0x03F4=_ZTV14EthernetClient
+                0x0424=_ZTV14HardwareSerial
+                0x0436=_ZTV7TwoWire
+                0x0448=_ZTV14EthernetServer
+                0x0456=_ZTV9IPAddress
+                0x045C=_ZZ11__vector_21E19g_nADC_Accummulator,__data_end,__bss_start,_edata
+                0x0474=g_nCaptureFlags
+                0x0475=g_nCPUTimerHighWord
+                0x0477=g_nDriveTimerHighWord
+                0x0479=g_nCPUTimerLowWord
+                0x047B=g_nDriveTimerLowWord
+                0x047D=_ZN7TwoWire8rxBufferE
+                0x049D=twi_txBuffer
+                0x04BD=twi_txBufferLength
+                0x04BE=twi_txBufferIndex
+                0x04BF=twi_rxBuffer
+                0x04DF=twi_rxBufferIndex
+                0x04E0=_ZN8SPIClass11initializedE
+                0x04E1=_ZL10local_port
+                0x04E3=twi_onSlaveReceive
+                0x04E5=twi_onSlaveTransmit
+                0x04E7=_ZN7TwoWire14rxBufferLengthE
+                0x04E8=_ZN7TwoWire13rxBufferIndexE
+                0x04E9=g_bEnablePinLatch
+                0x04EA=g_nLimitCnt
+                0x04EC=g_nResFreq
+                0x04F0=g_ADC_AvgReadings
+                0x04FC=g_ADC_MaxReadings
+                0x0508=g_ADC_MinReadings
+                0x0514=g_ADC_LastReadings
+                0x0520=g_bHaveADCReadings
+                0x0521=timer0_exact_2354
+                0x0522=timer0_fract
+                0x0523=timer0_millis
+                0x0527=_ZN13EthernetClass12_server_portE
+                0x0537=SPI_CS
+                0x0538=twi_inRepStart
+                0x0539=twi_slarw
+                0x053A=twi_masterBuffer
+                0x055A=twi_masterBufferLength
+                0x055B=twi_masterBufferIndex
+                0x055C=twi_error
+                0x055D=twi_sendStop
+                0x055E=twi_state
+                0x055F=_ZN7TwoWire12transmittingE
+                0x0560=_ZN7TwoWire13txBufferIndexE
+                0x0561=_ZN7TwoWire8txBufferE
+                0x0581=_ZN7TwoWire9txAddressE
+                0x0582=_ZN7TwoWire14txBufferLengthE
+                0x0583=ee_RAMShadow
+                0x059F=_ZL11INADDR_NONE_lto_priv_90
+                0x05A5=_ZL11INADDR_NONE_lto_priv_89
+                0x05AB=Serial
+                0x0648=_ZL11INADDR_NONE_lto_priv_87
+                0x064E=_ZL11INADDR_NONE_lto_priv_86
+                0x0654=_ZL11INADDR_NONE_lto_priv_85
+                0x065A=wiznet_SPI_settings
+                0x065C=_ZL11INADDR_NONE_lto_priv_84
+                0x0662=Ethernet
+                0x068D=_ZL11INADDR_NONE_lto_priv_83
+                0x0693=Wire1
+                0x069F=mbEthernet
+                0x06B4=mbSerial
+                0x06CB=g_AUXOut
+                0x06D5=g_OCDLimit
+                0x06DF=_ZL11INADDR_NONE_lto_priv_82
+                0x06E5=__brkval
+                0x06E7=__flp
+                0x06E9=__bss_end,__heap_start,_end
+
+        45 Unique IO Labels Defined:
+                0x0003=PINB_
+                0x0004=DDRB_
+                0x0005=PORTB_
+                0x0006=PINC_
+                0x0007=DDRC_
+                0x0008=PORTC_
+                0x0009=PIND_
+                0x000A=DDRD_
+                0x000B=PORTD_
+                0x000C=PINE_
+                0x000D=DDRE_
+                0x000E=PORTE_
+                0x0015=TIFR0_
+                0x0016=TIFR1_
+                0x0017=TIFR2_
+                0x0018=TIFR3_
+                0x0019=TIFR4_
+                0x001B=PCIFR_
+                0x001C=EIFR_
+                0x001D=EIMSK_
+                0x001E=GPIOR0_
+                0x001F=EECR_
+                0x0020=EEDR_
+                0x0021=EEADL_
+                0x0022=EEADH_
+                0x0023=GTCCR_
+                0x0024=TCCR0A_
+                0x0025=TCCR0B_
+                0x0026=TCNT0_
+                0x0027=OCRA0_
+                0x0028=OCRB0_
+                0x002A=GPIOR1_
+                0x002B=GPIOR2_
+                0x002C=SPCR0_
+                0x002D=SPSR0_
+                0x002E=SPDR0_
+                0x0030=ACSR_
+                0x0031=DWDR_
+                0x0033=SMCR_
+                0x0034=MCUSR_
+                0x0035=MCUCR_
+                0x0037=SPMCSR_
+                0x003D=SPL_
+                0x003E=SPH_
+                0x003F=SREG_
+
+        2 Unique EE Labels Defined:
+                0x0000=ee_memory
+                0x001C=__eeprom_end
+
+Writing program counter addresses to disassembly file.
+Writing byte value comments for ASCII data in disassembly file.
+
+
+Pass 1 - Finding Code, Data, and Labels...
+
+    Compiling Indirect Code (branch) Table as specified in Control File(s)...
+        67 Indirect Code Vectors:
+                [0x4AD4] -> 0x0A00
+                [0x4AD6] -> 0x0DFE
+                [0x4AD8] -> 0x1C30
+                [0x4ADA] -> 0x09DC
+                [0x4ADC] -> 0x0830
+                [0x4ADE] -> 0x1582
+                [0x4AE0] -> 0x0CE6
+                [0x4AE2] -> 0x16B8
+                [0x4AE4] -> 0x15D6
+                [0x4AE6] -> 0x0B64
+                [0x4AE8] -> 0x0EEE
+                [0x4AEA] -> 0x29C2
+                [0x4AEC] -> 0x0E62
+                [0x4AEE] -> 0x2324
+                [0x4AF0] -> 0x1544
+                [0x4AF2] -> 0x0A54
+                [0x4AF4] -> 0x0A34
+                [0x4AF6] -> 0x0A2C
+                [0x4AF8] -> 0x09C0
+                [0x4AFA] -> 0x09A4
+                [0x4AFC] -> 0x17D4
+                [0x4AFE] -> 0x17A8
+                [0x4B00] -> 0x1798
+                [0x4B02] -> 0x176C
+                [0x4B04] -> 0x175E
+                [0x4B0A] -> 0x02C0
+                [0x4B0C] -> 0x11EC
+                [0x4B0E] -> 0x1C30
+                [0x4B10] -> 0x02BE
+                [0x4B12] -> 0x0D84
+                [0x4B14] -> 0x1510
+                [0x4B16] -> 0x0C9A
+                [0x4B18] -> 0x1388
+                [0x4B1A] -> 0x28DC
+                [0x4B1C] -> 0x1508
+                [0x4B1E] -> 0x1078
+                [0x4B20] -> 0x1032
+                [0x4B22] -> 0x02AE
+                [0x4B24] -> 0x0304
+                [0x4B26] -> 0x0300
+                [0x4B28] -> 0x0298
+                [0x4B2A] -> 0x02EC
+                [0x4B2C] -> 0x08E2
+                [0x4B2E] -> 0x08C6
+                [0x4B30] -> 0x1756
+                [0x4B32] -> 0x172A
+                [0x4B34] -> 0x171A
+                [0x4B3A] -> 0x06CE
+                [0x4B3C] -> 0x05A4
+                [0x4B3E] -> 0x05FE
+                [0x4B40] -> 0x075C
+                [0x4B42] -> 0x0660
+                [0x4B44] -> 0x061C
+                [0x4B46] -> 0x0644
+                [0x4B4C] -> 0x1BD2
+                [0x4B4E] -> 0x1B78
+                [0x4B50] -> 0x1C30
+                [0x4B52] -> 0x1B24
+                [0x4B54] -> 0x1B6A
+                [0x4B56] -> 0x1B44
+                [0x4B58] -> 0x1B26
+                [0x4B5E] -> 0x026C
+                [0x4B60] -> 0x12B2
+                [0x4B62] -> 0x1C30
+                [0x4B64] -> 0x07CA
+                [0x4B66] -> 0x0F62
+                [0x4B6C] -> 0x2E68
+
+    Compiling Indirect Data Table as specified in Control File(s)...
+        0 Indirect Data Vectors
+
+
+CL01B0 CL01A8 CL0192 CL018A CL01C0 CL0246 CL02AA CL02AC CL02BA CL032C
+CL0388 CL042C CL0432 CL047C CL0478 DL0524 DL0525 DL0526 CL04B2 CL04BA
+CL04E8 CL051A CL0540 CL05E6 CL05C4 CL0618 CL063E CL065A CL0688 CL06CC
+CL0714 CL0796 CL077C CL0770 CL076C CL0768 CL07AE CL07C8 CL07F2 CL07DE
+CL0816 CL082A CL0852 DL065B CL08A2 CL094C CL093E CL09FA CL09E2 CL0AC8
+CL0B4E CL0B88 CL0C88 CL0CE0 CL0D14 CL0D70 CL0D5C CL0D90 CL0DEA CL0DD6
+CL0E32 CL0EA2 CL0E72 CL0F18 CL0F44 CL0F5E CL1024 CL0FE8 CL1074 CL106A
+CL106C CL10EC CL10C8 CL109C CL10D8 CL119E CL11E4 CL114C CL11B8 CL1238
+CL134E CL1308 CL13B2 CL14E2 CL14D0 CL14CA CL153E CL155E CL15AA CL15EA
+CL15EC CL15EE CL15FC CL16B4 CL16D8 CL1752 CL1794 CL17D0 CL1838 CL1814
+DL068B DL068A CL1890 CL1948 CL1AC8 CL1B20 CL1B0E CL1B3E CL1B66 CL1BB8
+CL1BBE CL1B9E CL1C24 CL1C04 CL1C5E CL1D08 CL1DA6 CL2320 CL23C4 CL23AE
+CL237C CL2404 CL245A CL2422 CL24A6 DL0664 DL0665 DL0666 DL0667 CL29A4
+CL2A8A CL2ABA CL2ABC CL2ACE CL2AD4 CL2B10 CL2BF6 CL2C1C CL2C32 CL2C70
+CL2C98 CL2D12 CL2D92 CL2DE8 CL2E64 CL2DF6 CL2E42 CL2E22 CL2E98 CL2F74
+CL2F7C CL2F4A DL05BB DL05BC DL05C1 DL05C2 CL302C DL05C4 DL05C5 CL3018
+CL305E CL30F2 DL047C DL047A CL32D2 DL0478 DL0476 CL3374 CL33D8 CL3436
+CL3498 CL350C CL3500 CL3536 DL04EB CL35F0 CL3694 CL3968 DL0584 CL39A6
+DL0585 DL0586 DL0587 CL39F2 CL39B0 CL39E8 CL39D0 DL04E6 DL04E4 DL06B5
+DL06B7 DL06B6 DL06D9 DL06DA DL06CF DL06D0 CL3ACC DL06A0 DL06A2 DL06A1
+DL06BD DL06BC DL06C5 DL06C4 DL05B7 DL05B8 DL05B9 DL05BA DL05C3 DL05BF
+DL05C0 DL05BD DL05BE DL06C7 DL06C6 DL06C9 DL06C8 DL06CA DL068C DL059B
+DL059C DL059D DL059E DL0597 DL0598 DL0599 DL059A DL0593 DL0594 DL0595
+DL0596 DL058F DL0590 DL0591 DL0592 CL3DD2 DL06BA CL3DD8 CL3D86 CL45CC
+DL06E8 CL4606 CL45E8 CL467C CL4734 CL473C DL06E6 CL472C CL47EE CL0148
+CL0144 CL016E CL0166 CL0254 CL025C CL020E CL0224 CL0260 CL0264 CL0268
+CL01EE CL0220 CL0366 CL03DC CL0384 CL044A CL0428 CL0742 CL0724 CL0700
+CL0810 DL04E2 CL0B1E CL0CD4 CL0E9E CL0F3C CL1030 CL0FA4 CL0FFE CL106E
+CL1244 CL125A CL1298 CL129E CL1278 CL1210 CL1260 CL12B0 CL121E CL1416
+CL139E DL0195 CL1426 CL142C CL1442 CL13C4 CL13BA CL13C8 CL13DE CL140E
+CL148C CL146A CL13A2 CL14EA CL1536 CL156A CL1554 CL1558 CL159A CL159E
+CL16A4 CL161C CL1626 CL16AA CL160E CL1604 CL1612 CL1684 CL1706 CL16CA
+CL16CC CL16E8 CL16DE CL16EA CL1742 CL1784 CL17C0 CL1892 CL1996 CL194E
+CL18C0 CL19DA CL199C CL19BA CL18C8 CL19E2 CL1AF8 CL1BFC CL1C1E CL1C7C
+DL04ED DL04EE DL04EF CL1DFA CL2440 CL242E CL2414 CL2462 DL0650 DL0651
+DL0652 DL0653 CL24CC CL28CC CL24E8 CL28D6 CL2522 CL2476 CL25EA CL25BA
+CL25E6 CL25E2 CL25A2 CL25AC CL2636 CL2516 CL26CC CL26E2 CL2646 CL2664
+CL28B8 CL266E CL2678 CL28C2 CL26AA CL2708 CL26C2 CL251A CL26FA CL28B0
+CL26D4 CL2720 CL26B8 CL2768 CL27A2 CL2744 CL278E CL2778 CL27D6 CL27E4
+CL27DE CL27C2 CL27A6 CL2870 CL2862 CL2892 CL2874 CL28A0 CL2B14 CL2B2A
+CL2B40 CL2BFA CL2B5C CL2C06 CL2B66 CL2BB6 CL2BCC CL2B26 CL2B4A CL2BDA
+CL2C6C CL2D0E CL2D5C CL2D34 CL2E0A CL2F32 CL2F3C CL30DC CL3066 CL31B4
+CL30AE CL306E CL31A4 CL309E CL3076 CL3268 CL307C CL30A4 CL30D6 CL30B4
+CL31EE CL30C6 CL30A8 CL3226 CL30CC CL31D6 CL30D2 CL31FE CL30E2 CL31FA
+CL3132 CL30FE CL31AC CL3104 CL310E CL3118 CL3144 CL3170 CL313E CL3230
+CL3182 CL3176 CL30C2 CL317C CL31F6 CL3216 CL31A8 CL31AE CL324E DL0103
+CL3608 CL36CE CL363C CL3662 CL3610 CL36E2 CL368E CL3D02 CL3DDE CL3FCE
+DL06B9 DL06B8 CL3E1E CL3DEE CL3E34 CL3FBE CL3E7E CL3E5A CL3E9C CL3EAE
+DL06BB CL3EC0 CL4184 CL3EDE CL3F24 CL3EFA CL3F68 CL3F46 DL06AB DL06AC
+CL4006 CL41E4 CL4014 CL41D6 CL4022 CL405A CL422C CL4068 CL4092 CL4072
+DL06B2 DL06A5 DL06AF DL06B0 CL40B2 DL06A4 DL06A3 CL40F4 CL40C4 DL06A6
+CL410E CL4214 DL06B1 CL4154 CL417E CL4200 CL4170 CL418A CL41A8 CL41C2
+CL3F98 CL41AA CL3FDC CL4052 CL423A CL4304 CL423E CL432C CL4352 CL43CC
+DL06DD DL06DE CL4396 DL06DB DL06DC CL43A0 DL06D3 DL06D4 CL43C2 DL06D1
+DL06D2 CL3D82 CL44C4 CL454C CL4514 CL459A CL4596 CL4552 CL45A6 CL45B8
+CL4668 CL465E CL4628 CL464C CL4640 CL4636 CL465A CL45DC CL4650 CL4602
+CL462A CL4698 DL0199 DL0197 CL46B6 DL019B CL46EC CL47BC CL473A CL477A
+CL47F8 CL47FE CL47E6 CL474E CL477E CL47B2 
+
+Pass 2 - Disassembling to Output File...
+
+Disassembly Complete

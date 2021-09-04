@@ -9,6 +9,7 @@ enable_testing()
 
 set(GRBL_STAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/grbl")
 set(BUFFALO_STAGE_DIR  "${CMAKE_CURRENT_BINARY_DIR}/buffalo")
+set(TCDAQ_STAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/tcdaq")
 
 # Copy support binary files - Note: You MUST first run the 'get' scripts to retrieve them
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/ASxxxx/asxv5p40/build-asxv5p40/as6811" "${CMAKE_CURRENT_BINARY_DIR}/as6811" COPYONLY)
@@ -274,6 +275,28 @@ add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,oes" COMMAND ${CMAKE_COMMA
 set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,oes" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
 add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,sym" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.sym" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.sym" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
 set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,sym" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+
+# -----------------------------------------------------------------------------
+
+# AVR : ELF Test #2
+# -----------------
+
+# Configure data for tcdaq-elf:
+configure_file(data/avr/tcdaq/tcdaq-elf/tcdaq.elf ${TCDAQ_STAGE_DIR}/tcdaq-elf/tcdaq.elf COPYONLY)
+configure_file(data/avr/tcdaq/tcdaq-elf/tcdaq.ctl ${TCDAQ_STAGE_DIR}/tcdaq-elf/tcdaq.ctl COPYONLY)
+
+# Disassemble tcdaq.elf
+add_test(NAME "tcdaq-elf,dasm" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic avr ${TCDAQ_STAGE_DIR}/tcdaq-elf/tcdaq.ctl > tcdaq.log 2>&1" WORKING_DIRECTORY "${TCDAQ_STAGE_DIR}/tcdaq-elf")
+set_property(TEST "tcdaq-elf,dasm" APPEND PROPERTY FIXTURES_REQUIRED tcdaq.ctl)
+set_property(TEST "tcdaq-elf,dasm" APPEND PROPERTY FIXTURES_REQUIRED tcdaq.elf)
+
+# Compare tcdaq files:
+add_test(NAME "tcdaq-elf,diff,log" COMMAND ${CMAKE_COMMAND} -E compare_files "tcdaq.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/tcdaq/tcdaq-elf/tcdaq.log" WORKING_DIRECTORY "${TCDAQ_STAGE_DIR}/tcdaq-elf")
+set_property(TEST "tcdaq-elf,diff,log" APPEND PROPERTY DEPENDS "tcdaq-elf,dasm")
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "tcdaq-elf,diff,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "tcdaq.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/tcdaq/tcdaq-elf/tcdaq.dis" WORKING_DIRECTORY "${TCDAQ_STAGE_DIR}/tcdaq-elf")
+set_property(TEST "tcdaq-elf,diff,dis" APPEND PROPERTY DEPENDS "tcdaq-elf,dasm")
+endif()
 
 # -----------------------------------------------------------------------------
 
