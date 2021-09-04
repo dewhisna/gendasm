@@ -1,0 +1,231 @@
+GenDasm - Generic Code-Seeking Disassembler
+
+Using: M6811 Disassembler
+
+Reading and Parsing Control File: "buf34.ctl"...
+Loading "buf34.s19" at offset 0x0000 using s19 library...
+
+        1 Source File: buf34.s19
+
+        Disassembly Output File: buf34.dis
+
+        Functions Output File: buf34.fnc
+
+        Memory Mappings:
+            ROM Memory Map:
+                0xE000 - 0xFFFF  (Size: 0x2000)
+            RAM Memory Map:
+                0x0000 - 0x0FFF  (Size: 0x1000)
+             IO Memory Map:
+                0x1000 - 0x103F  (Size: 0x0040)
+             EE Memory Map:
+                0xB600 - 0xB7FF  (Size: 0x0200)
+
+        31 Entry Points:
+                0xFA7A
+                0xFBA5
+                0xFF7C
+                0xFF7F
+                0xFF82
+                0xFF85
+                0xFF88
+                0xFF8B
+                0xFF8E
+                0xFF91
+                0xFF94
+                0xFF97
+                0xFF9A
+                0xFF9D
+                0xFFA0
+                0xFFA3
+                0xFFA6
+                0xFFA9
+                0xFFAC
+                0xFFAF
+                0xFFB2
+                0xFFB5
+                0xFFB8
+                0xFFBB
+                0xFFBE
+                0xFFC1
+                0xFFC4
+                0xFFC7
+                0xFFCA
+                0xFFCD
+                0xFFD0
+
+        0 Exit Functions Defined
+
+        52 Unique ROM Labels Defined:
+                0xFA7A=SWIIN
+                0xFBA5=XIRQIN
+                0xFF7C=_WARMST
+                0xFF7F=_BPCLR
+                0xFF82=_RPRINT
+                0xFF85=_HEXBIN
+                0xFF88=_BUFFAR
+                0xFF8B=_TERMAR
+                0xFF8E=_CHGBYT
+                0xFF91=_READBU
+                0xFF94=_INCBUF
+                0xFF97=_DECBUF
+                0xFF9A=_WSKIP
+                0xFF9D=_CHKABR
+                0xFFA0=_UPCASE
+                0xFFA3=_WCHEK
+                0xFFA6=_DCHEK
+                0xFFA9=_INIT
+                0xFFAC=_INPUT
+                0xFFAF=_OUTPUT
+                0xFFB2=_OUTLHL
+                0xFFB5=_OUTRHL
+                0xFFB8=_OUTA
+                0xFFBB=_OUT1BY
+                0xFFBE=_OUT1BS
+                0xFFC1=_OUT2BS
+                0xFFC4=_OUTCRL
+                0xFFC7=_OUTSTR
+                0xFFCA=_OUTST0
+                0xFFCD=_INCHAR
+                0xFFD0=_VECINT
+                0xFFD6=scivect
+                0xFFD8=spivect
+                0xFFDA=paievect
+                0xFFDC=paovect
+                0xFFDE=tovfvect
+                0xFFE0=ti4o5vect
+                0xFFE2=to4vect
+                0xFFE4=to3vect
+                0xFFE6=to2vect
+                0xFFE8=to1vect
+                0xFFEA=ti3vect
+                0xFFEC=ti2vect
+                0xFFEE=ti1vect
+                0xFFF0=rtivect
+                0xFFF2=irqvect
+                0xFFF4=xirqvect
+                0xFFF6=swivect
+                0xFFF8=ilopvect
+                0xFFFA=copvect
+                0xFFFC=cmonvect
+                0xFFFE=rstvect
+
+        0 Unique RAM Labels Defined
+
+        0 Unique IO Labels Defined
+
+        0 Unique EE Labels Defined
+
+Writing program counter addresses to disassembly file.
+Writing printable data as ASCII in disassembly file.
+
+
+Pass 1 - Finding Code, Data, and Labels...
+
+    Compiling Indirect Code (branch) Table as specified in Control File(s)...
+        35 Indirect Code Vectors:
+                [0xE554] -> 0xEB24
+                [0xE55C] -> 0xE6EE
+                [0xE563] -> 0xE7A9
+                [0xE56D] -> 0xE7AD
+                [0xE574] -> 0xF9FD
+                [0xE57B] -> 0xE7B6
+                [0xE583] -> 0xE84B
+                [0xE58A] -> 0xE89B
+                [0xE58F] -> 0xFA56
+                [0xE596] -> 0xF604
+                [0xE59D] -> 0xFBD1
+                [0xE5A4] -> 0xFC6F
+                [0xE5AD] -> 0xE903
+                [0xE5B4] -> 0xE9D7
+                [0xE5BD] -> 0xFD83
+                [0xE5C7] -> 0xFA44
+                [0xE5D2] -> 0xFDC4
+                [0xE5DB] -> 0xFB2C
+                [0xE5E3] -> 0xFAE7
+                [0xE5EC] -> 0xFC67
+                [0xE5F0] -> 0xF604
+                [0xE5F8] -> 0xFE34
+                [0xE5FC] -> 0xFEAC
+                [0xE602] -> 0xEB24
+                [0xE607] -> 0xE89B
+                [0xE60E] -> 0xE9D7
+                [0xE616] -> 0xE7A9
+                [0xE61B] -> 0xE7B6
+                [0xE620] -> 0xE903
+                [0xE625] -> 0xFDC4
+                [0xE62A] -> 0xFDC4
+                [0xE631] -> 0xE9D7
+                [0xE636] -> 0xFBD1
+                [0xE63D] -> 0xFEAD
+                [0xFFFE] -> 0xE000
+
+    Compiling Indirect Data Table as specified in Control File(s)...
+        0 Indirect Data Vectors
+
+
+L00B2  LFBA8  LFAC7  L0060  L00C1  LFA93  L0069  LE508  LE1F9  L0068
+L0067  L0066  L0064  L0062  L1020  L100B  LE0CE  LE1B8  LE207  LE23A
+LE25D  LE285  LE2F1  LE2F8  LE2FE  LE306  LE329  LE1AD  LE316  LE321
+LE378  LE39E  LE3CA  LE4DE  LE4E2  LE4EC  LE4F0  LE4FF  LE4FC  LE518
+LE51B  LE544  LE357  LE00A  LB600  
+     *** Warning:  Branch Ref: 0xB600 is outside of Loaded Source File.
+L1039  L1024  L1035  L0098  L009A  L00AC  L006B  L00A4  L00A6  L103C
+LE08C  L9800  LE075  LD00C  L00A5  LE34F  LE0B7  LE09E  LE0C1  L00A7
+LE0F9  LE0E1  LE104  LE117  LE113  L00C0  L0096  L0097  L00AE  LE16F
+LE14F  LE16A  LE161  L00A8  LE1A8  LE129  L00B0  LE18B  LE176  LE193
+LE1B7  LE1BD  LE1D9  LE1FD  LE1F3  LE233  LE21F  LE226  LE236  LE25C
+LE249  LE271  LE274  LE284  LE266  LE28F  LE290  LE2A5  LE2AB  LE2A8
+LE2C6  LE2BA  LE2B9  L103B  LE2DE  LE2E1  LE2E9  LE302  LE313  LE320
+LE328  LE346  LE337  LE332  LE343  L4000  LE36A  LE361  LE385  LE449
+LE39B  LE38E  LE488  LE398  LE3F3  L103A  LE3B2  LE459  LE3C8  LE3BB
+LE494  LE3C5  LE41E  LE3D6  LE466  LE3EC  LE3DF  LE4AE  LE3E9  LE429
+L00A9  LD004  LD005  LE428  LE43E  LE438  LE448  L102B  L102C  L102D
+L102E  LE465  L102F  LE47B  LE475  LE487  LE4A5  L00C2  LE4A9  LE4AD
+LE4C8  LE4C7  LE4BF  LE536  LE51C  LE52F  LE6F7  LE785  LE72C  LE70C
+LE71B  LE794  LE729  LE73B  LE761  LE779  LE78D  LE7A0  LE795  LE7B0
+LE2D4  L00AA  LE7F9  LE7F2  LE80D  LE823  LE825  LE816  LE84A  LE801
+LE884  LE894  LE87C  LE8F5  LE8DD  LE8FC  LE8F4  LE920  LE917  LE971
+LE982  LE98B  LE994  LE99D  LE9A3  LE9D3  LE9D6  LE97F  LE929  LE923
+LE9B1  LE9C2  LE9B9  L00C3  LE502  LEA0A  LEA11  LEA14  L00B4  LEA44
+LEA61  LEA60  LEA2A  LEA46  L00BE  LEB41  LEB3D  LF376  LE538  LEC05
+L00BC  LEB77  LEB7A  LE539  LEC4E  LEB98  LEBC7  LEBCA  LEC95  L00B5
+LEBAD  LECCD  LEBBB  L00B6  LEBD4  LEBDB  LEC02  LEBE7  LEBF1  LEBF9
+LEBFE  LEC08  LEC4C  LEC38  LEC14  LEC46  LEC7A  L0091  LEC79  LEC5B
+LEC94  LECA1  LECAC  LEC9E  LECF6  LECD6  LECEC  LED04  LED0D  LED6B
+LED14  LED70  LED1B  LED77  LED22  LEDA6  LED29  LEDB0  LED30  LEDB9
+LED37  LEDC7  LED3E  LEDF9  LED45  LEE1A  LED4C  LEE23  LED53  LEE3B
+LED5A  LEE44  LED61  LEE63  LED68  LEFEC  LEFCE  LED7F  L00B8  LED9A
+L00B9  L00B3  LEEFF  LEDD6  LEDE0  LEF9F  LEDF8  LEE03  LEE0C  LEE2D
+LEE4D  LEE55  LEED9  LEE6D  LEE7C  LEE89  LEE9A  LEEA2  LEEAF  LEEB7
+LEED3  LEEE2  LEEE7  LEEF2  LEEFD  LEF18  LEF35  LEF4E  LEF5D  LEF6C
+LEFE4  LEF2A  LEF47  LEF74  LEF8D  LEFAC  LEFB3  LEFC7  LEAE8  LEFDB
+LEFE1  LEFEB  LF38A  LF389  LF38C  LF3AA  LF441  LF3B4  LF5FB  LF52A
+LF3C1  LF3CB  LF3D5  LF3D3  LF3D8  LF3F6  LF3F2  LF54D  LF40C  LF405
+LF583  LF416  LF427  LF41F  LF5DB  LF42D  LF567  LF43D  LF440  LF46F
+LF44F  LF45C  LF46B  LF5E8  LF477  LF47B  LF488  LF494  LF4AA  LF49C
+LF4A4  LF4B4  LF4C2  LF4F3  LF4D9  LF4E3  LF4EF  LF5A5  LF4FD  LF510
+LF50B  LF50D  LF522  LF540  LF538  L00BA  LF52D  LF579  LF57D  LF57F
+LF590  LF594  LF5C7  LF5BF  LF5CF  LF5D7  LFA15  LFA11  LFA9A  LFB89
+LFB69  LFA6E  LFA6A  LFAB3  LFA9B  L00F5  L00F4  LFADC  LFAC8  LFB08
+LFB04  LFB2B  LFB49  LFB40  LFB5A  LFB62  L00D3  L00F2  L100E  L101E
+LFBDC  LE347  LFC41  LFBFB  LFC06  LFBF8  LFC0D  LFC59  LFC4D  LFBE5
+LFC20  LFC38  LFC2D  LFC3C  LFC63  LFC72  LFC7D  LFC9A  LFCB5  LFCA3
+LFCBE  LFCC8  LFD20  LFD66  LFD10  LFD04  LFCEE  LFD25  LE2E5  LFD2D
+LFD52  LFD65  LFD5B  LFD62  LFD68  LFD71  LFDB3  LFD98  LFDBD  LFDB1
+LFDED  LFDE3  LFDD1  LFDDC  LFE0B  LFE26  LFE22  LFE33  LFDF0  LFE44
+LFE7A  LFE73  LFE60  LFE92  LFE84  LFE91  LFE7F  LFEA7  L1000  LFEDF
+LFED1  LC0B3  
+     *** Warning:  Branch Ref: 0xC0B3 is outside of Loaded Source File.
+
+
+Pass 2 - Disassembling to Output File...
+     *** Warning:  Branch Ref: 0xB600 is outside of Loaded Source File.
+     *** Warning:  Branch Ref: 0xC0B3 is outside of Loaded Source File.
+
+
+Pass 3 - Creating Functions Output File...
+     *** Warning:  Branch Ref: 0xB600 is outside of Loaded Source File.
+     *** Warning:  Branch Ref: 0xC0B3 is outside of Loaded Source File.
+
+Disassembly Complete

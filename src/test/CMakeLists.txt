@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
 set(GRBL_STAGE_DIR "${CMAKE_CURRENT_BINARY_DIR}/grbl")
+set(BUFFALO_STAGE_DIR  "${CMAKE_CURRENT_BINARY_DIR}/buffalo")
 
 # Copy support binary files - Note: You MUST first run the 'get' scripts to retrieve them
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/ASxxxx/asxv5p40/build-asxv5p40/as6811" "${CMAKE_CURRENT_BINARY_DIR}/as6811" COPYONLY)
@@ -18,6 +19,13 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/hex2bin/build-hex2bin/
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/../../support/hex2bin/build-hex2bin/mot2bin" "${CMAKE_CURRENT_BINARY_DIR}/mot2bin" COPYONLY)
 
 # -----------------------------------------------------------------------------
+
+# =============================================================================
+#	Tests for AVR
+# =============================================================================
+
+# AVR : Side-by-Side Compare Test #1
+# ----------------------------------
 
 # Configure data for grbl-v-sainsmart3018:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-v-sainsmart3018/grbl_v1.1f.20170801.hex COPYONLY)
@@ -75,6 +83,9 @@ set_property(TEST "grbl-v-sainsmart3018,funcanal,sym" APPEND PROPERTY DEPENDS "g
 
 # -----------------------------------------------------------------------------
 
+# AVR : Roundtrip with avra Test #1
+# ---------------------------------
+
 # Configure data for grbl-roundtrip:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-roundtrip/grbl_v1.1f.20170801.hex COPYONLY)
 configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.hex ${GRBL_STAGE_DIR}/grbl-roundtrip/SainSmart3018Pro_m328p_flash_original.hex COPYONLY)
@@ -116,6 +127,9 @@ add_test(NAME "grbl-roundtrip,diff_sainsmart3018" COMMAND ${CMAKE_COMMAND} -E co
 set_property(TEST "grbl-roundtrip,diff_sainsmart3018" APPEND PROPERTY DEPENDS "grbl-roundtrip,hex2bin_sainsmart3018")
 
 # -----------------------------------------------------------------------------
+
+# AVR : Roundtrip with asavr Test #1
+# ----------------------------------
 
 # Configure data for grbl-roundtrip-asavr:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801/grbl_v1.1f.20170801.hex ${GRBL_STAGE_DIR}/grbl-roundtrip-asavr/grbl_v1.1f.20170801.hex COPYONLY)
@@ -172,6 +186,9 @@ set_property(TEST "grbl-roundtrip-asavr,diff_sainsmart3018,bin" APPEND PROPERTY 
 
 # -----------------------------------------------------------------------------
 
+# AVR : ELF Test #1
+# -----------------
+
 # Configure data for grbl-elf:
 configure_file(data/avr/grbl/grbl_v1.1f.20170801_arduino_v1.8.8/grbl_v1.1f.20170801_arduino_v1.8.8.elf ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.elf COPYONLY)
 configure_file(data/avr/grbl/elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl ${GRBL_STAGE_DIR}/grbl-elf/grbl_v1.1f.20170801_arduino_v1.8.8.ctl COPYONLY)
@@ -200,6 +217,9 @@ set_property(TEST "grbl-elf,diff_v1.1f.20170801_arduino_v1.8.8,dis" APPEND PROPE
 endif()
 
 # -----------------------------------------------------------------------------
+
+# AVR : Side-by-Side Compare Test #2
+# ----------------------------------
 
 # Configure data for sainsmart3018-v-sainsmartcnc3:
 configure_file(data/avr/grbl/sainsmart-3018pro/SainSmart3018Pro_m328p_flash_original.hex ${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3/SainSmart3018Pro_m328p_flash_original.hex COPYONLY)
@@ -254,6 +274,131 @@ add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,oes" COMMAND ${CMAKE_COMMA
 set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,oes" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
 add_test(NAME "sainsmart3018-v-sainsmartcnc3,funcanal,sym" COMMAND ${CMAKE_COMMAND} -E compare_files "sainsmart3018-v-sainsmartcnc3.sym" "${CMAKE_CURRENT_SOURCE_DIR}/ref/avr/grbl/sainsmart3018-v-sainsmartcnc3/sainsmart3018-v-sainsmartcnc3.sym" WORKING_DIRECTORY "${GRBL_STAGE_DIR}/sainsmart3018-v-sainsmartcnc3")
 set_property(TEST "sainsmart3018-v-sainsmartcnc3,funcanal,sym" APPEND PROPERTY DEPENDS "sainsmart3018-v-sainsmartcnc3,funcanal")
+
+# -----------------------------------------------------------------------------
+
+
+# =============================================================================
+#	Tests for M6811
+# =============================================================================
+
+# M6811 : Side-by-Side Compare Test #1
+# ------------------------------------
+
+# Configure data for buf34-v-buf34_gup:
+configure_file(data/m6811/buffalo/buf34/buf34.s19 ${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup/buf34.s19 COPYONLY)
+configure_file(data/m6811/buffalo/buf34_gup/buf34_gup.s19 ${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup/buf34_gup.s19 COPYONLY)
+configure_file(data/m6811/buffalo/buf34-v-buf34_gup/buf34.ctl ${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup/buf34.ctl COPYONLY)
+configure_file(data/m6811/buffalo/buf34-v-buf34_gup/buf34_gup.ctl ${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup/buf34_gup.ctl COPYONLY)
+
+# Disassemble buf34 firmware for buf34-v-buf34_gup:
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic m6811 ${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup/buf34.ctl > buf34.log 2>&1" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34" APPEND PROPERTY FIXTURES_REQUIRED buf34.ctl)
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34" APPEND PROPERTY FIXTURES_REQUIRED buf34.s19)
+
+# Disassemble buf34_gup firmware for buf34-v-buf34_gup:
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34_gup" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic m6811 ${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup/buf34_gup.ctl > buf34_gup.log 2>&1" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34_gup" APPEND PROPERTY FIXTURES_REQUIRED buf34_gup.ctl)
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34_gup" APPEND PROPERTY FIXTURES_REQUIRED buf34_gup.s19)
+
+# Check buf34 Disassembler Output (must pass the Disassemble test to run these):
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34,log" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34.log" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34,log" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34")
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34.dis" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34,dis" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34")
+endif()
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34,fnc" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34.fnc" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34.fnc" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34,fnc" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34")
+
+# Check buf34_gup Disassembler Output (must pass the Disassemble test to run these):
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34_gup,log" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34_gup.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34_gup.log" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34_gup,log" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34_gup")
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34_gup,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34_gup.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34_gup.dis" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34_gup,dis" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34_gup")
+endif()
+add_test(NAME "buf34-v-buf34_gup,dasm_buf34_gup,fnc" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34_gup.fnc" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34_gup.fnc" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,dasm_buf34_gup,fnc" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34_gup")
+
+# Run Fuzzy-Function Analysis (must pass the function output test to run these):
+add_test(NAME "buf34-v-buf34_gup,funcanal" COMMAND bash -c "$<TARGET_FILE:funcanal> --deterministic -f -ooa -cn buf34-v-buf34_gup.cmp -s buf34-v-buf34_gup.sym -e buf34-v-buf34_gup.oes -dl 2 -dc buf34-v-buf34_gup.dro -mo buf34-v-buf34_gup.mtx buf34.fnc buf34_gup.fnc  > buf34-v-buf34_gup.log 2>&1" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,dasm_buf34,fnc;buf34-v-buf34_gup,dasm_buf34_gup,fnc")
+
+# Check Fuzzy-Function Analysis Output (must pass the Fuzzy-Function Analysis test to run these):
+add_test(NAME "buf34-v-buf34_gup,funcanal,log" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34-v-buf34_gup.log" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34-v-buf34_gup.log" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal,log" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,funcanal")
+add_test(NAME "buf34-v-buf34_gup,funcanal,cmp" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34-v-buf34_gup.cmp" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34-v-buf34_gup.cmp" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal,cmp" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,funcanal")
+add_test(NAME "buf34-v-buf34_gup,funcanal,dro" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34-v-buf34_gup.dro" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34-v-buf34_gup.dro" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal,dro" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,funcanal")
+add_test(NAME "buf34-v-buf34_gup,funcanal,mtx" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34-v-buf34_gup.mtx" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34-v-buf34_gup.mtx" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal,mtx" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,funcanal")
+add_test(NAME "buf34-v-buf34_gup,funcanal,oes" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34-v-buf34_gup.oes" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34-v-buf34_gup.oes" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal,oes" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,funcanal")
+add_test(NAME "buf34-v-buf34_gup,funcanal,sym" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34-v-buf34_gup.sym" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buf34-v-buf34_gup/buf34-v-buf34_gup.sym" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buf34-v-buf34_gup")
+set_property(TEST "buf34-v-buf34_gup,funcanal,sym" APPEND PROPERTY DEPENDS "buf34-v-buf34_gup,funcanal")
+
+# -----------------------------------------------------------------------------
+
+
+# M6811 : Roundtrip with as6811 Test #1
+# -------------------------------------
+
+# Configure data for buffalo-roundtrip:
+configure_file(data/m6811/buffalo/buf34/buf34.s19 ${BUFFALO_STAGE_DIR}/buffalo-roundtrip/buf34.s19 COPYONLY)
+configure_file(data/m6811/buffalo/buf34_gup/buf34_gup.s19 ${BUFFALO_STAGE_DIR}/buffalo-roundtrip/buf34_gup.s19 COPYONLY)
+configure_file(data/m6811/buffalo/roundtrip/buf34.ctl ${BUFFALO_STAGE_DIR}/buffalo-roundtrip/buf34.ctl COPYONLY)
+configure_file(data/m6811/buffalo/roundtrip/buf34_gup.ctl ${BUFFALO_STAGE_DIR}/buffalo-roundtrip/buf34_gup.ctl COPYONLY)
+
+# Disassemble buf34 firmware for buffalo-roundtrip:
+add_test(NAME "buffalo-roundtrip,dasm_buf34" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic m6811 ${BUFFALO_STAGE_DIR}/buffalo-roundtrip/buf34.ctl > buf34.log 2>&1" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,dasm_buf34" APPEND PROPERTY FIXTURES_REQUIRED buf34.ctl)
+set_property(TEST "buffalo-roundtrip,dasm_buf34" APPEND PROPERTY FIXTURES_REQUIRED buf34.s19)
+
+# Disassemble buf34_gup firmware for buffalo-roundtrip:
+add_test(NAME "buffalo-roundtrip,dasm_buf34_gup" COMMAND bash -c "$<TARGET_FILE:gendasm> --deterministic m6811 ${BUFFALO_STAGE_DIR}/buffalo-roundtrip/buf34_gup.ctl > buf34_gup.log 2>&1" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,dasm_buf34_gup" APPEND PROPERTY FIXTURES_REQUIRED buf34_gup.ctl)
+set_property(TEST "buffalo-roundtrip,dasm_buf34_gup" APPEND PROPERTY FIXTURES_REQUIRED buf34_gup.s19)
+
+# Compare buf34.dis for buffalo-roundtrip:
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "buffalo-roundtrip,diff_buf34,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buffalo-roundtrip/buf34.dis" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,diff_buf34,dis" APPEND PROPERTY DEPENDS "buffalo-roundtrip,dasm_buf34")
+endif()
+
+# Compare buf34_gup.dis for buffalo-roundtrip:
+if(FUNC_FLAG_COMMENT)
+add_test(NAME "buffalo-roundtrip,diff_buf34_gup,dis" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34_gup.dis" "${CMAKE_CURRENT_SOURCE_DIR}/ref/m6811/buffalo/buffalo-roundtrip/buf34_gup.dis" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,diff_buf34_gup,dis" APPEND PROPERTY DEPENDS "buffalo-roundtrip,dasm_buf34_gup")
+endif()
+
+# Reassemble buf34 firmware for buffalo-roundtrip:
+add_test(NAME "buffalo-roundtrip,asm_buf34" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/as6811 -o buf34_dis.rel buf34.dis;${CMAKE_CURRENT_BINARY_DIR}/aslink -s buf34_dis.rel" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,asm_buf34" APPEND PROPERTY DEPENDS "buffalo-roundtrip,dasm_buf34")
+
+# Reassemble buf34_gup firmware for buffalo-roundtrip:
+add_test(NAME "buffalo-roundtrip,asm_buf34_gup" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/as6811 -o buf34_gup_dis.rel buf34_gup.dis;${CMAKE_CURRENT_BINARY_DIR}/aslink -s buf34_gup_dis.rel" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,asm_buf34_gup" APPEND PROPERTY DEPENDS "buffalo-roundtrip,dasm_buf34_gup")
+
+# Convert buf34 files from s19 to bin:
+#	Note: Bug in mot2bin requires explicitly specifying "-s 0" even though that's supposed to be the default
+add_test(NAME "buffalo-roundtrip,mot2bin_buf34" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/mot2bin -b -s 0 buf34.s19;${CMAKE_CURRENT_BINARY_DIR}/mot2bin -b -s 0 buf34_dis.s19" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,mot2bin_buf34" APPEND PROPERTY DEPENDS "buffalo-roundtrip,asm_buf34")
+
+# Convert buf34_gup files from s19 to bin:
+#	Note: Bug in mot2bin requires explicitly specifying "-s 0" even though that's supposed to be the default
+add_test(NAME "buffalo-roundtrip,mot2bin_buf34_gup" COMMAND bash -c "${CMAKE_CURRENT_BINARY_DIR}/mot2bin -b buf34_gup.s19;${CMAKE_CURRENT_BINARY_DIR}/mot2bin -b -s 0 buf34_gup_dis.s19" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,mot2bin_buf34_gup" APPEND PROPERTY DEPENDS "buffalo-roundtrip,asm_buf34_gup")
+
+# Compare buf34 files:
+add_test(NAME "buffalo-roundtrip,diff_buf34,bin" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34.bin" "buf34_dis.bin" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,diff_buf34,bin" APPEND PROPERTY DEPENDS "buffalo-roundtrip,mot2bin_buf34")
+
+# Compare buf34_gup files:
+add_test(NAME "buffalo-roundtrip,diff_buf34_gup,bin" COMMAND ${CMAKE_COMMAND} -E compare_files "buf34_gup.bin" "buf34_gup_dis.bin" WORKING_DIRECTORY "${BUFFALO_STAGE_DIR}/buffalo-roundtrip")
+set_property(TEST "buffalo-roundtrip,diff_buf34_gup,bin" APPEND PROPERTY DEPENDS "buffalo-roundtrip,mot2bin_buf34_gup")
+
 
 # -----------------------------------------------------------------------------
 
