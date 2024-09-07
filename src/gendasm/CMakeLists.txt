@@ -1,6 +1,6 @@
 #
 #	Generic Code-Seeking Disassembler
-#	Copyright(c)2021 by Donna Whisnant
+#	Copyright(c)2021-2024 by Donna Whisnant
 #
 
 cmake_minimum_required(VERSION 3.19)
@@ -144,6 +144,20 @@ set(cpu_avr_Headers
 
 # -----------------------------------------------------------------------------
 
+#
+# MCS51 (8051) Disassembler
+#
+
+set(cpu_mcs51_Sources
+	cpu/mcs51/mcs51gdc.cpp
+)
+
+set(cpu_mcs51_Headers
+	cpu/mcs51/mcs51gdc.h
+)
+
+# -----------------------------------------------------------------------------
+
 add_executable(gendasm
 	${gendasm_Sources}
 	${gendasm_Headers}
@@ -165,6 +179,9 @@ add_executable(gendasm
 	# ----
 	${cpu_avr_Sources}
 	${cpu_avr_Headers}
+	# ----
+	${cpu_mcs51_Sources}
+	${cpu_mcs51_Headers}
 )
 
 if(FUNC_FLAG_COMMENT)

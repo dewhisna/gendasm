@@ -20,6 +20,7 @@ patch -p1 < ../asxv5p40_6811_no_opt.patch
 cd asxv5pxx/asxmak/linux/build/
 make all -j 8
 cp as6811 "../../../../"
+cp as8051 "../../../../"
 cp aslink "../../../../"
 cp asavr "../../../../"
 make clean

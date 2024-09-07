@@ -1,6 +1,6 @@
 //
 //	Generic Code-Seeking Disassembler
-//	Copyright(c)2021 by Donna Whisnant
+//	Copyright(c)2021-2024 by Donna Whisnant
 //
 
 #include <stdlib.h>
@@ -22,6 +22,7 @@
 
 #include <cpu/m6811/m6811gdc.h>
 #include <cpu/avr/avrgdc.h>
+#include <cpu/mcs51/mcs51gdc.h>
 
 // ============================================================================
 
@@ -63,6 +64,8 @@ int main(int argc, char *argv[])
 	disassemblers.registerDisassembler(&m6811dis);
 	CAVRDisassembler avrdis;
 	disassemblers.registerDisassembler(&avrdis);
+	CMCS51Disassembler mcs51dis;
+	disassemblers.registerDisassembler(&mcs51dis);
 
 	CDisassembler *pDisassembler = nullptr;
 	bool bDeterministic = false;
@@ -90,7 +93,7 @@ int main(int argc, char *argv[])
 
 	if (!bDeterministic) {
 		std::cout << "GenDasm - Generic Code-Seeking Disassembler v" << formatGDCVersion(m6811dis.GetVersionNumber()) << std::endl;
-		std::cout << "Copyright(c)2021 by Donna Whisnant" << std::endl;
+		std::cout << "Copyright(c)2021-2024 by Donna Whisnant" << std::endl;
 	} else {
 		std::cout << "GenDasm - Generic Code-Seeking Disassembler" << std::endl;
 	}
