@@ -551,7 +551,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			}
 			AddEntry(nAddress);
 			if (argv.size() == 3) {
-				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2))) {
+				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2), true)) {
 					bRetVal = false;
 					m_ParseError = "*** Warning: Duplicate label";
 				}
@@ -653,11 +653,11 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 				bRetVal = false;
 				m_ParseError = "*** Warning: Specified Address is outside of specified Memory Range (" + g_arrstrMemRanges[nType] + ")";
 			}
-			if (!AddLabel(nType, nAddress, false, 0, argv.at(bHaveType ? 3 : 2))) {
+			if (!AddLabel(nType, nAddress, false, 0, argv.at(bHaveType ? 3 : 2), true)) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Duplicate label";
 			}
-			if ((argv.size() > (bHaveType ? 4 : 3)) && !AddComment(nType, nAddress, CComment(CTF_CODE, argv.at(bHaveType ? 4 : 3)))) {
+			if ((argv.size() > (bHaveType ? 4 : 3)) && !AddComment(nType, nAddress, CComment(CTF_ALL, argv.at(bHaveType ? 4 : 3)))) {
 				bRetVal = false;
 				m_ParseError = "*** Warning: Failed to add <comment> field";
 			}
@@ -860,7 +860,7 @@ bool CDisassembler::ParseControlLine(const std::string & strLine, const CStringA
 			m_FunctionEntryTable[nAddress] = FUNCF_ENTRY;	// Exit Function Entry points are also considered start-of functions
 			m_FuncExitAddresses.insert(nAddress);		// Add function exit entry
 			if (argv.size() == 3) {
-				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2))) {
+				if (!AddLabel(MT_ROM, nAddress, false, 0, argv.at(2), true)) {
 					bRetVal = false;
 					m_ParseError = "*** Warning: Duplicate label";
 				}
@@ -3222,7 +3222,7 @@ bool CDisassembler::IsAddressInRange(MEMORY_TYPE nRange, TAddress nAddress)
 
 // ----------------------------------------------------------------------------
 
-bool CDisassembler::AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, bool bAddRef, TAddress nRefAddress, const TLabel & strLabel)
+bool CDisassembler::AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, bool bAddRef, TAddress nRefAddress, const TLabel & strLabel, bool bMakeLabelPrimary)
 {
 	CLabelTableMap::iterator itrLabelTable = m_LabelTable[nMemoryType].find(nAddress);
 	CAddressTableMap::iterator itrRefTable = m_LabelRefTable[nMemoryType].find(nAddress);
@@ -3266,7 +3266,15 @@ bool CDisassembler::AddLabel(MEMORY_TYPE nMemoryType, TAddress nAddress, bool bA
 			return false;		// Don't set Lxxxx entry if we already have at least 1 label!
 		}
 	}
-	itrLabelTable->second.push_back(strLabel);
+	if (bMakeLabelPrimary && !strLabel.empty()) {
+		// Let new label override existing ones by inserting it on the front.
+		//	This allows user-defined labels to override those created by the
+		//	specific MCU in priority.  It also means that if the user adds
+		//	multiple labels, they are inserted in reverse order with this set:
+		itrLabelTable->second.insert(itrLabelTable->second.cbegin(), strLabel);
+	} else {
+		itrLabelTable->second.push_back(strLabel);
+	}
 	return true;
 }
 
