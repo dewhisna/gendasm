@@ -125,7 +125,7 @@ private:
 	std::pair<bool, TAddress> AddressFromOperand(TMCS51Disassembler::TGroupFlags nGroup);	// Returns TAddress and bool that's true if the address is data and false if it's code
 	bool CheckBranchOutside(MEMORY_TYPE nMemoryType, TMCS51Disassembler::TGroupFlags nGroup);
 	TLabel LabelDeref2(MEMORY_TYPE nMemoryType, TAddress nAddress);
-	TLabel LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddress);
+	std::pair<bool, TLabel> LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddress);
 
 	decltype(m_OpMemory)::size_type m_nOpPointer;	// Index into m_OpMemory for start of operands and gets incremented during DecodeOpcode()
 	TAddress m_nStartPC;		// Address for first instruction byte for m_CurrentOpcode during DecodeOpcode(), CreateOperand(), etc.

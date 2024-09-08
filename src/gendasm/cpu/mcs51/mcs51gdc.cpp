@@ -283,14 +283,14 @@ namespace {
 		{ 0xAA, "EX1" },
 		{ 0xAB, "ET1" },
 		{ 0xAC, "ES" },
-		//{ 0xAD, "" },
+		{ 0xAD, "ET2" },
 		//{ 0xAE, "" },
 		{ 0xAF, "EA" },
 		// ----
-		{ 0xB0, "P3.0" },		// P3
-		{ 0xB1, "P3.1" },
-		{ 0xB2, "P3.2" },
-		{ 0xB3, "P3.3" },
+		{ 0xB0, "P3.0", CMCS51Disassembler::CTF_ALL, "RXD" },		// P3
+		{ 0xB1, "P3.1", CMCS51Disassembler::CTF_ALL, "TXD" },
+		{ 0xB2, "P3.2", CMCS51Disassembler::CTF_ALL, "INT0" },
+		{ 0xB3, "P3.3", CMCS51Disassembler::CTF_ALL, "INT1" },
 		{ 0xB4, "P3.4" },
 		{ 0xB5, "P3.5" },
 		{ 0xB6, "P3.6" },
@@ -1535,12 +1535,12 @@ void CMCS51Disassembler::CreateOperand(TMCS51Disassembler::TGroupFlags nGroup, s
 			break;
 
 		case GRP_11BIT_PG_CODE_ADDR:
-			strOpStr += LabelDeref4(MT_ROM, (m_PC & 0xF800) | ((m_OpMemory.at(0) & 0xE0) << 3) | m_OpMemory.at(m_nOpPointer));
+			strOpStr += LabelDeref4(MT_ROM, (m_PC & 0xF800) | ((m_OpMemory.at(0) & 0xE0) << 3) | m_OpMemory.at(m_nOpPointer)).second;
 			m_nOpPointer++;
 			break;
 
 		case GRP_8BIT_REL_CODE_ADDR:
-			strOpStr += LabelDeref4(MT_ROM, m_PC+(signed long)(signed char)(m_OpMemory.at(m_nOpPointer)));
+			strOpStr += LabelDeref4(MT_ROM, m_PC+(signed long)(signed char)(m_OpMemory.at(m_nOpPointer))).second;
 			m_nOpPointer++;
 			break;
 
@@ -1556,13 +1556,23 @@ void CMCS51Disassembler::CreateOperand(TMCS51Disassembler::TGroupFlags nGroup, s
 			break;
 
 		case GRP_16BIT_CONST_DATA:
-			std::sprintf(strTemp, "#%s%04X", GetHexDelim().c_str(), m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
+			if (m_OpMemory.at(0) == 0x90) {		// mov DPTR,#value opcode is usually a loading of data address, see if there's a label/equate and use it:
+				// External memory:
+				std::pair<bool, TLabel> strDataRefLabel = LabelDeref4(MT_RAM, m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
+				if (!strDataRefLabel.first) {
+					// Const data in this ROM:
+					strDataRefLabel = LabelDeref4(MT_ROM, m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
+				}
+				std::sprintf(strTemp, "#%s", strDataRefLabel.second.c_str());
+			} else {
+				std::sprintf(strTemp, "#%s%04X", GetHexDelim().c_str(), m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
+			}
 			strOpStr += strTemp;
 			m_nOpPointer += 2;
 			break;
 
 		case GRP_16BIT_ABS_CODE_ADDR:
-			strOpStr += LabelDeref4(MT_ROM, m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1));
+			strOpStr += LabelDeref4(MT_ROM, m_OpMemory.at(m_nOpPointer)*256+m_OpMemory.at(m_nOpPointer+1)).second;
 			m_nOpPointer += 2;
 			break;
 	}
@@ -1586,6 +1596,10 @@ std::string CMCS51Disassembler::FormatOperandRefComments(TMCS51Disassembler::TGr
 		case GRP_DATA_DPTR:
 		case GRP_8BIT_CONST_DATA:
 		case GRP_16BIT_CONST_DATA:
+			if ((nGroup == GRP_16BIT_CONST_DATA) &&
+				(m_OpMemory.at(0) == 0x90)) {		// mov DPTR,#value opcode is usually a loading of data address, see if there's a label/equate and use it:
+				return FormatUserComments(MT_RAM, MC_EQUATE, m_OpMemory.at(1)*256+m_OpMemory.at(2));
+			}
 			return std::string();
 
 		case GRP_8BIT_DATA_ADDR:
@@ -1690,7 +1704,7 @@ TLabel CMCS51Disassembler::LabelDeref2(MEMORY_TYPE nMemoryType, TAddress nAddres
 	return strTemp;
 }
 
-TLabel CMCS51Disassembler::LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddress)
+std::pair<bool, TLabel> CMCS51Disassembler::LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddress)
 {
 	std::string strTemp;
 	char strCharTemp[30];
@@ -1703,6 +1717,8 @@ TLabel CMCS51Disassembler::LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddres
 		nOffset = nAddress - itrObjectMap->second;
 	}
 
+	bool bFound = true;
+
 	CLabelTableMap::const_iterator itrLabel = m_LabelTable[nMemoryType].find(nBaseAddress);
 	if (itrLabel != m_LabelTable[nMemoryType].cend()) {
 		if (itrLabel->second.size()) {
@@ -1711,6 +1727,7 @@ TLabel CMCS51Disassembler::LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddres
 			strTemp = FormatLabel(nMemoryType, LC_REF, TLabel(), nBaseAddress);
 		}
 	} else {
+		bFound = false;
 		std::sprintf(strCharTemp, "%s%04X", GetHexDelim().c_str(), nBaseAddress);
 		strTemp = strCharTemp;
 	}
@@ -1720,7 +1737,7 @@ TLabel CMCS51Disassembler::LabelDeref4(MEMORY_TYPE nMemoryType, TAddress nAddres
 		strTemp += strCharTemp;
 	}
 
-	return strTemp;
+	return std::pair<bool, TLabel>(bFound, strTemp);
 }
 
 // ============================================================================
