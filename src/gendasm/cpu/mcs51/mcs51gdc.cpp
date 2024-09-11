@@ -244,15 +244,15 @@ namespace {
 		// ----
 		{ 0x88, "IT0" },		// TCON
 		{ 0x89, "IE0" },
-		{ 0x8A, "ITI" },
+		{ 0x8A, "IT1" },
 		{ 0x8B, "IE1" },
 		{ 0x8C, "TR0" },
 		{ 0x8D, "TF0" },
 		{ 0x8E, "TR1" },
 		{ 0x8F, "TF1" },
 		// ----
-		{ 0x90, "P1.0" },		// P1
-		{ 0x91, "P1.1" },
+		{ 0x90, "P1.0", CMCS51Disassembler::CTF_ALL, "T2" },		// P1
+		{ 0x91, "P1.1", CMCS51Disassembler::CTF_ALL, "T2EX" },
 		{ 0x92, "P1.2" },
 		{ 0x93, "P1.3" },
 		{ 0x94, "P1.4" },
@@ -291,17 +291,17 @@ namespace {
 		{ 0xB1, "P3.1", CMCS51Disassembler::CTF_ALL, "TXD" },
 		{ 0xB2, "P3.2", CMCS51Disassembler::CTF_ALL, "INT0" },
 		{ 0xB3, "P3.3", CMCS51Disassembler::CTF_ALL, "INT1" },
-		{ 0xB4, "P3.4" },
-		{ 0xB5, "P3.5" },
-		{ 0xB6, "P3.6" },
-		{ 0xB7, "P3.7" },
+		{ 0xB4, "P3.4", CMCS51Disassembler::CTF_ALL, "T0" },
+		{ 0xB5, "P3.5", CMCS51Disassembler::CTF_ALL, "T1" },
+		{ 0xB6, "P3.6", CMCS51Disassembler::CTF_ALL, "WR" },
+		{ 0xB7, "P3.7", CMCS51Disassembler::CTF_ALL, "RD" },
 		// ----
 		{ 0xB8, "PX0" },		// IP
 		{ 0xB9, "PT0" },
 		{ 0xBA, "PX1" },
 		{ 0xBB, "PT1" },
 		{ 0xBC, "PS" },
-		//{ 0xBD, "" },
+		{ 0xBD, "PT2" },
 		//{ 0xBE, "" },
 		//{ 0xBF, "" },
 		// ----
@@ -313,6 +313,15 @@ namespace {
 		{ 0xC5, "P4.5" },
 		{ 0xC6, "P4.6" },
 		{ 0xC7, "P4.7" },
+		// ----
+		{ 0xC8, "CP_RL2" },		// T2CON
+		{ 0xC9, "C_T2" },
+		{ 0xCA, "TR2" },
+		{ 0xCB, "EXEN2" },
+		{ 0xCC, "TCLK" },
+		{ 0xCD, "RCLK" },
+		{ 0xCE, "EXF2" },
+		{ 0xCF, "TF2" },
 		// ----
 		{ 0xD0, "P" },			// PSW
 		//{ 0xD1, "" },
