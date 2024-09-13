@@ -33,6 +33,9 @@ public:
 	virtual std::string GetGDCLongName() const override;
 	virtual std::string GetGDCShortName() const override;
 
+	virtual CStringArray GetMCUList() const override;
+	virtual bool SetMCU(const std::string &strMCUName) override;
+
 protected:
 	virtual bool ReadNextObj(MEMORY_TYPE nMemoryType, bool bTagMemory, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 	virtual bool CompleteObjRead(MEMORY_TYPE nMemoryType, bool bAddLabels = true, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
@@ -46,6 +49,8 @@ protected:
 	virtual std::string FormatComments(MEMORY_TYPE nMemoryType, MNEMONIC_CODE nMCCode, TAddress nStartAddress) override;
 
 	virtual std::string FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE nLC, const TLabel & strLabel, TAddress nAddress) override;
+
+	virtual bool WriteHeader(std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
 	virtual bool WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock& memBlock, std::ostream& outFile, std::ostream *msgFile = nullptr, std::ostream *errFile = nullptr) override;
 
@@ -131,6 +136,7 @@ private:
 	TAddress m_nStartPC;		// Address for first instruction byte for m_CurrentOpcode during DecodeOpcode(), CreateOperand(), etc.
 
 	int m_nSectionCount;
+	int m_nA5OpcodeLength;		// Number of bytes for 0xA5 Opcode
 };
 
 // ============================================================================

@@ -32,6 +32,7 @@
 //			F = Accumulator+PC Relative '@A+PC'
 //			10 = DPTR Relative '@DPTR'
 //			11 = Not Direct Addressed bit in Internal Data RAM or SFR (Special Function Register), This is addresses whose last 3-bits are 0, and last 3-bits are bit index
+//			12 = ILLOP (for the 0xA5 opcode which is actually used on some 8051 variants)
 //
 
 //
@@ -166,6 +167,7 @@ constexpr TMCS51Disassembler::TGroupFlags GRP_CODE_ACCUM_DPTR = 14;		//			E = Ac
 constexpr TMCS51Disassembler::TGroupFlags GRP_CODE_ACCUM_PC = 15;		//			F = Accumulator+PC Relative '@A+PC'
 constexpr TMCS51Disassembler::TGroupFlags GRP_DATA_DPTR = 16;			//			10 = DPTR Relative '@DPTR'
 constexpr TMCS51Disassembler::TGroupFlags GRP_NOT_BIT_ADDR_DATA_ADDR = 17;	//			11 = Not Direct Addressed bit in Internal Data RAM or SFR (Special Function Register), This is addresses whose last 3-bits are 0, and last 3-bits are bit index
+constexpr TMCS51Disassembler::TGroupFlags GRP_ILLOP = 18;				//			12 = Special 0xA5 illegal opcode
 
 constexpr TMCS51Disassembler::TControlFlags CTL_CODE_ONLY = 0;			//			0 = Disassemble as code
 constexpr TMCS51Disassembler::TControlFlags CTL_CODE_DATA_LABEL = 1;	//			1 = Disassemble as code, with data addr label
@@ -193,6 +195,16 @@ constexpr TMCS51Disassembler::TControlFlags CTL_DET_BRANCH = 3;			//			3 = Disas
 // ----------------------------------------------------------------------------
 
 namespace {
+	typedef std::string TMCU;
+	typedef std::map<TMCU, int> CMCUDeviceMap;		// Mapping of our MCU name to the assembler's Device Name
+
+	static const CMCUDeviceMap g_mapMCUDevice = {
+		{ "a5-1", 1 },
+		{ "a5-2", 2 },
+		{ "a5-3", 3 },
+		{ "a5-4", 4 },
+	};
+
 	struct TEntry
 	{
 		TAddress m_nAddress;
@@ -356,7 +368,8 @@ namespace {
 CMCS51Disassembler::CMCS51Disassembler()
 	:	m_nOpPointer(0),
 	m_nStartPC(0),
-	m_nSectionCount(0)
+	m_nSectionCount(0),
+	m_nA5OpcodeLength(1)
 {
 	//                = ((NBytes: 0; OpCode: (0, 0); Grp: 0; Control: 1; Mnemonic: '???'),
 	m_Opcodes.AddOpcode({ { 0x00 }, { 0xFF }, MAKEOGRP(GRP_OPCODE_ONLY), MAKEOCTL(CTL_CODE_ONLY), "nop" });
@@ -435,7 +448,7 @@ CMCS51Disassembler::CMCS51Disassembler()
 	m_Opcodes.AddOpcode({ { 0xA2 }, { 0xFF }, MAKEOGRP(GRP_CARRY, GRP_BIT_ADDR_DATA_ADDR), MAKEOCTL(CTL_CODE_ONLY, CTL_CODE_DATA_LABEL), "mov" });
 	m_Opcodes.AddOpcode({ { 0xA3 }, { 0xFF }, MAKEOGRP(GRP_DPTR), MAKEOCTL(CTL_CODE_ONLY), "inc" });
 	m_Opcodes.AddOpcode({ { 0xA4 }, { 0xFF }, MAKEOGRP(GRP_AB), MAKEOCTL(CTL_CODE_ONLY), "mul" });
-	m_Opcodes.AddOpcode({ { 0xA5 }, { 0xFF }, MAKEOGRP(GRP_OPCODE_ONLY), MAKEOCTL(CTL_CODE_ONLY), ".byte 0xA5" });
+	m_Opcodes.AddOpcode({ { 0xA5 }, { 0xFF }, MAKEOGRP(GRP_ILLOP, GRP_ILLOP, GRP_ILLOP), MAKEOCTL(CTL_CODE_ONLY, CTL_CODE_ONLY, CTL_CODE_ONLY), ".byte" });
 	m_Opcodes.AddOpcode({ { 0xA6 }, { 0xFE }, MAKEOGRP(GRP_RIND_DATA_ADDR, GRP_8BIT_DATA_ADDR), MAKEOCTL(CTL_CODE_ONLY, CTL_CODE_DATA_LABEL), "mov" });
 	m_Opcodes.AddOpcode({ { 0xA8 }, { 0xF8 }, MAKEOGRP(GRP_REGISTER, GRP_8BIT_DATA_ADDR), MAKEOCTL(CTL_CODE_ONLY, CTL_CODE_DATA_LABEL), "mov" });
 	m_Opcodes.AddOpcode({ { 0xB0 }, { 0xFF }, MAKEOGRP(GRP_CARRY, GRP_NOT_BIT_ADDR_DATA_ADDR), MAKEOCTL(CTL_CODE_ONLY, CTL_CODE_DATA_LABEL), "anl" });
@@ -520,6 +533,28 @@ std::string CMCS51Disassembler::GetGDCLongName() const
 std::string CMCS51Disassembler::GetGDCShortName() const
 {
 	return "MCS51";
+}
+
+// ----------------------------------------------------------------------------
+
+CStringArray CMCS51Disassembler::GetMCUList() const
+{
+	CStringArray arrMCUs;
+	std::transform(g_mapMCUDevice.cbegin(), g_mapMCUDevice.cend(),
+				   std::back_insert_iterator<CStringArray>(arrMCUs),
+				   [](const CMCUDeviceMap::value_type &value)->TString { return value.first; });
+	return arrMCUs;
+}
+
+bool CMCS51Disassembler::SetMCU(const std::string &strMCUName)
+{
+	if (!contains(GetMCUList(), strMCUName)) return false;
+
+	CMCUDeviceMap::const_iterator itrDevice = g_mapMCUDevice.find(strMCUName);
+	assert(itrDevice != g_mapMCUDevice.cend());
+	if (itrDevice != g_mapMCUDevice.cend()) m_nA5OpcodeLength = itrDevice->second;
+
+	return true;
 }
 
 // ----------------------------------------------------------------------------
@@ -838,9 +873,11 @@ std::string CMCS51Disassembler::FormatOperands(MEMORY_TYPE nMemoryType, MNEMONIC
 			m_nStartPC = nStartAddress;			// Get PC of first byte of this instruction for branch references
 
 			CreateOperand(OGRP_DST(), strOpStr);			// Handle Destination operand first
-			if (OGRP_SRC() != GRP_OPCODE_ONLY) strOpStr += ",";
+			if (((OGRP_SRC() != GRP_OPCODE_ONLY) && (OGRP_SRC() != GRP_ILLOP)) ||
+				((OGRP_SRC() == GRP_ILLOP) && (m_nA5OpcodeLength > 2))) strOpStr += ",";
 			CreateOperand(OGRP_SRC(), strOpStr);
-			if (OGRP_SRC2() != GRP_OPCODE_ONLY) strOpStr += ",";
+			if (((OGRP_SRC2() != GRP_OPCODE_ONLY) && (OGRP_SRC2() != GRP_ILLOP)) ||
+				((OGRP_SRC2() == GRP_ILLOP) && (m_nA5OpcodeLength > 3))) strOpStr += ",";
 			CreateOperand(OGRP_SRC2(), strOpStr);			// Handle Source2 operand last
 			break;
 		default:
@@ -1113,6 +1150,33 @@ std::string CMCS51Disassembler::FormatLabel(MEMORY_TYPE nMemoryType, LABEL_CODE 
 
 // ----------------------------------------------------------------------------
 
+bool CMCS51Disassembler::WriteHeader(std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
+{
+	bool bRetVal = CDisassembler::WriteHeader(outFile, msgFile, errFile);	// Call parent
+	CStringArray saOutLine;
+	char strTemp[30];
+
+	if (bRetVal) {
+		ClearOutputLine(saOutLine);
+		saOutLine[FC_ADDRESS] = FormatAddress(0);
+
+		saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+		sprintf(strTemp, "%d", m_nA5OpcodeLength);
+		saOutLine[FC_LABEL] = GetCommentStartDelim() + " Assuming 8051 Opcode 0xA5 Length: " + strTemp + GetCommentEndDelim() + "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+		saOutLine[FC_LABEL] = GetCommentStartDelim() + GetCommentEndDelim() + "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+
+		saOutLine[FC_LABEL].clear();
+		outFile << MakeOutputLine(saOutLine) << "\n";
+		outFile << MakeOutputLine(saOutLine) << "\n";
+	}
+	return bRetVal;
+}
+
+// ----------------------------------------------------------------------------
+
 bool CMCS51Disassembler::WritePreSection(MEMORY_TYPE nMemoryType, const CMemBlock &memBlock, std::ostream& outFile, std::ostream *msgFile, std::ostream *errFile)
 {
 	if (!CDisassembler::WritePreSection(nMemoryType, memBlock, outFile, msgFile, errFile)) return false;
@@ -1276,6 +1340,11 @@ bool CMCS51Disassembler::MoveOpcodeArgs(MEMORY_TYPE nMemoryType, TMCS51Disassemb
 		case GRP_CODE_ACCUM_PC:
 		case GRP_DATA_DPTR:
 			break;
+		case GRP_ILLOP:
+			if (m_OpMemory.size() < m_nA5OpcodeLength) {
+				m_OpMemory.push_back(m_Memory[nMemoryType].element(m_PC++));
+			}
+			break;
 		case GRP_8BIT_DATA_ADDR:				// Opcodes with one additional bytes
 		case GRP_8BIT_CONST_DATA:
 		case GRP_11BIT_PG_CODE_ADDR:
@@ -1308,6 +1377,7 @@ bool CMCS51Disassembler::DecodeOpcode(TMCS51Disassembler::TGroupFlags nGroup, TM
 
 	switch (nGroup) {
 		case GRP_OPCODE_ONLY:					// No operand
+		case GRP_ILLOP:							// Note: we already output all bytes of the opcode so don't do it again as an operand
 			assert(nControl == CTL_CODE_ONLY);
 			break;
 
@@ -1494,6 +1564,19 @@ void CMCS51Disassembler::CreateOperand(TMCS51Disassembler::TGroupFlags nGroup, s
 		case GRP_OPCODE_ONLY:
 			break;
 
+		case GRP_ILLOP:
+			if (strOpStr.empty()) {		// Include main opcode byte with first operand
+				std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), m_OpMemory.at(0));
+				strOpStr += strTemp;
+				if (m_nA5OpcodeLength > 1) strOpStr += ",";
+			}
+			if (m_nOpPointer < m_nA5OpcodeLength) {
+				std::sprintf(strTemp, "%s%02X", GetHexDelim().c_str(), m_OpMemory.at(m_nOpPointer));
+				strOpStr += strTemp;
+				m_nOpPointer++;
+			}
+			break;
+
 		case GRP_REGISTER:
 			std::sprintf(strTemp, "R%d", static_cast<int>(m_OpMemory.at(0) & 0x07));
 			strOpStr += strTemp;
@@ -1594,6 +1677,7 @@ std::string CMCS51Disassembler::FormatOperandRefComments(TMCS51Disassembler::TGr
 
 	switch (nGroup) {
 		case GRP_OPCODE_ONLY:
+		case GRP_ILLOP:
 		case GRP_REGISTER:
 		case GRP_RIND_DATA_ADDR:
 		case GRP_ACCUM:
@@ -1633,6 +1717,7 @@ std::pair<bool, TAddress> CMCS51Disassembler::AddressFromOperand(TMCS51Disassemb
 
 	switch (nGroup) {
 		case GRP_OPCODE_ONLY:
+		case GRP_ILLOP:
 		case GRP_REGISTER:
 		case GRP_RIND_DATA_ADDR:
 		case GRP_ACCUM:
