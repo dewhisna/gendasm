@@ -1,4 +1,7 @@
 ![m6811dis logo](./docs/6811chip.png)  ![AVR logo](./docs/avr1.webp)
+![8051 logo](./docs/Intel_P8051-KL-320px.jpeg)
+
+P8051 CPU Image By Konstantin Lanzet (with permission) - [CPU collection Konstantin Lanzet, CC BY-SA 3.0](https://commons.wikimedia.org/w/index.php?curid=4774266)
 
 Description
 -----------
@@ -11,7 +14,7 @@ The original purpose of the Fuzzy Function Analyzer was to assist in code recove
 
 The reason for fuzzy matching of the functions is because the absolute addresses cause differences in a normal diff even when the code is identical, making it otherwise difficult to discern which function is which.
 
-This disassembler currently supports the M6811 micro and the AVR series of micros and can easily be expanded to include additional micros.
+This disassembler currently supports the M6811 micro, the MCS-51 (8051) Family of micros, and the AVR series of micros, and it can easily be expanded to include additional micros.
 
 The origin of the tool started with the m6809dis and m6811dis code-seeking disassembler tools that I originally created when working with GM automotive engine controllers and with SuperFlow Dynamometers.
 
@@ -20,6 +23,8 @@ Target Assemblers
 -----------------
 
 The M6811DIS portion of this tool targets the 'as6811' assembler in the [ASxxxx Cross Assemblers](https://shop-pdp.net/index.php) by Alan Baldwin at Kent State University.  Note that this assembler requires a patch to remove the direct addressing mode optimization.  That is, opcodes using addresses in the $0000-$00FF range can use a shorter version of the opcode and the assembler is smart enough to figure that out and optimize your code.  However, not all original binary files are properly optimized, and in order to roundtrip to the same non-optimized binary, the optimizer in the assembler must be removed or disabled.  See the corresponding patch in the support folder.
+
+The MCS-51 portion of this tool targets the 'as8051' assembler in the same [ASxxxx Cross Assemblers](https://shop-pdp.net/index.php) mentioned for the 6811.
 
 The AVR portion of this tool targets both the [AVRA, Assembler for the Atmel AVR microcontroller family](https://github.com/Ro5bert/avra), assembler (the primary target assembler), and the 'asavr' assembler in the same [ASxxxx Cross Assemblers](https://shop-pdp.net/index.php) mentioned for the 6811.
 
@@ -35,13 +40,15 @@ The Fuzzy Function Analyzer was first invented in May 2002, following the m6811d
 
 From the start, I had always intended m6811dis to get morphed into a more generic-disassembly platform, but never got around to it.  Then, in June 2021, I found that I needed a Disassembler and Fuzzy-Function Analyzer for the AVR series micros (particularly the ATmega328P and ATmega328PB).  So, I reworked the code again to modernize it to C++20 and bring the Fuzzy-Function Analyzer back from the dead.  I added AVR support, fixed numerous bugs, made things more generic in the support of big-endian vs. little-endian, Harvard vs Von Neumann architecture, RISC vs CISC, byte-opcodes vs word-opcodes, etc.  And thus [gendasm](https://github.com/dewhisna/gendasm) was born.
 
+Then, in June 2024, I needed an 8051-based Disassembler and Fuzzy-Function Analyzer for reverse-engineering the firmware on the TI TAS1020B USB Audio Interface.  At one time, TI made the firmware source code freely available in a firmware development kit, but copies of that kit have mostly vanished from the internet and can't be readily located.  Apparently, once TI labels one of their devices as NRND, they hide and delete all copies of any development resources for those device, ignoring the fact that their customers might still have existing product in the field they need to support.  I guess the moral of that story is that design engineers should avoid using TI devices that require any sort of special development resources or tools.  In any case, this caused me to spend a day or two adding 8051 support to gendasm.
+
 
 License
 -------
 
 GenDasm - Generic Code-Seeking Disassembler Engine
 
-Copyright (c) 2021 Donna Whisnant, a.k.a. Dewtronics.
+Copyright (c) 2021-2024 Donna Whisnant, a.k.a. Dewtronics.
 
 Contact: <http://www.dewtronics.com/>
 
